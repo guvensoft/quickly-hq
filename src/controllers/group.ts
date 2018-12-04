@@ -43,9 +43,9 @@ export const updateGroup = (req: Request, res: Response) => {
 }
 
 export const getGroup = (req: Request, res: Response) => {
-    let userID;
-    ManagementDB.Groups.get(userID).then((obj: any) => {
-        res.send(obj.doc);
+    let groupID = req.params.id;
+    ManagementDB.Groups.get(groupID).then((obj: any) => {
+        res.send(obj);
     }).catch((err) => {
         ////// Error
         res.json({ ok: false, message: 'Belirtilen Grup Bulunamadı.' });

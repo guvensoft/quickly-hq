@@ -63,7 +63,7 @@ export const updateAccount = (req: Request, res: Response) => {
 export const getAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     ManagementDB.Accounts.get(accountID).then((obj: any) => {
-        res.send(obj.doc);
+        res.send(obj);
     }).catch(err => {
         ////// Error
         res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);

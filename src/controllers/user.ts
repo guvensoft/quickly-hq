@@ -60,7 +60,7 @@ export const updateUser = (req: Request, res: Response) => {
 export const getUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	ManagementDB.Users.get(userID).then((obj: any) => {
-		res.send(obj.doc);
+		res.send(obj);
 	}).catch(err => {
 		////// Error
 		res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
@@ -91,7 +91,6 @@ export const queryUsers = (req: Request, res: Response) => {
 		res.send(obj.docs);
 	}).catch(err => {
 		////// Error
-		res.json(err);
-		// res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
+		res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
 	});
 };

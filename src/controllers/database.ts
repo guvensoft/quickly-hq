@@ -58,8 +58,8 @@ export const deleteDatabase = (req: Request, res: Response) => {
 };
 
 export const getDatabase = (req: Request, res: Response) => {
-    let dbID = req.params.id;
-    ManagementDB.Databases.get(dbID).then((obj: any) => {
+    let databaseID = req.params.id;
+    ManagementDB.Databases.get(databaseID).then((obj: any) => {
         res.send(obj.doc);
     }).catch(err => {
         ////// Error
@@ -95,12 +95,16 @@ export const listRemoteDB = (req: Request, res: Response) => {
 
 export const openRemoteDB = (req: Request, res: Response) => {
     ManagementDB.Databases.get(req.params.id).then((db_res: any) => {
-        RemoteDB(db_res.doc[0], req.params.name).allDocs({ include_docs: true }).then(remote_res => {
+        RemoteDB(db_res, req.params.name).allDocs({ include_docs: true }).then(remote_res => {
             res.json(remote_res);
         }).catch(err => {
+            console.log(err);
+            res.json(err)
             ////// Error
         })
     }).catch(err => {
+        console.log(err);
+        res.json(err)
         ////// Error
     });
 };
