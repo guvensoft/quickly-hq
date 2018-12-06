@@ -1,18 +1,19 @@
 import express from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
+import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
 
+//// 19286545426
 const app = express();
 
-//// 19286545426
-
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
-app.use(morgan('combined', { stream: accessLogStream }))
 
+app.use(morgan('combined', { stream: accessLogStream }))
 app.use(compression());
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
