@@ -47,7 +47,7 @@ export const updateAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     let formData = req.body;
     ManagementDB.Accounts.get(accountID).then(obj => {
-        ManagementDB.Accounts.put(formData).then(db_res => {
+        ManagementDB.Accounts.put(Object.assign(obj, formData)).then(db_res => {
             if (db_res.ok) {
                 res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
             }

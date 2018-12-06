@@ -22,8 +22,9 @@ export const createDatabase = (req: Request, res: Response) => {
 
 export const updateDatabase = (req: Request, res: Response) => {
     let dbID = req.params.id;
+    let formData = req.body;
     ManagementDB.Databases.get(dbID).then(obj => {
-        ManagementDB.Databases.put(obj).then(db_res => {
+        ManagementDB.Databases.put(Object.assign(obj, formData)).then(db_res => {
             if (db_res.ok) {
                 res.json({ ok: true, message: 'Veritabanı Düzenlendi' });
             }

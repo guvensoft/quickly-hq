@@ -45,7 +45,7 @@ export const updateUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	let formData = req.body;
 	ManagementDB.Users.get(userID).then(obj => {
-		ManagementDB.Users.put(formData).then(db_res => {
+		ManagementDB.Users.put(Object.assign(obj, formData)).then(db_res => {
 			res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
 		}).catch(err => {
 			////// Error

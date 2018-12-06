@@ -27,8 +27,9 @@ export const createGroup = (req: Request, res: Response) => {
 
 export const updateGroup = (req: Request, res: Response) => {
     let userID;
+    let formData = req.body;
     ManagementDB.Groups.get(userID).then(obj => {
-        ManagementDB.Groups.put(obj).then(db_res => {
+        ManagementDB.Groups.put(Object.assign(obj, formData)).then(db_res => {
             if (db_res.ok) {
                 res.json({ ok: true, message: 'Grup Düzenlendi' });
             }
