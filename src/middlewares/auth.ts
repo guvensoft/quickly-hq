@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { ManagementDB } from '../databases/management'
-import { AuthObject } from '../models/management/auth';
-
 import { AdminHash } from '../configrations/secrets';
 
 export const AuthenticateGuard = (req: Request, res: Response, next: NextFunction) => {
