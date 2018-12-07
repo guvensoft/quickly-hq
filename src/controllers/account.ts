@@ -3,6 +3,7 @@ import * as bcrypt from "bcrypt";
 import { ManagementDB } from "../databases/management";
 import { UserMessages } from '../utils/messages';
 import { Account, AccountStatus } from "../models/management/account";
+import { createLog, LogType } from '../utils/logger';
 
 export const createAccount = (req: Request, res: Response) => {
     let formData = req.body;
@@ -18,22 +19,22 @@ export const createAccount = (req: Request, res: Response) => {
                             ManagementDB.Accounts.post(newAccount).then(db_res => {
                                 res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
                             }).catch(err => {
-                                ////// Error
+                                createLog(req, LogType.DATABASE_ERROR, err);
                                 res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
                             });
                         } else {
-                            ////// Error
+                            createLog(req, LogType.INNER_LIBRARY_ERROR, err);
                             res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
                         }
                     });
                 } else {
-                    ////// Error
+                    createLog(req, LogType.INNER_LIBRARY_ERROR, err);
                     res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
                 }
             });
         }
     }).catch(err => {
-        ////// Error
+        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
     });
 };
@@ -45,10 +46,11 @@ export const updateAccount = (req: Request, res: Response) => {
         ManagementDB.Accounts.put(Object.assign(obj, formData)).then(db_res => {
             res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
         }).catch(err => {
-            ////// Error
+            createLog(req, LogType.DATABASE_ERROR, err);
             res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
         })
     }).catch(err => {
+        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
     });
 }
@@ -58,7 +60,7 @@ export const getAccount = (req: Request, res: Response) => {
     ManagementDB.Accounts.get(accountID).then((obj: any) => {
         res.send(obj);
     }).catch(err => {
-        ////// Error
+        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
     });
 }
@@ -69,11 +71,11 @@ export const deleteAccount = (req: Request, res: Response) => {
         ManagementDB.Accounts.remove(obj).then(db_res => {
             res.status(UserMessages.USER_DELETED.code).json(UserMessages.USER_DELETED.response);
         }).catch(err => {
-            ////// Error
+            createLog(req, LogType.DATABASE_ERROR, err);
             res.status(UserMessages.USER_NOT_DELETED.code).json(UserMessages.USER_NOT_DELETED.response);
         })
     }).catch(err => {
-        ////// Error
+        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
     });
 }
@@ -86,7 +88,7 @@ export const queryAccounts = (req: Request, res: Response) => {
     ManagementDB.Accounts.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
         res.send(obj.docs);
     }).catch(err => {
-        ////// Error
+        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
     });
 };

@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { ManagementDB } from "../databases/management";
 import { User } from "../models/management/users";
 import { AuthObject } from "../models/management/auth";
+import { createLog, LogType } from '../utils/logger';
 
 export let Login = (req: Request, res: Response) => {
     let formData = req.body;
@@ -20,27 +21,32 @@ export let Login = (req: Request, res: Response) => {
                             ManagementDB.Sessions.put(auth_object, {}).then(db_res => {
                                 res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
                             }).catch(err => {
-                                ////// Error
+                                createLog(req, LogType.DATABASE_ERROR, err);
                                 res.json(err)
                             });
                         } else {
                             ManagementDB.Sessions.post(auth_object).then(db_res => {
                                 res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
                             }).catch(err => {
-                                ////// Error
+                                createLog(req, LogType.DATABASE_ERROR, err);
                                 res.json(err);
                             })
                         }
+                    }).catch(err => {
+                        createLog(req, LogType.DATABASE_ERROR, err);
+                        res.json(err);
                     })
                 } else {
-                    ////// Error
+                    createLog(req, LogType.INNER_LIBRARY_ERROR, err);
                     res.json({ ok: false, message: "Hatalı Kullanıcı Adı veya Parola!" });
                 }
             });
         } else {
-            ////// Error
             res.json({ ok: false, message: "Hatalı Kullanıcı Adı veya Parola!" });
         }
+    }).catch(err => {
+        createLog(req, LogType.DATABASE_ERROR, err);
+        res.json(err);
     });
 };
 
@@ -50,11 +56,11 @@ export const Logout = (req: Request, res: Response) => {
         ManagementDB.Sessions.remove(session).then(db_res => {
             res.status(201).json({ ok: true });
         }).catch(err => {
-            ////// Error
+            createLog(req, LogType.DATABASE_ERROR, err);
             res.status(201).json({ ok: false });
         });
     }).catch(err => {
-        ////// Error
+        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(201).json({ ok: false });
     })
 };
@@ -65,11 +71,10 @@ export const Verify = (req: Request, res: Response) => {
         ManagementDB.Sessions.get(AuthToken.toString()).then((session: any) => {
             if (session) {
                 if (session.expire_date < Date.now()) {
-                    ManagementDB.Sessions.remove(session).then(() => {
-                        ////// Error
+                    ManagementDB.Sessions.remove(session).then((db_res) => {
                         res.json({ ok: false, message: 'SESSION EXPIRED' });
                     }).catch(err => {
-                        ////// Error
+                        createLog(req, LogType.DATABASE_ERROR, err);
                         res.json({ ok: false, message: 'NO ACCESSIBLE SESSION' });
                     })
                 } else {
@@ -79,15 +84,13 @@ export const Verify = (req: Request, res: Response) => {
                     res.json({ ok: true, data: session });
                 }
             } else {
-                ////// Error
                 res.json({ ok: false, message: 'NO SESSION' });
             }
         }).catch(err => {
-            ////// Error
+            createLog(req, LogType.DATABASE_ERROR, err);
             res.json({ ok: false, message: 'NO SESSION' });
         })
     } else {
-        ////// Error
         res.json({ ok: false, message: 'NO HEADER' });
     }
 }
