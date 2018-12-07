@@ -16,12 +16,7 @@ export const createAccount = (req: Request, res: Response) => {
                         if (!err) {
                             let newAccount = new Account(formData.username, hashString, formData.fullname, formData.email, formData.phone_number, Date.now(), '', AccountStatus.ACTIVE);
                             ManagementDB.Accounts.post(newAccount).then(db_res => {
-                                if (db_res.ok) {
-                                    res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
-                                } else {
-                                    ////// Error
-                                    res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
-                                }
+                                res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
                             }).catch(err => {
                                 ////// Error
                                 res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
@@ -48,9 +43,7 @@ export const updateAccount = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Accounts.get(accountID).then(obj => {
         ManagementDB.Accounts.put(Object.assign(obj, formData)).then(db_res => {
-            if (db_res.ok) {
-                res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
-            }
+            res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
         }).catch(err => {
             ////// Error
             res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);

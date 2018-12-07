@@ -11,9 +11,7 @@ export const createGroup = (req: Request, res: Response) => {
         } else {
             let userGroup = new UserGroup(formData.name, formData.description, Date.now(), (formData.canRead ? true : false), (formData.canWrite ? true : false), (formData.canEdit ? true : false), (formData.canDelete ? true : false));
             ManagementDB.Groups.post(userGroup).then(db_res => {
-                if (db_res.ok) {
-                    res.json({ ok: true, message: "Grup Oluşturuldu." });
-                }
+                res.json({ ok: true, message: "Grup Oluşturuldu." });
             }).catch((err) => {
                 ////// Error
                 res.json({ ok: false, message: "Grup oluşturulamadı! Lütfen tekrar deneyin." });
@@ -30,9 +28,7 @@ export const updateGroup = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Groups.get(userID).then(obj => {
         ManagementDB.Groups.put(Object.assign(obj, formData)).then(db_res => {
-            if (db_res.ok) {
-                res.json({ ok: true, message: 'Grup Düzenlendi' });
-            }
+            res.json({ ok: true, message: 'Grup Düzenlendi' });
         }).catch((err) => {
             ////// Error
             res.json({ ok: false, message: 'Belirtilen Grup Düzenlenirken Hata Oluştu' });

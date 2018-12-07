@@ -18,24 +18,14 @@ export let Login = (req: Request, res: Response) => {
                             auth_object._id = tokenWillUpdate._id;
                             auth_object._rev = tokenWillUpdate._rev;
                             ManagementDB.Sessions.put(auth_object, {}).then(db_res => {
-                                if (db_res.ok) {
-                                    res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
-                                } else {
-                                    ////// Error
-                                    res.json({ ok: false, message: "Hatalı Oluştu Tekrar Deneyiniz!" });
-                                }
+                                res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
                             }).catch(err => {
                                 ////// Error
                                 res.json(err)
                             });
                         } else {
                             ManagementDB.Sessions.post(auth_object).then(db_res => {
-                                if (db_res.ok) {
-                                    res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
-                                } else {
-                                    ////// Error
-                                    res.json({ ok: false, message: "Hatalı Oluştu Tekrar Deneyiniz!" });
-                                }
+                                res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
                             }).catch(err => {
                                 ////// Error
                                 res.json(err);
@@ -58,12 +48,7 @@ export const Logout = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
     ManagementDB.Sessions.get(AuthToken.toString()).then(session => {
         ManagementDB.Sessions.remove(session).then(db_res => {
-            if (db_res.ok) {
-                res.status(201).json({ ok: true });
-            } else {
-                ////// Error
-                res.status(201).json({ ok: false });
-            }
+            res.status(201).json({ ok: true });
         }).catch(err => {
             ////// Error
             res.status(201).json({ ok: false });
@@ -72,48 +57,6 @@ export const Logout = (req: Request, res: Response) => {
         ////// Error
         res.status(201).json({ ok: false });
     })
-};
-
-export const Register = (req: Request, res: Response) => {
-    let formData = req.body;
-    ManagementDB.Users.find({ selector: { username: formData.username } }).then(user => {
-        if (user.docs.length > 0) {
-            ////// Error
-            res.json({ ok: false, message: "Girmiş olduğunuz Kullanıcı Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz." });
-        } else {
-            if (formData.password == formData.repassword) {
-                bcrypt.genSalt(10, (err, salt) => {
-                    if (!err) {
-                        bcrypt.hash(formData.password, salt, (err, hashString) => {
-                            if (!err) {
-                                let newUser = new User(formData.username, hashString, formData.fullname, formData.email, formData.phone_number, Date.now(), '', formData.group);
-                                ManagementDB.Users.post(newUser).then(db_res => {
-                                    if (db_res.ok) {
-                                        res.json({ ok: true, message: "Hesap oluşturuldu." });
-                                    } else {
-                                        ////// Error
-                                        res.json({ ok: false, message: "Kullanıcı oluşturulamadı! Lütfen tekrar deneyin." });
-                                    }
-                                }).catch(err => {
-                                    ////// Error
-                                    res.json({ ok: false, message: "Kullanıcı oluşturulamadı! Lütfen tekrar deneyin." });
-                                });
-                            } else {
-                                ////// Error
-                                res.json({ ok: false, message: "Kullanıcı oluşturulamadı! Lütfen tekrar deneyin." });
-                            }
-                        });
-                    } else {
-                        ////// Error
-                        res.json({ ok: false, message: "Kullanıcı oluşturulamadı! Lütfen tekrar deneyin." });
-                    }
-                });
-            } else {
-                ////// Error
-                res.json({ ok: false, message: "Girilen parolalar uyuşmuyor! Lütfen kontrol ediniz." });
-            }
-        }
-    });
 };
 
 export const Verify = (req: Request, res: Response) => {

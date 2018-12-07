@@ -8,12 +8,7 @@ export const createDatabase = (req: Request, res: Response) => {
     let formData = req.body;
     let database = new Database(formData.host, formData.port, formData.username, formData.password, formData.codename, Date.now());
     ManagementDB.Databases.post(database).then(db_res => {
-        if (db_res.ok) {
-            res.json({ ok: true, message: 'Veritabanı Eklendi' })
-        } else {
-            ////// Error
-            res.json({ ok: false, message: 'Veritabanı Oluşturulamadı' })
-        }
+        res.json({ ok: true, message: 'Veritabanı Eklendi' })
     }).catch(err => {
         ////// Error
         res.json({ ok: false, message: 'Veritabanı Oluşturulamadı' });
@@ -25,9 +20,7 @@ export const updateDatabase = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Databases.get(dbID).then(obj => {
         ManagementDB.Databases.put(Object.assign(obj, formData)).then(db_res => {
-            if (db_res.ok) {
-                res.json({ ok: true, message: 'Veritabanı Düzenlendi' });
-            }
+            res.json({ ok: true, message: 'Veritabanı Düzenlendi' });
         }).catch(err => {
             ////// Error
             res.json({ ok: false, message: 'Belirtilen Veritabanı Düzenlenirken Hata Oluştu' });
@@ -42,12 +35,7 @@ export const deleteDatabase = (req: Request, res: Response) => {
     let dbID = req.params.id;
     ManagementDB.Databases.get(dbID).then(obj => {
         ManagementDB.Databases.remove(obj).then(db_res => {
-            if (db_res.ok) {
-                res.json({ ok: true, message: 'Veritabanı Silindi' });
-            } else {
-                ////// Error
-                res.json({ ok: false, message: 'Veritabanı Silinirken Hata Oluştu.' });
-            }
+            res.json({ ok: true, message: 'Veritabanı Silindi' });
         }).catch(err => {
             ////// Error
             res.json({ ok: false, message: 'Veritabanı Silinirken Hata Oluştu.' });

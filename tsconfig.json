@@ -26,6 +26,6 @@
         ]
     },
     "include": [
-        "src/**/*", "src/middlewares/.ts"
+        "src/**/*"
     ]
 }
