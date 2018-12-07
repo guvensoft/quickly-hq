@@ -27,7 +27,6 @@ router.post("/auth/verify",
     AuthController.Verify);
 
 // Accounts
-
 router.get("/account/:id",
     AuthenticateGuard,
     AccountController.getAccount);
@@ -51,7 +50,6 @@ router.get("/accounts",
     AccountController.queryAccounts);
 
 // Databases 
-
 router.get("/database/:id",
     AuthenticateGuard,
     DatabaseController.getDatabase);
@@ -110,7 +108,6 @@ router.get("/users",
     UserController.queryUsers);
 
 // Groups
-
 router.get("/group/:id",
     AuthenticateGuard,
     GroupController.getGroup);
