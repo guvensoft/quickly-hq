@@ -5,6 +5,7 @@ import * as AuthController from '../controllers/auth';
 import * as DatabaseController from '../controllers/database';
 import * as UserController from '../controllers/user';
 import * as GroupController from '../controllers/group';
+import * as StoreController from '../controllers/store';
 
 import { AuthenticateGuard } from '../middlewares/auth';
 import { SchemaGuard } from '../middlewares/sanitizer';
@@ -129,5 +130,29 @@ router.delete("/group/:id",
 router.get("/groups",
     AuthenticateGuard,
     GroupController.queryGroups);
+
+// Stores
+router.get("/store/:id",
+    AuthenticateGuard,
+    StoreController.getStore);
+
+router.post("/store",
+    AuthenticateGuard,
+    SchemaGuard(Schema.AccountSchemaSafe),
+    StoreController.createStore);
+
+router.put("/store/:id",
+    AuthenticateGuard,
+    SchemaGuard(Schema.AccountSchema),
+    StoreController.updateStore);
+
+router.delete("/store/:id",
+    AuthenticateGuard,
+    StoreController.deleteStore);
+
+router.get("/store",
+    AuthenticateGuard,
+    StoreController.queryStores);
+
 
 module.exports = router;

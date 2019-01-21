@@ -15,6 +15,7 @@ export const ManagementDB = {
     Databases: new PouchDB('./db/management/databases', DatabaseConfigration),
     Servers: new PouchDB('./db/management/servers', DatabaseConfigration),
     Accounts: new PouchDB('./db/management/accounts', DatabaseConfigration),
+    Stores: new PouchDB('./db/management/stores', DatabaseConfigration),
     Logs: new PouchDB('./db/management/logs', DatabaseConfigration),
     Sessions: new PouchDB('./db/management/sessions', { revs_limit: 3, auto_compaction: true, adapter: 'memory' })
 }

@@ -232,3 +232,62 @@ export const DatabaseMessages = {
         code: 404
     },
 }
+
+export const StoreMessages = {
+    STORE_CREATED: {
+        response: {
+            ok: true,
+            message: "İşletme oluşturuldu.",
+        },
+        code: 201
+    },
+    STORE_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "İşletme oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    STORE_UPDATED: {
+        response: {
+            ok: true,
+            message: "İşletme Düzenlendi.",
+        },
+        code: 200
+    },
+    STORE_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "İşletme Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    STORE_DELETED: {
+        response: {
+            ok: true,
+            message: "İşletme Silindi.",
+        },
+        code: 200
+    },
+    STORE_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "İşletme Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    STORE_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz İşletme Adı mevcut. Lütfen farklı bir İşletme adı giririniz.",
+        },
+        code: 406
+    },
+    STORE_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "İşletme Bulunamadı",
+        },
+        code: 404
+    },
+}
