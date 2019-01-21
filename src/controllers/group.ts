@@ -25,9 +25,9 @@ export const createGroup = (req: Request, res: Response) => {
 };
 
 export const updateGroup = (req: Request, res: Response) => {
-    let userID;
+    let groupID = req.params.id;
     let formData = req.body;
-    ManagementDB.Groups.get(userID).then(obj => {
+    ManagementDB.Groups.get(groupID).then(obj => {
         ManagementDB.Groups.put(Object.assign(obj, formData)).then(db_res => {
             res.status(GroupMessages.GROUP_UPDATED.code).json(GroupMessages.GROUP_UPDATED.response);
         }).catch((err) => {

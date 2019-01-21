@@ -5,7 +5,6 @@ import { CouchDB, RemoteDB } from '../databases/remote';
 import { Database } from '../models/management/database';
 import { createLog, LogType } from '../utils/logger';
 import { DatabaseMessages } from "../utils/messages";
-import { json } from "body-parser";
 
 export const createDatabase = (req: Request, res: Response) => {
     let formData = req.body;
@@ -19,9 +18,9 @@ export const createDatabase = (req: Request, res: Response) => {
 };
 
 export const updateDatabase = (req: Request, res: Response) => {
-    let dbID = req.params.id;
+    let databaseID = req.params.id;
     let formData = req.body;
-    ManagementDB.Databases.get(dbID).then(obj => {
+    ManagementDB.Databases.get(databaseID).then(obj => {
         ManagementDB.Databases.put(Object.assign(obj, formData)).then(db_res => {
             res.status(DatabaseMessages.DATABASE_UPDATED.code).json(DatabaseMessages.DATABASE_UPDATED.response);
         }).catch(err => {
@@ -35,8 +34,8 @@ export const updateDatabase = (req: Request, res: Response) => {
 };
 
 export const deleteDatabase = (req: Request, res: Response) => {
-    let dbID = req.params.id;
-    ManagementDB.Databases.get(dbID).then(obj => {
+    let databaseID = req.params.id;
+    ManagementDB.Databases.get(databaseID).then(obj => {
         ManagementDB.Databases.remove(obj).then(db_res => {
             res.status(DatabaseMessages.DATABASE_DELETED.code).json(DatabaseMessages.DATABASE_DELETED.response);
         }).catch(err => {
