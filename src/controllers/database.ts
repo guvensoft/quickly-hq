@@ -4,15 +4,17 @@ import { SocialDB } from '../databases/social';
 import { CouchDB, RemoteDB } from '../databases/remote';
 import { Database } from '../models/management/database';
 import { createLog, LogType } from '../utils/logger';
+import { DatabaseMessages } from "../utils/messages";
+import { json } from "body-parser";
 
 export const createDatabase = (req: Request, res: Response) => {
     let formData = req.body;
     let database = new Database(formData.host, formData.port, formData.username, formData.password, formData.codename, Date.now());
     ManagementDB.Databases.post(database).then(db_res => {
-        res.json({ ok: true, message: 'Veritabanı Eklendi' })
+        res.status(DatabaseMessages.DATABASE_CREATED.code).json(DatabaseMessages.DATABASE_CREATED.response);
     }).catch(err => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Veritabanı Oluşturulamadı' });
+        res.status(DatabaseMessages.DATABASE_NOT_CREATED.code).json(DatabaseMessages.DATABASE_NOT_CREATED.response);
     })
 };
 
@@ -21,14 +23,14 @@ export const updateDatabase = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Databases.get(dbID).then(obj => {
         ManagementDB.Databases.put(Object.assign(obj, formData)).then(db_res => {
-            res.json({ ok: true, message: 'Veritabanı Düzenlendi' });
+            res.status(DatabaseMessages.DATABASE_UPDATED.code).json(DatabaseMessages.DATABASE_UPDATED.response);
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
-            res.json({ ok: false, message: 'Belirtilen Veritabanı Düzenlenirken Hata Oluştu' });
+            res.status(DatabaseMessages.DATABASE_NOT_UPDATED.code).json(DatabaseMessages.DATABASE_NOT_UPDATED.response);
         })
     }).catch(err => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Belirtilen Veritabanı Bulunamadı.' });
+        res.status(DatabaseMessages.DATABASE_NOT_EXIST.code).json(DatabaseMessages.DATABASE_NOT_EXIST.response);
     });
 };
 
@@ -36,14 +38,14 @@ export const deleteDatabase = (req: Request, res: Response) => {
     let dbID = req.params.id;
     ManagementDB.Databases.get(dbID).then(obj => {
         ManagementDB.Databases.remove(obj).then(db_res => {
-            res.json({ ok: true, message: 'Veritabanı Silindi' });
+            res.status(DatabaseMessages.DATABASE_DELETED.code).json(DatabaseMessages.DATABASE_DELETED.response);
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
-            res.json({ ok: false, message: 'Veritabanı Silinirken Hata Oluştu.' });
+            res.status(DatabaseMessages.DATABASE_NOT_DELETED.code).json(DatabaseMessages.DATABASE_NOT_DELETED.response);
         })
     }).catch(err => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Belirtilen Veritabanı Bulunamadı.' });
+        res.status(DatabaseMessages.DATABASE_NOT_EXIST.code).json(DatabaseMessages.DATABASE_NOT_EXIST.response);
     });
 };
 
@@ -53,7 +55,7 @@ export const getDatabase = (req: Request, res: Response) => {
         res.send(obj.doc);
     }).catch(err => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Belirtilen Veritabanı Bulunamadı.' });
+        res.status(DatabaseMessages.DATABASE_NOT_EXIST.code).json(DatabaseMessages.DATABASE_NOT_EXIST.response);
     });
 };
 

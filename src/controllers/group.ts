@@ -1,25 +1,26 @@
 import { Response, Request } from "express";
 import { ManagementDB } from "../databases/management";
 import { UserGroup } from "../models/management/users";
+import { GroupMessages } from "../utils/messages";
 import { createLog, LogType } from '../utils/logger';
 
 export const createGroup = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Groups.find({ selector: { name: formData.name } }).then(group => {
         if (group.docs.length > 0) {
-            res.json({ ok: false, message: "Girmiş olduğunuz Grup Adı mevcut. Lütfen farklı bir Grup Adı giririniz." });
+            res.status(GroupMessages.GROUP_EXIST.code).json(GroupMessages.GROUP_EXIST.response);
         } else {
             let userGroup = new UserGroup(formData.name, formData.description, Date.now(), (formData.canRead ? true : false), (formData.canWrite ? true : false), (formData.canEdit ? true : false), (formData.canDelete ? true : false));
             ManagementDB.Groups.post(userGroup).then(db_res => {
-                res.json({ ok: true, message: "Grup Oluşturuldu." });
+                res.status(GroupMessages.GROUP_CREATED.code).json(GroupMessages.GROUP_CREATED.response);
             }).catch((err) => {
                 createLog(req, LogType.DATABASE_ERROR, err);
-                res.json({ ok: false, message: "Grup oluşturulamadı! Lütfen tekrar deneyin." });
+                res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
             })
         }
     }).catch((err) => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: "Grup oluşturulamadı! Lütfen tekrar deneyin." });
+        res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
     });
 };
 
@@ -28,14 +29,14 @@ export const updateGroup = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Groups.get(userID).then(obj => {
         ManagementDB.Groups.put(Object.assign(obj, formData)).then(db_res => {
-            res.json({ ok: true, message: 'Grup Düzenlendi' });
+            res.status(GroupMessages.GROUP_UPDATED.code).json(GroupMessages.GROUP_UPDATED.response);
         }).catch((err) => {
             createLog(req, LogType.DATABASE_ERROR, err);
-            res.json({ ok: false, message: 'Belirtilen Grup Düzenlenirken Hata Oluştu' });
+            res.status(GroupMessages.GROUP_NOT_UPDATED.code).json(GroupMessages.GROUP_NOT_UPDATED.response);
         })
     }).catch((err) => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Belirtilen Grup Bulunamadı.' });
+        res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
     });
 }
 
@@ -45,7 +46,7 @@ export const getGroup = (req: Request, res: Response) => {
         res.send(obj);
     }).catch((err) => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Belirtilen Grup Bulunamadı.' });
+        res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
     });
 }
 
@@ -53,14 +54,14 @@ export const deleteGroup = (req: Request, res: Response) => {
     let userID = req.params.id;
     ManagementDB.Groups.get(userID).then(obj => {
         ManagementDB.Groups.remove(obj).then(() => {
-            res.json({ ok: true, message: 'Grup Silindi' });
+        res.status(GroupMessages.GROUP_DELETED.code).json(GroupMessages.GROUP_DELETED.response);
         }).catch((err) => {
             createLog(req, LogType.DATABASE_ERROR, err);
-            res.json({ ok: false, message: 'Grup Silinirken Hata Oluştu.' });
+        res.status(GroupMessages.GROUP_NOT_DELETED.code).json(GroupMessages.GROUP_NOT_DELETED.response);
         })
     }).catch((err) => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Belirtilen Grup Bulunamadı.' });
+        res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
     });
 }
 
