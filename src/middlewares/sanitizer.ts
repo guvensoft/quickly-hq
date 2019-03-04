@@ -6,6 +6,7 @@ export const SchemaGuard = (schema: joi.ObjectSchema) => {
         joi.validate(req.body, schema).then(res => {
             next();
         }).catch(err => {
+            console.log(err);
             res.status(400).json({ ok: false, message: 'Unvalid Schema' });
         })
     }

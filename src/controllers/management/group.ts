@@ -1,26 +1,26 @@
-import { Response, Request } from "express";
-import { ManagementDB } from "../databases/management";
-import { UserGroup } from "../models/management/users";
-import { GroupMessages } from "../utils/messages";
-import { createLog, LogType } from '../utils/logger';
+import { Request, Response } from "express";
+import { ManagementDB } from "../../databases/management";
+import { Group } from "../../models/management/users";
+import { createLog, LogType } from '../../utils/logger';
+import { GroupMessages } from "../../utils/messages";
 
 export const createGroup = (req: Request, res: Response) => {
-    let formData = req.body;
-    ManagementDB.Groups.find({ selector: { name: formData.name } }).then(group => {
+    let newGroup: Group = req.body;
+    ManagementDB.Groups.find({ selector: { name: newGroup.name } }).then(group => {
         if (group.docs.length > 0) {
             res.status(GroupMessages.GROUP_EXIST.code).json(GroupMessages.GROUP_EXIST.response);
         } else {
-            let userGroup = new UserGroup(formData.name, formData.description, Date.now(), (formData.canRead ? true : false), (formData.canWrite ? true : false), (formData.canEdit ? true : false), (formData.canDelete ? true : false));
-            ManagementDB.Groups.post(userGroup).then(db_res => {
+            newGroup.timestamp = Date.now();
+            ManagementDB.Groups.post(newGroup).then(db_res => {
                 res.status(GroupMessages.GROUP_CREATED.code).json(GroupMessages.GROUP_CREATED.response);
             }).catch((err) => {
-                createLog(req, LogType.DATABASE_ERROR, err);
                 res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
+                createLog(req, LogType.DATABASE_ERROR, err);
             })
         }
     }).catch((err) => {
-        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
+        createLog(req, LogType.DATABASE_ERROR, err);
     });
 };
 
@@ -31,12 +31,12 @@ export const updateGroup = (req: Request, res: Response) => {
         ManagementDB.Groups.put(Object.assign(obj, formData)).then(db_res => {
             res.status(GroupMessages.GROUP_UPDATED.code).json(GroupMessages.GROUP_UPDATED.response);
         }).catch((err) => {
-            createLog(req, LogType.DATABASE_ERROR, err);
             res.status(GroupMessages.GROUP_NOT_UPDATED.code).json(GroupMessages.GROUP_NOT_UPDATED.response);
+            createLog(req, LogType.DATABASE_ERROR, err);
         })
     }).catch((err) => {
-        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
+        createLog(req, LogType.DATABASE_ERROR, err);
     });
 }
 
@@ -45,8 +45,8 @@ export const getGroup = (req: Request, res: Response) => {
     ManagementDB.Groups.get(groupID).then((obj: any) => {
         res.send(obj);
     }).catch((err) => {
-        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
+        createLog(req, LogType.DATABASE_ERROR, err);
     });
 }
 
@@ -54,14 +54,14 @@ export const deleteGroup = (req: Request, res: Response) => {
     let userID = req.params.id;
     ManagementDB.Groups.get(userID).then(obj => {
         ManagementDB.Groups.remove(obj).then(() => {
-        res.status(GroupMessages.GROUP_DELETED.code).json(GroupMessages.GROUP_DELETED.response);
+            res.status(GroupMessages.GROUP_DELETED.code).json(GroupMessages.GROUP_DELETED.response);
         }).catch((err) => {
+            res.status(GroupMessages.GROUP_NOT_DELETED.code).json(GroupMessages.GROUP_NOT_DELETED.response);
             createLog(req, LogType.DATABASE_ERROR, err);
-        res.status(GroupMessages.GROUP_NOT_DELETED.code).json(GroupMessages.GROUP_NOT_DELETED.response);
         })
     }).catch((err) => {
-        createLog(req, LogType.DATABASE_ERROR, err);
         res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
+        createLog(req, LogType.DATABASE_ERROR, err);
     });
 }
 
@@ -73,7 +73,7 @@ export const queryGroups = (req: Request, res: Response) => {
     ManagementDB.Groups.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
         res.send(obj.docs);
     }).catch((err) => {
+        res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.json({ ok: false, message: 'Grup Sorgusunda Hata!' });
     });
 };

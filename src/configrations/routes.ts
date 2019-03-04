@@ -1,11 +1,11 @@
 import { Router } from 'express';
 
-import * as AccountController from '../controllers/account';
-import * as AuthController from '../controllers/auth';
-import * as DatabaseController from '../controllers/database';
-import * as UserController from '../controllers/user';
-import * as GroupController from '../controllers/group';
-import * as StoreController from '../controllers/store';
+import * as AuthController from '../controllers/management/auth';
+import * as UserController from '../controllers/management/user';
+import * as GroupController from '../controllers/management/group';
+import * as StoreController from '../controllers/management/store';
+import * as AccountController from '../controllers/management/account';
+import * as DatabaseController from '../controllers/management/database';
 
 import { AuthenticateGuard } from '../middlewares/auth';
 import { SchemaGuard } from '../middlewares/sanitizer';
@@ -71,8 +71,9 @@ router.delete("/database/:id",
 
 router.get("/databases",
     AuthenticateGuard,
-    DatabaseController.queryDatabase);
+    DatabaseController.queryDatabases);
 
+// RemoteDB
 router.get("/database/remote/:id",
     AuthenticateGuard,
     DatabaseController.listRemoteDB);
@@ -80,6 +81,10 @@ router.get("/database/remote/:id",
 router.get("/database/remote/:id/:db",
     AuthenticateGuard,
     DatabaseController.openRemoteDB)
+
+router.put("/database/remote/:id/:db",
+    AuthenticateGuard,
+    DatabaseController.createCollectionDB);
 
 router.get("/database/social/:db",
     AuthenticateGuard,
@@ -153,6 +158,12 @@ router.delete("/store/:id",
 router.get("/store",
     AuthenticateGuard,
     StoreController.queryStores);
+    
+// Utils
+router.get("/images/:text",
+    StoreController.getImage);
 
+router.get("/venues/:text",
+    StoreController.getVenues);
 
 module.exports = router;

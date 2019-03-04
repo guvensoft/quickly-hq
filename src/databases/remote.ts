@@ -14,3 +14,7 @@ export const CouchDB = (database: Database) => {
 export const RemoteDB = (database: Database, collection: string) => {
     return new PouchDB(`http://${database.username}:${database.password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
 }
+
+export const RemoteCollection = (database: Database, collection: string , username:string, password:string) => {
+    return new PouchDB(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
+}

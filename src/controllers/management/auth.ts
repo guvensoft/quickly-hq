@@ -1,9 +1,9 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { ManagementDB } from "../databases/management";
-import { User } from "../models/management/users";
-import { AuthObject } from "../models/management/auth";
-import { createLog, LogType } from '../utils/logger';
+import { ManagementDB } from "../../databases/management";
+import { User } from "../../models/management/users";
+import { AuthObject } from "../../models/management/auth";
+import { createLog, LogType } from '../../utils/logger';
 
 export let Login = (req: Request, res: Response) => {
     let formData = req.body;
@@ -19,14 +19,14 @@ export let Login = (req: Request, res: Response) => {
                             auth_object._id = tokenWillUpdate._id;
                             auth_object._rev = tokenWillUpdate._rev;
                             ManagementDB.Sessions.put(auth_object, {}).then(db_res => {
-                                res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
+                                res.status(201).json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
                                 res.json(err)
                             });
                         } else {
                             ManagementDB.Sessions.post(auth_object).then(db_res => {
-                                res.json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
+                                res.status(201).json({ ok: true, message: "Giriş Başarılı", token: db_res.id });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
                                 res.json(err);
@@ -54,14 +54,14 @@ export const Logout = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
     ManagementDB.Sessions.get(AuthToken.toString()).then(session => {
         ManagementDB.Sessions.remove(session).then(db_res => {
-            res.status(201).json({ ok: true });
+            res.status(201).json({ ok: true, message:'Oturum Kapatıldı' });
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
-            res.status(201).json({ ok: false });
+            res.status(201).json({ ok: false, message:'Oturum Kapatılamadı' });
         });
     }).catch(err => {
         createLog(req, LogType.DATABASE_ERROR, err);
-        res.status(201).json({ ok: false });
+        res.status(201).json({ ok: false, message:'Oturum Kapatılamadı' });
     })
 };
 
@@ -81,7 +81,7 @@ export const Verify = (req: Request, res: Response) => {
                     delete session._id;
                     delete session._rev;
                     delete session.timestamp;
-                    res.json({ ok: true, data: session });
+                    res.json({ ok: true, message: 'Kullanıcı Oturumu Onaylandı', data: session });
                 }
             } else {
                 res.json({ ok: false, message: 'NO SESSION' });

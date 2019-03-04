@@ -16,6 +16,7 @@ export class Store {
         public logo: string,
         public settings: StoreSettings,
         public status: StoreStatus,
+        public timestamp: number,
         public _id?: string,
         public _rev?: string
     ) { }
