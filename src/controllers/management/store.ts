@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import fetch from "node-fetch";
 import request from 'request';
+import * as bcrypt from "bcrypt";
 import { ManagementDB } from "../../databases/management";
 import { Store } from "../../models/social/stores";
 import { createLog, LogType } from '../../utils/logger';
 import { StoreMessages } from "../../utils/messages";
+
 
 export const createStore = (req: Request, res: Response) => {
     let newStore: Store = req.body;
@@ -13,6 +15,8 @@ export const createStore = (req: Request, res: Response) => {
             res.status(StoreMessages.STORE_EXIST.code).json(StoreMessages.STORE_EXIST.response);
         } else {
             newStore.timestamp = Date.now();
+            newStore.auth.database_user = bcrypt.genSaltSync();
+            newStore.auth.database_password = bcrypt.hashSync(newStore.auth.database_name, bcrypt.genSaltSync());
             ManagementDB.Stores.post(newStore).then(db_res => {
                 res.status(StoreMessages.STORE_CREATED.code).json(StoreMessages.STORE_CREATED.response);
             }).catch((err) => {
@@ -81,6 +85,7 @@ export const queryStores = (req: Request, res: Response) => {
 };
 
 export const getImage = (req: Request, res: Response) => {
+
     // q={searchTerms}
     // num={count?}
     // start={startIndex?}
@@ -149,6 +154,7 @@ export const getVenues = (req: Request, res: Response) => {
         if (err) {
             console.error(err);
         } else {
+
             // res.json(JSON.parse(body));
             // request({
             //     uri: 'https://api.foursquare.com/v2/venues/54a5a527498eb4b58d8e0864/photos',
@@ -162,6 +168,7 @@ export const getVenues = (req: Request, res: Response) => {
             // }, (err, response, body) => {
             //     res.json(JSON.parse(body));
             // })
+
         }
     });
 }

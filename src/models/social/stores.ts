@@ -14,12 +14,20 @@ export class Store {
         public motto: string,
         public description: string,
         public logo: string,
+        public auth: StoreAuth,
         public settings: StoreSettings,
         public status: StoreStatus,
         public timestamp: number,
         public _id?: string,
         public _rev?: string
     ) { }
+}
+
+export interface StoreAuth {
+    database_id: string,
+    database_name: string,
+    database_user: string,
+    database_password: string,
 }
 
 export interface StoreSettings {
