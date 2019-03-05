@@ -155,7 +155,7 @@ router.delete("/store/:id",
     AuthenticateGuard,
     StoreController.deleteStore);
 
-router.get("/store",
+router.get("/stores",
     AuthenticateGuard,
     StoreController.queryStores);
     
