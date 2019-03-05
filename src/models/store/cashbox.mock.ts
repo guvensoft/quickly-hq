@@ -13,7 +13,7 @@ export class Cashbox {
 }
 
 export enum CashboxType {
-    PASSIVE,
-    INCOME,
-    OUTCOME
+  PASSIVE,
+  INCOME,
+  OUTCOME
 }
