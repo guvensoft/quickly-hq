@@ -18,7 +18,7 @@ export const createAccount = (req: Request, res: Response) => {
                             newAccount.password = hashedPassword;
                             newAccount.status = AccountStatus.ACTIVE;
                             newAccount.timestamp = Date.now();
-                            ManagementDB.Accounts.post(newAccount).then(db_res => {
+                            ManagementDB.Accounts.post(newAccount).then(() => {
                                 res.status(AccountMessages.ACCOUNT_CREATED.code).json(AccountMessages.ACCOUNT_CREATED.response);
                             }).catch(err => {
                                 res.status(AccountMessages.ACCOUNT_NOT_CREATED.code).json(AccountMessages.ACCOUNT_NOT_CREATED.response);
@@ -45,7 +45,7 @@ export const updateAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     let formData = req.body;
     ManagementDB.Accounts.get(accountID).then(obj => {
-        ManagementDB.Accounts.put(Object.assign(obj, formData)).then(db_res => {
+        ManagementDB.Accounts.put(Object.assign(obj, formData)).then(() => {
             res.status(AccountMessages.ACCOUNT_UPDATED.code).json(AccountMessages.ACCOUNT_UPDATED.response);
         }).catch(err => {
             res.status(AccountMessages.ACCOUNT_UPDATED.code).json(AccountMessages.ACCOUNT_UPDATED.response);
@@ -70,7 +70,7 @@ export const getAccount = (req: Request, res: Response) => {
 export const deleteAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     ManagementDB.Accounts.get(accountID).then(obj => {
-        ManagementDB.Accounts.remove(obj).then(db_res => {
+        ManagementDB.Accounts.remove(obj).then(() => {
             res.status(AccountMessages.ACCOUNT_DELETED.code).json(AccountMessages.ACCOUNT_DELETED.response);
         }).catch(err => {
             res.status(AccountMessages.ACCOUNT_NOT_DELETED.code).json(AccountMessages.ACCOUNT_NOT_DELETED.response);

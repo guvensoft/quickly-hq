@@ -11,7 +11,7 @@ export const createGroup = (req: Request, res: Response) => {
             res.status(GroupMessages.GROUP_EXIST.code).json(GroupMessages.GROUP_EXIST.response);
         } else {
             newGroup.timestamp = Date.now();
-            ManagementDB.Groups.post(newGroup).then(db_res => {
+            ManagementDB.Groups.post(newGroup).then(() => {
                 res.status(GroupMessages.GROUP_CREATED.code).json(GroupMessages.GROUP_CREATED.response);
             }).catch((err) => {
                 res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
@@ -28,7 +28,7 @@ export const updateGroup = (req: Request, res: Response) => {
     let groupID = req.params.id;
     let formData = req.body;
     ManagementDB.Groups.get(groupID).then(obj => {
-        ManagementDB.Groups.put(Object.assign(obj, formData)).then(db_res => {
+        ManagementDB.Groups.put(Object.assign(obj, formData)).then(() => {
             res.status(GroupMessages.GROUP_UPDATED.code).json(GroupMessages.GROUP_UPDATED.response);
         }).catch((err) => {
             res.status(GroupMessages.GROUP_NOT_UPDATED.code).json(GroupMessages.GROUP_NOT_UPDATED.response);

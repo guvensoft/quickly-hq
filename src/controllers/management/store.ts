@@ -1,7 +1,7 @@
+import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import fetch from "node-fetch";
 import request from 'request';
-import * as bcrypt from "bcrypt";
 import { ManagementDB } from "../../databases/management";
 import { Store } from "../../models/social/stores";
 import { createLog, LogType } from '../../utils/logger';
@@ -173,4 +173,15 @@ export const getVenues = (req: Request, res: Response) => {
     });
 }
 
-
+export const getLogs = (req: Request, res: Response) => {
+    let qLimit = parseInt(req.query.limit) || 25;
+    let qSkip = parseInt(req.query.skip) || 0;
+    delete req.query.skip;
+    delete req.query.limit;
+    ManagementDB.Logs.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
+        res.send(obj.docs);
+    }).catch((err) => {
+        res.status(StoreMessages.STORE_NOT_EXIST.code).json(StoreMessages.STORE_NOT_EXIST.response);
+        createLog(req, LogType.DATABASE_ERROR, err);
+    });
+}

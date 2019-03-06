@@ -17,7 +17,7 @@ export const createUser = (req: Request, res: Response) => {
 						if (!err) {
 							newUser.password = hashedPassword;
 							newUser.timestamp = Date.now();
-							ManagementDB.Users.post(newUser).then(db_res => {
+							ManagementDB.Users.post(newUser).then(() => {
 								res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
 							}).catch(err => {
 								res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
@@ -44,7 +44,7 @@ export const updateUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	let formData = req.body;
 	ManagementDB.Users.get(userID).then(obj => {
-		ManagementDB.Users.put(Object.assign(obj, formData)).then(db_res => {
+		ManagementDB.Users.put(Object.assign(obj, formData)).then(() => {
 			res.status(UserMessages.USER_UPDATED.code).json(UserMessages.USER_UPDATED.response);
 		}).catch(err => {
 			res.status(UserMessages.USER_NOT_UPDATED.code).json(UserMessages.USER_NOT_UPDATED.response);
@@ -69,7 +69,7 @@ export const getUser = (req: Request, res: Response) => {
 export const deleteUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	ManagementDB.Users.get(userID).then(obj => {
-		ManagementDB.Users.remove(obj).then(db_res => {
+		ManagementDB.Users.remove(obj).then(() => {
 			res.status(UserMessages.USER_DELETED.code).json(UserMessages.USER_DELETED.response);
 		}).catch(err => {
 			res.status(UserMessages.USER_NOT_DELETED.code).json(UserMessages.USER_NOT_DELETED.response);

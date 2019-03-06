@@ -13,7 +13,7 @@ export const createDatabase = (req: Request, res: Response) => {
             res.status(DatabaseMessages.DATABASE_EXIST.code).json(DatabaseMessages.DATABASE_EXIST.response);
         } else {
             newDatabase.timestamp = Date.now();
-            ManagementDB.Databases.post(database).then(db_res => {
+            ManagementDB.Databases.post(database).then(() => {
                 res.status(DatabaseMessages.DATABASE_CREATED.code).json(DatabaseMessages.DATABASE_CREATED.response);
             }).catch(err => {
                 res.status(DatabaseMessages.DATABASE_NOT_CREATED.code).json(DatabaseMessages.DATABASE_NOT_CREATED.response);
@@ -30,7 +30,7 @@ export const updateDatabase = (req: Request, res: Response) => {
     let databaseID = req.params.id;
     let formData = req.body;
     ManagementDB.Databases.get(databaseID).then(obj => {
-        ManagementDB.Databases.put(Object.assign(obj, formData)).then(db_res => {
+        ManagementDB.Databases.put(Object.assign(obj, formData)).then(() => {
             res.status(DatabaseMessages.DATABASE_UPDATED.code).json(DatabaseMessages.DATABASE_UPDATED.response);
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
@@ -45,7 +45,7 @@ export const updateDatabase = (req: Request, res: Response) => {
 export const deleteDatabase = (req: Request, res: Response) => {
     let databaseID = req.params.id;
     ManagementDB.Databases.get(databaseID).then(obj => {
-        ManagementDB.Databases.remove(obj).then(db_res => {
+        ManagementDB.Databases.remove(obj).then(() => {
             res.status(DatabaseMessages.DATABASE_DELETED.code).json(DatabaseMessages.DATABASE_DELETED.response);
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
@@ -143,12 +143,12 @@ export const createCollectionDB = (req: Request, res: Response) => {
                 roles: []
             }
         };
-        UsersDB.insert(newUser).then(db_res => {
-            DB.create(req.params.db).then(db_res => {
-                DB.use(req.params.db).insert(secObj, "_security").then(db_res => {
+        UsersDB.insert(newUser).then(() => {
+            DB.create(req.params.db).then(() => {
+                DB.use(req.params.db).insert(secObj, "_security").then(() => {
                     RemoteCheck.info().then(remote_res => {
                         res.json({ ok: true, message: remote_res })
-                    }).catch(err => {
+                    }).catch(() => {
                         res.json({ remote: false });
                     })
                 }).catch(err => {

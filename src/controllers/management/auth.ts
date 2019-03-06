@@ -53,7 +53,7 @@ export let Login = (req: Request, res: Response) => {
 export const Logout = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
     ManagementDB.Sessions.get(AuthToken.toString()).then(session => {
-        ManagementDB.Sessions.remove(session).then(db_res => {
+        ManagementDB.Sessions.remove(session).then(() => {
             res.status(201).json({ ok: true, message:'Oturum Kapatıldı' });
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
@@ -71,7 +71,7 @@ export const Verify = (req: Request, res: Response) => {
         ManagementDB.Sessions.get(AuthToken.toString()).then((session: any) => {
             if (session) {
                 if (session.expire_date < Date.now()) {
-                    ManagementDB.Sessions.remove(session).then((db_res) => {
+                    ManagementDB.Sessions.remove(session).then(() => {
                         res.json({ ok: false, message: 'SESSION EXPIRED' });
                     }).catch(err => {
                         createLog(req, LogType.DATABASE_ERROR, err);

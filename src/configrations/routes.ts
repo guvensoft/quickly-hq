@@ -143,12 +143,12 @@ router.get("/store/:id",
 
 router.post("/store",
     AuthenticateGuard,
-    SchemaGuard(Schema.AccountSchemaSafe),
+    SchemaGuard(Schema.StoreSchemaSafe),
     StoreController.createStore);
 
 router.put("/store/:id",
     AuthenticateGuard,
-    SchemaGuard(Schema.AccountSchema),
+    SchemaGuard(Schema.StoreSchema),
     StoreController.updateStore);
 
 router.delete("/store/:id",
@@ -158,10 +158,13 @@ router.delete("/store/:id",
 router.get("/stores",
     AuthenticateGuard,
     StoreController.queryStores);
-    
+
 // Utils
 router.get("/images/:text",
     StoreController.getImage);
+
+router.get("/logs",
+    StoreController.getLogs);
 
 router.get("/venues/:text",
     StoreController.getVenues);
