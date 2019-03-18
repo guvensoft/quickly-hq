@@ -1,6 +1,6 @@
 import joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { createLog, LogType } from '../utils/logger'
+import { createLog, LogType } from './logger'
 
 export const SchemaGuard = (schema: joi.ObjectSchema) => {
     return (req: Request, res: Response, next: NextFunction) => {

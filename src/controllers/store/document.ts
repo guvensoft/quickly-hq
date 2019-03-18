@@ -1,0 +1,65 @@
+import { Request, Response } from "express";
+import { StoreCollection } from '../../configrations/database';
+import { StoreDocumentMessages } from '../../utils/messages';
+
+export const getDocument = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store_id;
+    const Document = req.params.id;
+    try {
+        const Database = await StoreCollection(StoreID);
+        const ResponseData = await Database.get(Document)
+        res.json(ResponseData);
+    } catch (error) {
+        res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    }
+}
+
+export const createDocument = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store_id;
+    const Document = req.params.body;
+    try {
+        const Database = await StoreCollection(StoreID);
+        const ResponseData = await Database.post(Document)
+        res.json(ResponseData);
+    } catch (error) {
+        res.status(StoreDocumentMessages.DOCUMENT_NOT_CREATED.code).json(StoreDocumentMessages.DOCUMENT_NOT_CREATED.code);
+    }
+}
+
+export const updateDocument = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store_id;
+    const Document = req.params.body;
+    try {
+        const Database = await StoreCollection(StoreID);
+        await Database.put(Document)
+        res.status(StoreDocumentMessages.DOCUMENT_UPDATED.code).json(StoreDocumentMessages.DOCUMENT_UPDATED.code);
+    } catch (error) {
+        res.status(StoreDocumentMessages.DOCUMENT_NOT_UPDATED.code).json(StoreDocumentMessages.DOCUMENT_NOT_UPDATED.code);
+    }
+}
+
+export const deleteDocument = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store_id;
+    const Document = req.params.body;
+    try {
+        const Database = await StoreCollection(StoreID);
+        await Database.remove(Document)
+        res.status(StoreDocumentMessages.DOCUMENT_DELETED.code).json(StoreDocumentMessages.DOCUMENT_DELETED.code);
+    } catch (error) {
+        res.status(StoreDocumentMessages.DOCUMENT_NOT_DELETED.code).json(StoreDocumentMessages.DOCUMENT_NOT_DELETED.code);
+    }
+}
+
+export const queryDocuments = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store_id;
+    const qLimit = parseInt(req.query.limit) || 25;
+    const qSkip = parseInt(req.query.skip) || 0;
+    delete req.query.skip, req.query.limit;
+    try {
+        const Database = await StoreCollection(StoreID);
+        const ResponseData = await Database.find({ selector: { ...{ db_name: req.params.db_name }, ...req.query }, limit: qLimit, skip: qSkip });
+        res.json(ResponseData.docs);
+    } catch (error) {
+        res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    }
+}

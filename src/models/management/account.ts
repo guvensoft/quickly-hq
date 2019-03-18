@@ -13,6 +13,14 @@ export class Account {
     ) { }
 }
 
+export enum AccountType {
+    STORE,
+    BRANCH,
+    COMPANY,
+    STORE_MANAGER,
+    STORE_EMPLOYEE,
+}
+
 export enum AccountStatus {
     ACTIVE,
     PASSIVE,

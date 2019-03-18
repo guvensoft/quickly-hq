@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import * as bcrypt from "bcrypt";
-import { ManagementDB } from "../../databases/management";
+import { ManagementDB } from "../../configrations/database";
 import { AccountMessages } from '../../utils/messages';
 import { Account, AccountStatus } from "../../models/management/account";
 import { createLog, LogType } from '../../utils/logger';

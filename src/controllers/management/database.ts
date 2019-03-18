@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { ManagementDB } from '../../databases/management';
-import { CouchDB, RemoteCollection, RemoteDB } from '../../databases/remote';
-import { SocialDB } from '../../databases/social';
+import { ManagementDB } from '../../configrations/database';
+import { CouchDB, RemoteCollection, RemoteDB } from '../../configrations/database';
+import { SocialDB } from '../../configrations/database';
 import { Database, DatabaseSecObject, DatabaseUser } from '../../models/management/database';
 import { createLog, LogType } from '../../utils/logger';
 import { DatabaseMessages } from "../../utils/messages";

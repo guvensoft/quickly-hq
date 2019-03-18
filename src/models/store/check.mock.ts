@@ -75,9 +75,6 @@ export enum CheckStatus {
 }
 
 export function CheckNo(){
-    // let currentID = parseInt(localStorage.getItem('CheckNo'));
-    // let CheckNo = currentID+1;
-    // localStorage.setItem('CheckNo', CheckNo.toString());
     let CheckNo = Math.floor(Math.random() * Math.floor(500));
     return CheckNo;
 }

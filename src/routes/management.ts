@@ -1,22 +1,23 @@
 import { Router } from 'express';
 
-import * as AuthController from '../controllers/management/auth';
+import * as AuthController from '../controllers/management/authentication';
 import * as UserController from '../controllers/management/user';
 import * as GroupController from '../controllers/management/group';
 import * as StoreController from '../controllers/management/store';
 import * as AccountController from '../controllers/management/account';
 import * as DatabaseController from '../controllers/management/database';
+import * as UtilsController from '../controllers/management/utils';
 
-import { AuthenticateGuard } from '../middlewares/auth';
-import { SchemaGuard } from '../middlewares/sanitizer';
+import { AuthenticateGuard } from '../middlewares/management';
+import { SchemaGuard } from '../utils/sanitizer';
 
-import * as Schema from '../utils/schemas';
+import * as ManagementSchema from '../schemas/management';
 
 const router = Router();
 
 // Auths
 router.post("/auth/login",
-    SchemaGuard(Schema.AuthSchemaSafe),
+    SchemaGuard(ManagementSchema.AuthSchemaSafe),
     AuthController.Login);
 
 router.post("/auth/logout",
@@ -34,12 +35,12 @@ router.get("/account/:id",
 
 router.post("/account",
     AuthenticateGuard,
-    SchemaGuard(Schema.AccountSchemaSafe),
+    SchemaGuard(ManagementSchema.AccountSchemaSafe),
     AccountController.createAccount);
 
 router.put("/account/:id",
     AuthenticateGuard,
-    SchemaGuard(Schema.AccountSchema),
+    SchemaGuard(ManagementSchema.AccountSchema),
     AccountController.updateAccount);
 
 router.delete("/account/:id",
@@ -57,12 +58,12 @@ router.get("/database/:id",
 
 router.post("/database",
     AuthenticateGuard,
-    SchemaGuard(Schema.DatabaseSchemaSafe),
+    SchemaGuard(ManagementSchema.DatabaseSchemaSafe),
     DatabaseController.createDatabase);
 
 router.put("/database/:id",
     AuthenticateGuard,
-    SchemaGuard(Schema.DatabaseSchema),
+    SchemaGuard(ManagementSchema.DatabaseSchema),
     DatabaseController.updateDatabase);
 
 router.delete("/database/:id",
@@ -97,12 +98,12 @@ router.get("/user/:id",
 
 router.post("/user",
     AuthenticateGuard,
-    SchemaGuard(Schema.UserSchemaSafe),
+    SchemaGuard(ManagementSchema.UserSchemaSafe),
     UserController.createUser);
 
 router.put("/user/:id",
     AuthenticateGuard,
-    SchemaGuard(Schema.UserSchema),
+    SchemaGuard(ManagementSchema.UserSchema),
     UserController.updateUser);
 
 router.delete("/user/:id",
@@ -120,12 +121,12 @@ router.get("/group/:id",
 
 router.post("/group",
     AuthenticateGuard,
-    SchemaGuard(Schema.GroupSchemaSafe),
+    SchemaGuard(ManagementSchema.GroupSchemaSafe),
     GroupController.createGroup);
 
 router.put("/group/:id",
     AuthenticateGuard,
-    SchemaGuard(Schema.GroupSchema),
+    SchemaGuard(ManagementSchema.GroupSchema),
     GroupController.updateGroup);
 
 router.delete("/group/:id",
@@ -143,12 +144,12 @@ router.get("/store/:id",
 
 router.post("/store",
     AuthenticateGuard,
-    SchemaGuard(Schema.StoreSchemaSafe),
+    SchemaGuard(ManagementSchema.StoreSchemaSafe),
     StoreController.createStore);
 
 router.put("/store/:id",
     AuthenticateGuard,
-    SchemaGuard(Schema.StoreSchema),
+    SchemaGuard(ManagementSchema.StoreSchema),
     StoreController.updateStore);
 
 router.delete("/store/:id",
@@ -160,13 +161,16 @@ router.get("/stores",
     StoreController.queryStores);
 
 // Utils
-router.get("/images/:text",
-    StoreController.getImage);
+router.get("utils/images/:text",
+    AuthenticateGuard,
+    UtilsController.getImage);
 
-router.get("/logs",
-    StoreController.getLogs);
+router.get("utils/logs",
+    AuthenticateGuard,
+    UtilsController.getLogs);
 
-router.get("/venues/:text",
-    StoreController.getVenues);
+router.get("utils/venues/:text",
+    AuthenticateGuard,
+    UtilsController.getVenues);
 
 module.exports = router;

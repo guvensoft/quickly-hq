@@ -291,3 +291,136 @@ export const StoreMessages = {
         code: 404
     },
 }
+
+export const SessionMessages = {
+    SESSION_CREATED: {
+        response: {
+            ok: true,
+            message: "Giriş Başarılı!",
+        },
+        code: 201
+    },
+    SESSION_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Hatalı Kullanıcı Adı veya Parola!",
+        },
+        code: 400
+    },
+    SESSION_UPDATED: {
+        response: {
+            ok: true,
+            message: "Oturum Güncellendi!",
+        },
+        code: 200
+    },
+    SESSION_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Oturum Başlatılamadı!",
+        },
+        code: 400
+    },
+    SESSION_DELETED: {
+        response: {
+            ok: true,
+            message: "Oturum Kapatıldı!",
+        },
+        code: 200
+    },
+    SESSION_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Oturum Kapatılamadı!",
+        },
+        code: 400
+    },
+    SESSION_EXIST: {
+        response: {
+            ok: true,
+            message: "Oturum Devam Ediyor.",
+        },
+        code: 406
+    },
+    SESSION_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Oturum Bulunamadı!",
+        },
+        code: 404
+    },
+    SESSION_EXPIRED: {
+        response: {
+            ok: false,
+            message: "Oturumun Süresi Doldu!",
+        },
+        code: 401
+    },
+    UNAUTHORIZED_REQUEST: {
+        response: {
+            ok: false,
+            message: "Yetkisiz İstek!",
+        },
+        code: 401
+    },
+}
+
+
+export const StoreDocumentMessages = {
+    DOCUMENT_CREATED: {
+        response: {
+            ok: true,
+            message: "Döküman Oluşturuldu!",
+        },
+        code: 201
+    },
+    DOCUMENT_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Döküman Oluşturalamadı!",
+        },
+        code: 400
+    },
+    DOCUMENT_UPDATED: {
+        response: {
+            ok: true,
+            message: "Döküman Güncellendi!",
+        },
+        code: 200
+    },
+    DOCUMENT_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Döküman Güncellenemedi!",
+        },
+        code: 400
+    },
+    DOCUMENT_DELETED: {
+        response: {
+            ok: true,
+            message: "Döküman Silindi!",
+        },
+        code: 200
+    },
+    DOCUMENT_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Döküman Silinemedi!",
+        },
+        code: 400
+    },
+    DOCUMENT_EXIST: {
+        response: {
+            ok: false,
+            message: "Belirtilen Döküman Var!",
+        },
+        code: 406
+    },
+    DOCUMENT_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Döküman Bulunamadı!",
+        },
+        code: 404
+    },
+}

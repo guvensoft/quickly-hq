@@ -1,7 +1,6 @@
+import { CouchDB, ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
-import { ManagementDB } from '../databases/management';
-import { CouchDB, RemoteDB } from '../databases/remote';
-import { SocialDB } from '../databases/social';
+import { Store } from '../models/social/stores';
 
 
 export const TableWorker = () => {
@@ -21,6 +20,26 @@ export const TableWorker = () => {
         });
     });
 };
+
+
+export const TablesWorker = () => {
+    ManagementDB.Stores.find({ selector: {}, limit: 1000 }).then((db_res: any) => {
+        const Stores: Array<Store> = db_res.docs;
+        Stores.forEach(Store => {
+            ManagementDB.Databases.get(Store.auth.database_id).then((database: any) => {
+                const Database: Database = database;
+                RemoteDB(Database, Store.auth.database_name).find({ selector: { db_name: 'tables' }, limit: 1000 }).then((db_res: any) => {
+                    const ready = db_res.docs.filter(obj => obj.status == 2);
+                    console.log(`${Store.name} ${ready.length}/${db_res.docs.length}`);
+                });
+            })
+        });
+    });
+}
+
+
+
+
 
 export const Logs = () => {
 

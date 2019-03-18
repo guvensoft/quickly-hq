@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ManagementDB } from "../../databases/management";
+import { ManagementDB } from "../../configrations/database";
 import { Group } from "../../models/management/users";
 import { createLog, LogType } from '../../utils/logger';
 import { GroupMessages } from "../../utils/messages";

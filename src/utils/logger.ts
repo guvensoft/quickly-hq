@@ -1,4 +1,4 @@
-import { ManagementDB } from '../databases/management';
+import { ManagementDB } from '../configrations/database';
 import { Request } from 'express';
 
 export class Log {
