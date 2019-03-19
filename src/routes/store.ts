@@ -9,31 +9,31 @@ const router = Router();
 
 router.get("/list", ListController.listStores);
 
-router.get("/get/:id",
+router.get("/:db_name/:id",
     AuthenticateGuard,
     StoreGuard,
     DocumentController.getDocument
 );
 
-router.post("/post",
+router.post("/:db_name",
     AuthenticateGuard,
     StoreGuard,
     DocumentController.createDocument
 );
 
-router.put("/put/:id",
+router.put("/:db_name/:id",
     AuthenticateGuard,
     StoreGuard,
     DocumentController.updateDocument
 );
 
-router.delete("/delete/:id",
+router.delete("/:db_name/:id",
     AuthenticateGuard,
     StoreGuard,
     DocumentController.deleteDocument
 );
 
-router.get("/query/:db_name",
+router.get("/:db_name",
     AuthenticateGuard,
     StoreGuard,
     DocumentController.queryDocuments

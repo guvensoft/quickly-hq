@@ -82,8 +82,8 @@ export const deleteUser = (req: Request, res: Response) => {
 }
 
 export const queryUsers = (req: Request, res: Response) => {
-	let qLimit = parseInt(req.query.limit) || 25;
-	let qSkip = parseInt(req.query.skip) || 0;
+	let qLimit = req.query.limit || 25;
+	let qSkip = req.query.skip || 0;
 	delete req.query.skip;
 	delete req.query.limit;
 	ManagementDB.Users.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {

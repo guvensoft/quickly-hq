@@ -52,9 +52,10 @@ export const deleteDocument = async (req: Request, res: Response) => {
 
 export const queryDocuments = async (req: Request, res: Response) => {
     const StoreID = req.headers.store_id;
-    const qLimit = parseInt(req.query.limit) || 25;
-    const qSkip = parseInt(req.query.skip) || 0;
-    delete req.query.skip, req.query.limit;
+    const qLimit = req.query.limit || 25;
+    const qSkip = req.query.skip || 0;
+    delete req.query.skip;
+    delete req.query.limit;
     try {
         const Database = await StoreCollection(StoreID);
         const ResponseData = await Database.find({ selector: { ...{ db_name: req.params.db_name }, ...req.query }, limit: qLimit, skip: qSkip });
