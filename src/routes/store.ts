@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import { AuthenticateGuard, StoreGuard } from '../middlewares/store';
-import { SchemaGuard } from '../utils/sanitizer';
 
 import * as ListController from '../controllers/store/list';
 import * as DocumentController from '../controllers/store/document';

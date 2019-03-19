@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
+import queryParser from 'express-query-int';
 import { TablesWorker } from './workers/tables';
 
 //// 19286545426
@@ -23,6 +24,7 @@ app.use(bodyParser.json());
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
 
 app.use(cors());
+app.use(queryParser());
 
 app.use('/management', require('./routes/management'));
 app.use('/store', require('./routes/store'));

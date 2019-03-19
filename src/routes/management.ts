@@ -8,8 +8,7 @@ import * as AccountController from '../controllers/management/account';
 import * as DatabaseController from '../controllers/management/database';
 import * as UtilsController from '../controllers/management/utils';
 
-import { AuthenticateGuard } from '../middlewares/management';
-import { SchemaGuard } from '../utils/sanitizer';
+import { AuthenticateGuard ,SchemaGuard } from '../middlewares/management';
 
 import * as ManagementSchema from '../schemas/management';
 

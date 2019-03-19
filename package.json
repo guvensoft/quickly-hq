@@ -20,6 +20,7 @@
     "compression": "^1.7.2",
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "express-query-int": "^3.0.0",
     "express-rate-limit": "^3.3.2",
     "joi": "^14.0.4",
     "jsonwebtoken": "^8.3.0",
