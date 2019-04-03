@@ -1,38 +1,21 @@
 import { Response, Request } from "express";
-import * as bcrypt from "bcrypt";
 import { ManagementDB } from "../../configrations/database";
 import { AccountMessages } from '../../utils/messages';
-import { Account, AccountStatus } from "../../models/management/account";
+import { Account } from "../../models/management/account";
 import { createLog, LogType } from '../../utils/logger';
 
 export const createAccount = (req: Request, res: Response) => {
     let newAccount: Account = req.body;
-    ManagementDB.Accounts.find({ selector: { username: newAccount.username } }).then(user => {
-        if (user.docs.length > 0) {
+    ManagementDB.Accounts.find({ selector: { name: newAccount.name } }).then(accounts => {
+        if (accounts.docs.length > 0) {
             res.status(AccountMessages.ACCOUNT_EXIST.code).json(AccountMessages.ACCOUNT_EXIST.response);
         } else {
-            bcrypt.genSalt(10, (err, salt) => {
-                if (!err) {
-                    bcrypt.hash(newAccount.password, salt, (err, hashedPassword) => {
-                        if (!err) {
-                            newAccount.password = hashedPassword;
-                            newAccount.status = AccountStatus.ACTIVE;
-                            newAccount.timestamp = Date.now();
-                            ManagementDB.Accounts.post(newAccount).then(() => {
-                                res.status(AccountMessages.ACCOUNT_CREATED.code).json(AccountMessages.ACCOUNT_CREATED.response);
-                            }).catch(err => {
-                                res.status(AccountMessages.ACCOUNT_NOT_CREATED.code).json(AccountMessages.ACCOUNT_NOT_CREATED.response);
-                                createLog(req, LogType.DATABASE_ERROR, err);
-                            });
-                        } else {
-                            res.status(AccountMessages.ACCOUNT_NOT_CREATED.code).json(AccountMessages.ACCOUNT_NOT_CREATED.response);
-                            createLog(req, LogType.INNER_LIBRARY_ERROR, err);
-                        }
-                    });
-                } else {
-                    res.status(AccountMessages.ACCOUNT_NOT_CREATED.code).json(AccountMessages.ACCOUNT_NOT_CREATED.response);
-                    createLog(req, LogType.INNER_LIBRARY_ERROR, err);
-                }
+            newAccount.timestamp = Date.now();
+            ManagementDB.Accounts.post(newAccount).then(() => {
+                res.status(AccountMessages.ACCOUNT_CREATED.code).json(AccountMessages.ACCOUNT_CREATED.response);
+            }).catch(err => {
+                res.status(AccountMessages.ACCOUNT_NOT_CREATED.code).json(AccountMessages.ACCOUNT_NOT_CREATED.response);
+                createLog(req, LogType.DATABASE_ERROR, err);
             });
         }
     }).catch(err => {

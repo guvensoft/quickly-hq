@@ -6,7 +6,7 @@ import { SessionMessages } from '../utils/messages';
 
 export const AuthenticateGuard = (req: Request, res: Response, next: NextFunction) => {
     let AuthToken = req.headers.authorization;
-    let StoreID = req.headers.store_id;
+    let StoreID = req.headers.store;
     if (AuthToken && StoreID) {
         if (AuthToken == AdminHash) {
             next();
@@ -35,7 +35,7 @@ export const AuthenticateGuard = (req: Request, res: Response, next: NextFunctio
 }
 
 export const StoreGuard = (req: Request, res: Response, next: NextFunction) => {
-    let StoreID: any = req.headers.store_id
+    let StoreID: any = req.headers.store
     ManagementDB.Stores.get(StoreID).then(res => {
         next();
     }).catch(err => {
@@ -43,5 +43,3 @@ export const StoreGuard = (req: Request, res: Response, next: NextFunction) => {
         createLog(req, LogType.AUTH_ERROR, 'Store Not Exist!');
     })
 }
-
-

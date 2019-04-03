@@ -26,14 +26,8 @@ export const ManagementDB = {
 }
 
 export const StoreDB = {
-    Users: new PouchDB('./db/store/users', DatabaseConfigration),
+    Owners: new PouchDB('./db/store/owners', DatabaseConfigration),
     Groups: new PouchDB('./db/store/groups', DatabaseConfigration),
-    Products: new PouchDB('./db/store/products', DatabaseConfigration),
-    Categories: new PouchDB('./db/store/categories', DatabaseConfigration),
-    Stocks: new PouchDB('./db/store/stocks', DatabaseConfigration),
-    Reports: new PouchDB('./db/store/reports', DatabaseConfigration),
-    Tables: new PouchDB(`./db/store/tables`, DatabaseConfigration),
-    Floors: new PouchDB(`./db/store/floors`, DatabaseConfigration),
     Settings: new PouchDB(`./db/store/settings`, DatabaseConfigration),
     Sessions: new PouchDB('./db/store/sessions', { revs_limit: 3, auto_compaction: true, adapter: 'memory' })
 }

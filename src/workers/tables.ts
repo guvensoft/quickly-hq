@@ -1,7 +1,7 @@
 import { CouchDB, ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Store } from '../models/social/stores';
-
+import { readFile, exists } from 'fs';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -26,13 +26,14 @@ export const TablesWorker = () => {
     ManagementDB.Stores.find({ selector: {}, limit: 1000 }).then((db_res: any) => {
         const Stores: Array<Store> = db_res.docs;
         Stores.forEach(Store => {
-            ManagementDB.Databases.get(Store.auth.database_id).then((database: any) => {
-                const Database: Database = database;
-                RemoteDB(Database, Store.auth.database_name).find({ selector: { db_name: 'tables' }, limit: 1000 }).then((db_res: any) => {
-                    const ready = db_res.docs.filter(obj => obj.status == 2);
-                    console.log(`${Store.name} ${ready.length}/${db_res.docs.length}`);
-                });
-            })
+            console.log(Store.auth);
+            // ManagementDB.Databases.get(Store.auth.database_id).then((database: any) => {
+            //     const Database: Database = database;
+            //     RemoteDB(Database, Store.auth.database_name).find({ selector: { db_name: 'tables' }, limit: 1000 }).then((db_res: any) => {
+            //         const ready = db_res.docs.filter(obj => obj.status == 2);
+            //         console.log(`${Store.name} ${ready.length}/${db_res.docs.length}`);
+            //     });
+            // })
         });
     });
 }
@@ -102,4 +103,68 @@ export const Logs = () => {
     //         console.log('İkram:',ikram);
     //     })
     // })
+}
+
+export const Fixer = () => {
+
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        RemoteDB(db, 'simitci-dunyas-6bd4').find({ selector: { db_name: 'closed_checks' }, limit: 1000 }).then((res: any) => {
+            // // res.docs.forEach(element => {
+            // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
+            // // });
+            // // timestamp: { $gt: Date.now() }
+            // res.docs = res.docs.sort((a, b) => a.timestamp - b.timestamp).map(obj => new Date(obj.timestamp));
+            // res.docs.forEach((element: Date) => {
+            //     console.log(element.getDay(),element.getHours());
+            //     console.log
+            // });
+            let nakit = res.docs.filter(obj => obj.payment_method == 'Nakit').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+            let kart = res.docs.filter(obj => obj.payment_method == 'Kart').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+            let kupon = res.docs.filter(obj => obj.payment_method == 'Kupon').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+            let ikram = res.docs.filter(obj => obj.payment_method == 'İkram').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+            let parçali = res.docs.filter(obj => obj.payment_method == 'Parçalı')
+            parçali.forEach(element => {
+                element.payment_flow.forEach(payment => {
+                    if (payment.method == 'Nakit') {
+                        nakit += payment.amount;
+                    }
+                    if (payment.method == 'Kart') {
+                        kart += payment.amount;
+                    }
+                    if (payment.method == 'Kupon') {
+                        kupon += payment.amount;
+                    }
+                    if (payment.method == 'İkram') {
+                        ikram += payment.amount;
+                    }
+                })
+            })
+            console.log('Nakit:', nakit);
+            console.log('Kart:', kart);
+            console.log('Kupon:', kupon);
+            console.log('İkram:', ikram);
+        })
+    })
+}
+
+export const readJsonFile = (file_path: string) => {
+    return new Promise((resolve, reject) => {
+        exists(file_path, (exists) => {
+            if (exists) {
+                readFile(file_path, (err, data) => {
+                    if (!err) {
+                        let buffer = data.toString('utf8');
+                        let json_data = JSON.parse(buffer);
+                        resolve(json_data);
+                    } else {
+                        reject('Dosya Okunurken Hata Oluştu.');
+                    }
+                });
+            } else {
+                reject('Dosya Bulunamadı');
+            }
+        });
+    });
+
 }

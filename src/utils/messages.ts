@@ -116,6 +116,65 @@ export const AccountMessages = {
     },
 }
 
+export const OwnerMessages = {
+    OWNER_CREATED: {
+        response: {
+            ok: true,
+            message: "Hesap Sahibi oluşturuldu.",
+        },
+        code: 201
+    },
+    OWNER_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Hesap Sahibi oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    OWNER_UPDATED: {
+        response: {
+            ok: true,
+            message: "Hesap Sahibi Düzenlendi.",
+        },
+        code: 200
+    },
+    OWNER_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Hesap Sahibi Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    OWNER_DELETED: {
+        response: {
+            ok: true,
+            message: "Hesap Sahibi Silindi.",
+        },
+        code: 200
+    },
+    OWNER_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Hesap Sahibi Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    OWNER_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Hesap Sahibi Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    OWNER_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Hesap Sahibi Bulunamadı",
+        },
+        code: 404
+    },
+}
+
 export const GroupMessages = {
     GROUP_CREATED: {
         response: {

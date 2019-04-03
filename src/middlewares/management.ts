@@ -21,7 +21,7 @@ export const AuthenticateGuard = (req: Request, res: Response, next: NextFunctio
                 }
             }).catch(err => {
                 res.status(SessionMessages.UNAUTHORIZED_REQUEST.code).json(SessionMessages.UNAUTHORIZED_REQUEST.response);
-                createLog(req, LogType.DATABASE_ERROR, err,);
+                createLog(req, LogType.DATABASE_ERROR, err);
             });
         }
     } else {
@@ -35,7 +35,19 @@ export const SchemaGuard = (schema: joi.ObjectSchema) => {
         joi.validate(req.body, schema).then(res => {
             next();
         }).catch(err => {
-            createLog(req,LogType.UNVALID_SCHEMA_ERROR,err);
+            createLog(req, LogType.UNVALID_SCHEMA_ERROR, err);
+            res.json(err);
+            // res.status(400).json({ ok: false, message: err.details[0].message });
+        })
+    }
+}
+
+export const QueryGuard = () => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        joi.validate(req.query, joi.object().keys({ limit: joi.number(), skip: joi.number() })).then(res => {
+            next();
+        }).catch(err => {
+            createLog(req, LogType.UNVALID_SCHEMA_ERROR, err);
             res.status(400).json({ ok: false, message: err.details[0].message });
         })
     }

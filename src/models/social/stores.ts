@@ -15,6 +15,7 @@ export class Store {
         public description: string,
         public logo: string,
         public auth: StoreAuth,
+        public accounts: Array<string>,
         public settings: StoreSettings,
         public status: StoreStatus,
         public timestamp: number,
@@ -41,10 +42,20 @@ export interface StoreSettings {
 }
 
 export interface StoreAccesibilty {
-    days: [boolean, boolean, boolean, boolean, boolean, boolean],
-    hours: [[string, string], [string, string], [string, string], [string, string], [string, string], [string, string]],
-    wifi: [boolean, string],
+    days: Array<StoreDaysStatus>,
+    wifi: Array<StoreWifiSettings>,
     others: Array<string>
+}
+
+export interface StoreDaysStatus {
+    is_open: boolean;
+    opening: string
+    closing: string;
+}
+
+export interface StoreWifiSettings {
+    ssid: string;
+    password: string;
 }
 
 export enum StoreStatus {

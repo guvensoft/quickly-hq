@@ -1,13 +1,10 @@
 export class Account {
     constructor(
-        public username: string,
-        public password: string,
-        public fullname: string,
-        public email: string,
-        public phone_number: number,
-        public timestamp: number,
-        public avatar: string,
+        public name: string,
+        public description: string,
+        public type: AccountType,
         public status: AccountStatus,
+        public timestamp: number,
         public _id?: string,
         public _rev?: string
     ) { }
@@ -15,10 +12,9 @@ export class Account {
 
 export enum AccountType {
     STORE,
-    BRANCH,
     COMPANY,
-    STORE_MANAGER,
-    STORE_EMPLOYEE,
+    PRODUCER,
+    SUPPLIER,
 }
 
 export enum AccountStatus {

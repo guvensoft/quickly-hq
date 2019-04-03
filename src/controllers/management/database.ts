@@ -130,9 +130,7 @@ export const createCollectionDB = (req: Request, res: Response) => {
         const DB = CouchDB(db_res).db;
         const RemoteCheck = RemoteCollection(db_res, req.params.db, creds.username, creds.password);
         const UsersDB = DB.use('_users');
-
         let newUser = new DatabaseUser(creds.username, creds.password);
-
         let secObj: DatabaseSecObject | any = {
             admins: {
                 names: [],

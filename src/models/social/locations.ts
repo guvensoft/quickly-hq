@@ -56,6 +56,8 @@ export interface IAddress {
     state: string,
     city: string,
     province: string,
+    district: string,
+    street: string,
     description: string,
     cordinates: ICordinates
 }

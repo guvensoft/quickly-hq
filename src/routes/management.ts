@@ -160,15 +160,15 @@ router.get("/stores",
     StoreController.queryStores);
 
 // Utils
-router.get("utils/images/:text",
+router.get("/utils/images/:text",
     AuthenticateGuard,
     UtilsController.getImage);
 
-router.get("utils/logs",
+router.get("/utils/logs",
     AuthenticateGuard,
     UtilsController.getLogs);
 
-router.get("utils/venues/:text",
+router.get("/utils/venues/:text",
     AuthenticateGuard,
     UtilsController.getVenues);
 

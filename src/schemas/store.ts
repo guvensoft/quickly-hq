@@ -20,3 +20,4 @@ export const CashboxSchemaSafe = joi.object().keys({
     user: joi.string().required()
 });
 
+

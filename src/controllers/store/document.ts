@@ -3,7 +3,7 @@ import { StoreCollection } from '../../configrations/database';
 import { StoreDocumentMessages } from '../../utils/messages';
 
 export const getDocument = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store_id;
+    const StoreID = req.headers.store;
     const Document = req.params.id;
     try {
         const Database = await StoreCollection(StoreID);
@@ -15,7 +15,7 @@ export const getDocument = async (req: Request, res: Response) => {
 }
 
 export const createDocument = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store_id;
+    const StoreID = req.headers.store;
     const Document = req.params.body;
     try {
         const Database = await StoreCollection(StoreID);
@@ -27,7 +27,7 @@ export const createDocument = async (req: Request, res: Response) => {
 }
 
 export const updateDocument = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store_id;
+    const StoreID = req.headers.store;
     const Document = req.params.body;
     try {
         const Database = await StoreCollection(StoreID);
@@ -39,7 +39,7 @@ export const updateDocument = async (req: Request, res: Response) => {
 }
 
 export const deleteDocument = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store_id;
+    const StoreID = req.headers.store;
     const Document = req.params.body;
     try {
         const Database = await StoreCollection(StoreID);
@@ -51,7 +51,7 @@ export const deleteDocument = async (req: Request, res: Response) => {
 }
 
 export const queryDocuments = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store_id;
+    const StoreID = req.headers.store;
     const qLimit = req.query.limit || 25;
     const qSkip = req.query.skip || 0;
     delete req.query.skip;

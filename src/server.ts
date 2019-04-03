@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
-import { TablesWorker } from './workers/tables';
+import { TablesWorker, Fixer } from './workers/tables';
 
 //// 19286545426
 
@@ -34,4 +34,6 @@ app.all('/', (req, res) => res.status(404).end());
 app.listen(3000, () => console.log('Quickly Reporter Started at http://localhost:3000/'));
 
 
-TablesWorker();
+// TablesWorker();
+
+Fixer();
