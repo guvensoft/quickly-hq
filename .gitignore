@@ -2,4 +2,5 @@
 /dist
 /db
 /address
+/.vscode
 package-lock.json

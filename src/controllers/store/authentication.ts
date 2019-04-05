@@ -1,14 +1,14 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { StoreDB } from "../../configrations/database";
+import { StoreDB, ManagementDB } from "../../configrations/database";
 import { AuthObject } from "../../models/management/auth";
-import { Owner } from "../../models/store/owner";
+import { Owner } from "../../models/management/owner";
 import { createLog, LogType } from '../../utils/logger';
 import { SessionMessages } from "../../utils/messages";
 
 export let Login = (req: Request, res: Response) => {
     let formData = req.body;
-    StoreDB.Owners.find({ selector: { username: formData.username } }).then((owners: any) => {
+    ManagementDB.Owners.find({ selector: { username: formData.username } }).then((owners: any) => {
         if (owners.docs.length > 0) {
             const Owner: Owner = owners.docs[0];
             bcrypt.compare(formData.password, Owner.password, (err, same) => {

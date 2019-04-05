@@ -11,7 +11,7 @@ export const UserSchemaSafe = joi.object().keys({
     fullname: joi.string().required(),
     email: joi.string().required().email({ minDomainAtoms: 2 }),
     phone_number: joi.number().required(),
-    group_id: joi.string().required(),
+    group: joi.string().required(),
     avatar: joi.string()
 });
 
@@ -21,8 +21,35 @@ export const UserSchema = joi.object().keys({
     fullname: joi.string(),
     email: joi.string().email({ minDomainAtoms: 2 }),
     phone_number: joi.number(),
-    group_id: joi.string(),
+    group: joi.string(),
     avatar: joi.string()
+});
+
+
+export const OwnerSchemaSafe = joi.object().keys({
+    username: joi.string().trim().required(),
+    password: joi.string().trim().required(),
+    fullname: joi.string().required(),
+    email: joi.string().required().email({ minDomainAtoms: 2 }),
+    phone_number: joi.number().required(),
+    account: joi.string().required(),
+    stores: joi.array().items(joi.string()).min(1).required(),
+    avatar: joi.string(),
+    type: joi.number().allow(0, 1, 2, 3).required(),
+    status: joi.number().allow(0, 1, 2).required(),
+});
+
+export const OwnerSchema = joi.object().keys({
+    username: joi.string().trim(),
+    password: joi.string().trim(),
+    fullname: joi.string(),
+    email: joi.string().email({ minDomainAtoms: 2 }),
+    phone_number: joi.number(),
+    account: joi.string(),
+    stores: joi.array().items(joi.string()).min(1),
+    avatar: joi.string(),
+    type: joi.number().allow(0, 1, 2, 3),
+    status: joi.number().allow(0, 1, 2)
 });
 
 export const AccountSchemaSafe = joi.object().keys({

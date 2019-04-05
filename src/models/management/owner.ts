@@ -6,7 +6,7 @@ export class Owner {
         public email: string,
         public phone_number: number,
         public avatar: string,
-        public account_id: string,
+        public account: string,
         public stores: Array<string>,
         public timestamp: number,
         public _id?: string,
@@ -17,11 +17,12 @@ export class Owner {
 export enum OwnerType {
     ADMIN,
     MANAGER,
-    MODERATOR
+    MODERATOR,
+    EMPLOYEE
 }
 
 export enum OwnerStatus {
-    PASSIVE,
     ACTIVE,
+    PASSIVE,
     SUSPENDED
 }

@@ -6,7 +6,7 @@ export class User {
         public email: string,
         public phone_number: number,
         public avatar: string,
-        public group_id: string,
+        public group: string,
         public timestamp: number,
         public _id?: string,
         public _rev?: string

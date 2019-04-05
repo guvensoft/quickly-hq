@@ -1,15 +1,14 @@
 import { Router } from 'express';
-
-import * as AuthController from '../controllers/management/authentication';
-import * as UserController from '../controllers/management/user';
-import * as GroupController from '../controllers/management/group';
-import * as StoreController from '../controllers/management/store';
 import * as AccountController from '../controllers/management/account';
+import * as AuthController from '../controllers/management/authentication';
 import * as DatabaseController from '../controllers/management/database';
+import * as GroupController from '../controllers/management/group';
+import * as OwnerController from '../controllers/management/owner';
+import * as StoreController from '../controllers/management/store';
+import * as UserController from '../controllers/management/user';
 import * as UtilsController from '../controllers/management/utils';
 
-import { AuthenticateGuard ,SchemaGuard } from '../middlewares/management';
-
+import { AuthenticateGuard, SchemaGuard } from '../middlewares/management';
 import * as ManagementSchema from '../schemas/management';
 
 const router = Router();
@@ -49,6 +48,30 @@ router.delete("/account/:id",
 router.get("/accounts",
     AuthenticateGuard,
     AccountController.queryAccounts);
+
+
+// Owners
+router.get("/owner/:id",
+    AuthenticateGuard,
+    OwnerController.getOwner);
+
+router.post("/owner",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.OwnerSchemaSafe),
+    OwnerController.createOwner);
+
+router.put("/owner/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.OwnerSchema),
+    OwnerController.updateOwner);
+
+router.delete("/owner/:id",
+    AuthenticateGuard,
+    OwnerController.deleteOwner);
+
+router.get("/owners",
+    AuthenticateGuard,
+    OwnerController.queryOwners);
 
 // Databases 
 router.get("/database/:id",

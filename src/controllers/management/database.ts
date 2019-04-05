@@ -13,7 +13,7 @@ export const createDatabase = (req: Request, res: Response) => {
             res.status(DatabaseMessages.DATABASE_EXIST.code).json(DatabaseMessages.DATABASE_EXIST.response);
         } else {
             newDatabase.timestamp = Date.now();
-            ManagementDB.Databases.post(database).then(() => {
+            ManagementDB.Databases.post(newDatabase).then(() => {
                 res.status(DatabaseMessages.DATABASE_CREATED.code).json(DatabaseMessages.DATABASE_CREATED.response);
             }).catch(err => {
                 res.status(DatabaseMessages.DATABASE_NOT_CREATED.code).json(DatabaseMessages.DATABASE_NOT_CREATED.response);
