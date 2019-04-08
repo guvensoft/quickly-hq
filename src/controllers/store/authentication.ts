@@ -20,14 +20,14 @@ export let Login = (req: Request, res: Response) => {
                             auth_object._id = tokenWillUpdate._id;
                             auth_object._rev = tokenWillUpdate._rev;
                             StoreDB.Sessions.put(auth_object, {}).then(db_res => {
-                                res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id } });
+                                res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id, owner: Owner } });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
                                 res.status(SessionMessages.SESSION_NOT_CREATED.code).json(SessionMessages.SESSION_NOT_CREATED.response);
                             });
                         } else {
                             StoreDB.Sessions.post(auth_object).then(db_res => {
-                                res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id } });
+                                res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id, owner: Owner } });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
                                 res.status(SessionMessages.SESSION_NOT_CREATED.code).json(SessionMessages.SESSION_NOT_CREATED.response);
@@ -68,7 +68,7 @@ export const Logout = (req: Request, res: Response) => {
 
 export const Verify = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
-    StoreDB.Sessions.get(AuthToken.toString()).then((session: any) => {
+    StoreDB.Sessions.get(AuthToken).then((session: any) => {
         if (session) {
             if (session.expire_date < Date.now()) {
                 StoreDB.Sessions.remove(session).then(() => {

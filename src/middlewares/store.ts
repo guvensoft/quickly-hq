@@ -5,20 +5,14 @@ import { SessionMessages } from '../utils/messages';
 
 export const StoreAuthenticateGuard = (req: Request, res: Response, next: NextFunction) => {
     let AuthToken = req.headers.authorization;
-    let StoreID = req.headers.store;
-    if (AuthToken && StoreID) {
+    if (AuthToken) {
         StoreDB.Sessions.get(AuthToken.toString()).then((session) => {
             if (session) {
-                if (StoreID) {
-                    req.app.locals.user = session.user_id;
-                    next();
-                } else {
-                    res.status(SessionMessages.UNAUTHORIZED_REQUEST.code).json(SessionMessages.UNAUTHORIZED_REQUEST.response);
-                    createLog(req, LogType.UNVALID_SCHEMA_ERROR, 'Store ID Not Found!');
-                }
+                req.app.locals.user = session.user_id;
+                next();
             } else {
                 res.status(SessionMessages.UNAUTHORIZED_REQUEST.code).json(SessionMessages.UNAUTHORIZED_REQUEST.response);
-                createLog(req, LogType.AUTH_ERROR, 'Store ID Not Found!');
+                createLog(req, LogType.AUTH_ERROR, 'Owner Session Not Found!');
             }
         }).catch(err => {
             res.status(SessionMessages.UNAUTHORIZED_REQUEST.code).json(SessionMessages.UNAUTHORIZED_REQUEST.response);

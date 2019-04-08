@@ -67,3 +67,5 @@ export const StoreCollection = async (store_id: any) => {
     let Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
     return RemoteDB(Database, Store.auth.database_name);
 }
+
+export const DatabaseQueryLimit = 1000;

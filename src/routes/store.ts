@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { StoreAuthenticateGuard, StoreGuard, AccountGuard } from '../middlewares/store';
 import { SchemaGuard } from '../middlewares/management'
 
-import * as ListController from '../controllers/store/list';
+import * as ListController from '../controllers/store/general';
 import * as DocumentController from '../controllers/store/document';
 import * as StoreAuthController from '../controllers/store/authentication';
 
@@ -11,8 +11,15 @@ import { AuthSchemaSafe } from '../schemas/management'
 
 const router = Router();
 
-router.get("/list", ListController.listStores);
+router.get("/list",
+    StoreAuthenticateGuard,
+    ListController.listStores
+);
 
+router.get("/info",
+    StoreAuthenticateGuard,
+    ListController.storesInfo
+);
 
 router.post("/login",
     SchemaGuard(AuthSchemaSafe),

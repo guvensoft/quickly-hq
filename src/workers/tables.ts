@@ -26,7 +26,6 @@ export const TablesWorker = () => {
     ManagementDB.Stores.find({ selector: {}, limit: 1000 }).then((db_res: any) => {
         const Stores: Array<Store> = db_res.docs;
         Stores.forEach(Store => {
-            console.log(Store.auth);
             // ManagementDB.Databases.get(Store.auth.database_id).then((database: any) => {
             //     const Database: Database = database;
             //     RemoteDB(Database, Store.auth.database_name).find({ selector: { db_name: 'tables' }, limit: 1000 }).then((db_res: any) => {
@@ -109,7 +108,7 @@ export const Fixer = () => {
 
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-        RemoteDB(db, 'simitci-dunyas-6bd4').find({ selector: { db_name: 'closed_checks' }, limit: 1000 }).then((res: any) => {
+        RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'closed_checks' }, limit: 1000 }).then((res: any) => {
             // // res.docs.forEach(element => {
             // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
             // // });
