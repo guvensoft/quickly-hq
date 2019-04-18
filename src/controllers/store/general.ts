@@ -2,9 +2,8 @@ import { Request, Response } from "express";
 import { ManagementDB, StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
 import { Store } from '../../models/social/stores';
 import { StoreMessages } from '../../utils/messages';
-import { CashboxType } from "../../models/store/pos/cashbox.mock";
 
-export const listStores = async (req: Request, res: Response) => {
+export const listStores = (req: Request, res: Response) => {
     ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
         let Stores: Array<Store> = db_res.docs;
         ManagementDB.Owners.get(req.app.locals.user).then(Owner => {
@@ -24,7 +23,6 @@ export const storesInfo = (req: Request, res: Response) => {
         ManagementDB.Owners.get(req.app.locals.user).then(Owner => {
             let Response: Array<any> = [];
             let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
-
             OwnerStores.forEach((store, index) => {
 
                 StoreCollection(store._id).then(StoreDatabase => {
@@ -35,15 +33,28 @@ export const storesInfo = (req: Request, res: Response) => {
                     StoreInfoObject.tables = {};
                     StoreInfoObject.cashbox = {};
                     StoreInfoObject.payments = {};
+                    StoreInfoObject.checks = {};
 
                     const tablesInfo = StoreDatabase.find({ selector: { db_name: 'tables' }, limit: 1000 }).then((db_res: any) => {
                         StoreInfoObject.tables.ready = db_res.docs.filter(obj => obj.status == 1).length;
                         StoreInfoObject.tables.occupied = db_res.docs.filter(obj => obj.status == 2).length;
                         StoreInfoObject.tables.will_ready = db_res.docs.filter(obj => obj.status == 3).length;
+                    }).catch(err => {
+                        StoreInfoObject.tables.ready = 0;
+                        StoreInfoObject.tables.occupied = 0;
+                        StoreInfoObject.tables.will_ready = 0;
                     })
                     const cashboxInfo = StoreDatabase.find({ selector: { db_name: 'cashbox' }, limit: 1000 }).then((db_res: any) => {
-                        StoreInfoObject.cashbox.income = db_res.docs.filter(obj => obj.type == CashboxType.INCOME).reduce((a, b) => a + b, 0);
-                        StoreInfoObject.cashbox.outcome = db_res.docs.filter(obj => obj.type == CashboxType.OUTCOME).reduce((a, b) => a + b, 0);
+                        StoreInfoObject.cashbox.income = db_res.docs.filter(obj => obj.type == 'Gelir').map(obj => obj.coupon + obj.card + obj.cash).reduce((a, b) => a + b, 0);
+                        StoreInfoObject.cashbox.outcome = db_res.docs.filter(obj => obj.type == 'Gider').map(obj => obj.coupon + obj.card + obj.cash).reduce((a, b) => a + b, 0);
+                    }).catch(err => {
+                        StoreInfoObject.cashbox.income = 0;
+                        StoreInfoObject.cashbox.outcome = 0;
+                    })
+                    const checksInfo = StoreDatabase.find({ selector: { db_name: 'checks' }, limit: 1000 }).then((db_res: any) => {
+                        StoreInfoObject.checks.total = db_res.docs.map(obj => obj.total_price + obj.discount ).reduce((a, b) => a + b, 0);
+                    }).catch(err => {
+                        StoreInfoObject.checks.total = 0;
                     })
                     const paymentsInfo = StoreDatabase.find({ selector: { db_name: 'closed_checks' }, limit: 1000 }).then((db_res: any) => {
                         StoreInfoObject.payments.cash = db_res.docs.filter(obj => obj.payment_method == 'Nakit').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
@@ -67,17 +78,22 @@ export const storesInfo = (req: Request, res: Response) => {
                                 }
                             })
                         })
+                    }).catch(err => {
+                        StoreInfoObject.payments.cash = 0;
+                        StoreInfoObject.payments.card = 0;
+                        StoreInfoObject.payments.coupon = 0;
+                        StoreInfoObject.payments.free = 0;
                     })
                     Promise.all([tablesInfo, cashboxInfo, paymentsInfo]).finally(() => {
                         Response.push(StoreInfoObject);
-                        if (index == OwnerStores.length - 1) {
+                        if (Response.length == OwnerStores.length) {
                             res.json(Response);
                         }
-                    });
+                    })
+                }).catch(err => {
+                    console.log('Not Accessing Store DB');
                 });
             });
-
-
         }).catch(err => {
             res.status(StoreMessages.STORE_NOT_EXIST.code).json(StoreMessages.STORE_NOT_EXIST.response);
         })
