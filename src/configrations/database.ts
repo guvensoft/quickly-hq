@@ -11,6 +11,7 @@ import { Account } from '../models/management/account';
 import { Owner } from '../models/management/owner';
 import { Log } from '../utils/logger';
 import { AuthObject } from '../models/management/auth';
+import { databasePath } from './paths';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBInMemory);
@@ -20,19 +21,19 @@ PouchDB.plugin(PouchDBHttp);
 const DatabaseConfigration = { revs_limit: 3, auto_compaction: true, adapter: 'leveldb' };
 
 export const ManagementDB = {
-    Users: new PouchDB<User>('./db/management/users', DatabaseConfigration),
-    Groups: new PouchDB<Group>('./db/management/groups', DatabaseConfigration),
-    Databases: new PouchDB<Database>('./db/management/databases', DatabaseConfigration),
-    Accounts: new PouchDB<Account>('./db/management/accounts', DatabaseConfigration),
-    Owners: new PouchDB<Owner>('./db/management/owners', DatabaseConfigration),
-    Stores: new PouchDB<Store>('./db/management/stores', DatabaseConfigration),
-    Logs: new PouchDB<Log>('./db/management/logs', DatabaseConfigration),
-    Sessions: new PouchDB<AuthObject>('./db/management/sessions', { revs_limit: 3, auto_compaction: true, adapter: 'memory' })
+    Users: new PouchDB<User>(databasePath + 'management/users', DatabaseConfigration),
+    Groups: new PouchDB<Group>(databasePath + 'management/groups', DatabaseConfigration),
+    Databases: new PouchDB<Database>(databasePath + 'management/databases', DatabaseConfigration),
+    Accounts: new PouchDB<Account>(databasePath + 'management/accounts', DatabaseConfigration),
+    Owners: new PouchDB<Owner>(databasePath + 'management/owners', DatabaseConfigration),
+    Stores: new PouchDB<Store>(databasePath + 'management/stores', DatabaseConfigration),
+    Logs: new PouchDB<Log>(databasePath + 'management/logs', DatabaseConfigration),
+    Sessions: new PouchDB<AuthObject>(databasePath + 'management/sessions', { revs_limit: 3, auto_compaction: true, adapter: 'memory' })
 }
 
 export const StoreDB = {
-    Settings: new PouchDB(`./db/store/settings`, DatabaseConfigration),
-    Sessions: new PouchDB<AuthObject>('./db/store/sessions', { revs_limit: 3, auto_compaction: true, adapter: 'memory' })
+    Settings: new PouchDB(databasePath + 'store/settings', DatabaseConfigration),
+    Sessions: new PouchDB<AuthObject>(databasePath + 'store/sessions', { revs_limit: 3, auto_compaction: true, adapter: 'memory' })
 }
 
 export const SocialDB = {

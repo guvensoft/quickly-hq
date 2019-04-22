@@ -92,6 +92,7 @@ export const storesInfo = (req: Request, res: Response) => {
                     })
                 }).catch(err => {
                     console.log('Not Accessing Store DB');
+                    console.log(err);
                 });
             });
         }).catch(err => {
