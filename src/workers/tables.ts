@@ -2,6 +2,8 @@ import { CouchDB, ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Store } from '../models/social/stores';
 import { readFile, exists } from 'fs';
+import { Stock } from '../models/store/pos/stocks.mock';
+import { backupPath } from '../configrations/paths';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -38,6 +40,36 @@ export const TablesWorker = () => {
 }
 
 
+export const StockCleaner = () => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        let remote = RemoteDB(db, 'kosmos-db15');
+
+
+
+        remote.find({ selector: { db_name: 'stocks' }, limit: 1000 }).then((res: any) => {
+            let untouchedStocks: Array<Stock> = res.docs;
+            let stocks: Array<Stock> = untouchedStocks.map((element: Stock, index) => {
+                element.left_total = 0;
+                element.quantity = 0;
+                element.first_quantity = 1;
+                return element;
+            });
+            // let indexOfBols = stocks.findIndex(element => element.name.startsWith("Bols Sour Apple"));
+
+            // console.log(indexOfBols);
+
+            remote.bulkDocs(stocks).then(res => {
+                console.log(res);
+
+            }).catch(err => console.log(err));
+        })
+
+
+    })
+
+
+}
 
 
 
@@ -167,3 +199,12 @@ export const readJsonFile = (file_path: string) => {
     });
 
 }
+
+
+export const BackupReportGenerator = () => {
+    readJsonFile(backupPath + 'db.dat').then((res: Array<any>) => {
+        let enddays = res.filter(obj => obj.db_name == 'endday');
+        console.log(enddays); 
+    })
+
+}  

@@ -3,4 +3,5 @@
 /db
 /address
 /.vscode
+/backup
 package-lock.json
