@@ -84,7 +84,7 @@ export const storesInfo = (req: Request, res: Response) => {
                         StoreInfoObject.payments.coupon = 0;
                         StoreInfoObject.payments.free = 0;
                     })
-                    Promise.all([tablesInfo, cashboxInfo, paymentsInfo]).finally(() => {
+                    Promise.all([tablesInfo, cashboxInfo, paymentsInfo, checksInfo]).finally(() => {
                         Response.push(StoreInfoObject);
                         if (Response.length == OwnerStores.length) {
                             res.json(Response);

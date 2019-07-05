@@ -19,6 +19,6 @@ export class EndDay {
 export class BackupData {
     constructor(
        public database:string,
-       public docs:Array<object>
+       public docs:Array<any>
     ) { }
 }

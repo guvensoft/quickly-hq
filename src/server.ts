@@ -8,9 +8,8 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
-import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator } from './workers/tables';
 
-import { databasePath } from './configrations/paths'
+import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySellingReport, thatDay, veryOldUpdate, MoveData } from './workers/tables';
 
 //// 19286545426
 
@@ -42,6 +41,14 @@ app.listen(3000, () => console.log('Quickly Reporter Started at http://localhost
 
 // Fixer();
 
+DailySellingReport();
+
 // StockCleaner();
 
-BackupReportGenerator();
+// BackupReportGenerator();
+
+// thatDay()
+
+// veryOldUpdate();
+
+// MoveData()

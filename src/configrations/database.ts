@@ -1,16 +1,16 @@
 import Nano from 'nano';
-import PouchDB from 'pouchdb-core'
-import PouchDBFind from 'pouchdb-find';
-import PouchDBInMemory from 'pouchdb-adapter-memory';
-import PouchDBLevelDB from 'pouchdb-adapter-leveldb';
 import PouchDBHttp from 'pouchdb-adapter-http';
-import { Database } from '../models/management/database';
-import { Store } from '../models/social/stores';
-import { User, Group } from '../models/management/users';
+import PouchDBLevelDB from 'pouchdb-adapter-leveldb';
+import PouchDBInMemory from 'pouchdb-adapter-memory';
+import PouchDB from 'pouchdb-core';
+import PouchDBFind from 'pouchdb-find';
 import { Account } from '../models/management/account';
-import { Owner } from '../models/management/owner';
-import { Log } from '../utils/logger';
 import { AuthObject } from '../models/management/auth';
+import { Database } from '../models/management/database';
+import { Owner } from '../models/management/owner';
+import { Group, User } from '../models/management/users';
+import { Store } from '../models/social/stores';
+import { Log } from '../utils/logger';
 import { databasePath } from './paths';
 
 PouchDB.plugin(PouchDBFind);
