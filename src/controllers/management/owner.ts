@@ -1,10 +1,12 @@
 import { Response, Request } from "express";
 import * as bcrypt from "bcrypt";
-import { ManagementDB } from "../../configrations/database";
+import { ManagementDB, DatabaseQueryLimit } from "../../configrations/database";
 import { OwnerMessages } from '../../utils/messages';
 import { createLog, LogType } from '../../utils/logger';
 import { Owner } from "../../models/management/owner";
 
+
+//////  /owner [POST]
 export const createOwner = (req: Request, res: Response) => {
 	let newOwner: Owner = req.body;
 	ManagementDB.Owners.find({ selector: { username: newOwner.username } }).then(user => {
@@ -40,6 +42,7 @@ export const createOwner = (req: Request, res: Response) => {
 	});
 };
 
+//////  /owner/:id [PUT]
 export const updateOwner = (req: Request, res: Response) => {
 	let ownerID = req.params.id;
 	let formData = req.body;
@@ -56,6 +59,7 @@ export const updateOwner = (req: Request, res: Response) => {
 	});
 }
 
+//////  /owner/:id [GET]
 export const getOwner = (req: Request, res: Response) => {
 	let ownerID = req.params.id;
 	ManagementDB.Owners.get(ownerID).then((obj: any) => {
@@ -66,6 +70,7 @@ export const getOwner = (req: Request, res: Response) => {
 	});
 }
 
+//////  /owner/:id [DELETE]
 export const deleteOwner = (req: Request, res: Response) => {
 	let ownerID = req.params.id;
 	ManagementDB.Owners.get(ownerID).then(obj => {
@@ -81,8 +86,9 @@ export const deleteOwner = (req: Request, res: Response) => {
 	});
 }
 
+//////  /owners + QueryString [GET]
 export const queryOwners = (req: Request, res: Response) => {
-	let qLimit = req.query.limit || 25;
+	let qLimit = req.query.limit || DatabaseQueryLimit;
 	let qSkip = req.query.skip || 0;
 	delete req.query.skip;
 	delete req.query.limit;

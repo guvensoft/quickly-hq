@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
-import { ManagementDB } from '../../configrations/database';
-import { CouchDB, RemoteCollection, RemoteDB } from '../../configrations/database';
-import { SocialDB } from '../../configrations/database';
-import { Database, DatabaseSecObject, DatabaseUser } from '../../models/management/database';
+import { CouchDB, DatabaseQueryLimit, ManagementDB, RemoteCollection, RemoteDB, SocialDB } from '../../configrations/database';
+import { Database, DatabaseUser } from '../../models/management/database';
 import { createLog, LogType } from '../../utils/logger';
 import { DatabaseMessages } from "../../utils/messages";
 
+//////  /database [POST]
 export const createDatabase = (req: Request, res: Response) => {
     let newDatabase: Database = req.body;
     ManagementDB.Databases.find({ selector: { codename: newDatabase.codename } }).then(database => {
@@ -26,6 +25,7 @@ export const createDatabase = (req: Request, res: Response) => {
     });
 };
 
+//////  /database/:id [PUT]
 export const updateDatabase = (req: Request, res: Response) => {
     let databaseID = req.params.id;
     let formData = req.body;
@@ -42,6 +42,7 @@ export const updateDatabase = (req: Request, res: Response) => {
     });
 };
 
+//////  /database/:id [DELETE]
 export const deleteDatabase = (req: Request, res: Response) => {
     let databaseID = req.params.id;
     ManagementDB.Databases.get(databaseID).then(obj => {
@@ -57,6 +58,7 @@ export const deleteDatabase = (req: Request, res: Response) => {
     });
 };
 
+//////  /database/:id [GET]
 export const getDatabase = (req: Request, res: Response) => {
     let databaseID = req.params.id;
     ManagementDB.Databases.get(databaseID).then((obj: any) => {
@@ -67,8 +69,9 @@ export const getDatabase = (req: Request, res: Response) => {
     });
 };
 
+//////  /databases + QueryString [GET]
 export const queryDatabases = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
+    let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;
@@ -80,6 +83,7 @@ export const queryDatabases = (req: Request, res: Response) => {
     });
 };
 
+//////  /database/remote/:id [GET]
 export const listRemoteDB = (req: Request, res: Response) => {
     ManagementDB.Databases.get(req.params.id).then((db_res: any) => {
         CouchDB(db_res).db.list().then(couch_res => {
@@ -93,8 +97,9 @@ export const listRemoteDB = (req: Request, res: Response) => {
     });
 };
 
+//////  /database/remote/:id/:db [GET]
 export const openRemoteDB = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
+    let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;
@@ -110,10 +115,10 @@ export const openRemoteDB = (req: Request, res: Response) => {
         createLog(req, LogType.DATABASE_ERROR, err);
     });
 };
-
+//////  /database/remote/:id/:db [GET]
 export const getSocialDB = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
-    let qSkip = req.query.skip || 0;
+    const qLimit = req.query.limit || DatabaseQueryLimit;
+    const qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;
     SocialDB[req.params.db].find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
@@ -123,7 +128,7 @@ export const getSocialDB = (req: Request, res: Response) => {
         createLog(req, LogType.DATABASE_ERROR, err);
     });
 };
-
+//////  /database/remote/:id/:db [POST]
 export const createCollectionDB = (req: Request, res: Response) => {
     const creds = req.body;
     ManagementDB.Databases.get(req.params.id).then((db_res: any) => {
@@ -131,33 +136,23 @@ export const createCollectionDB = (req: Request, res: Response) => {
         const RemoteCheck = RemoteCollection(db_res, req.params.db, creds.username, creds.password);
         const UsersDB = DB.use('_users');
         let newUser = new DatabaseUser(creds.username, creds.password);
-        let secObj: DatabaseSecObject | any = {
-            admins: {
-                names: [],
-                roles: []
-            },
-            members: {
-                names: [creds.username],
-                roles: []
-            }
-        };
         UsersDB.insert(newUser).then(() => {
             DB.create(req.params.db).then(() => {
-                DB.use(req.params.db).insert(secObj, "_security").then(() => {
+                DB.use(req.params.db).insert(newUser.secObject(), "_security").then(() => {
                     RemoteCheck.info().then(remote_res => {
                         res.json({ ok: true, message: remote_res })
-                    }).catch(() => {
-                        res.json({ remote: false });
+                    }).catch((err) => {
+                        res.json({ ok: false, message: err });
                     })
                 }).catch(err => {
-                    res.json({ error: err });
+                    res.json({ ok: false, message: err });
                 });
             }).catch(err => {
-                res.json({ error: err });
+                res.json({ ok: false, message: err });
             });
         });
     }).catch(err => {
-        res.json({ error: err });
+        res.json({ ok: false, message: err });
         createLog(req, LogType.DATABASE_ERROR, err);
     });
 }

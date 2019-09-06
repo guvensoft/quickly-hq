@@ -1,4 +1,4 @@
-export class AuthObject {
+export class Session {
     constructor(
         public user_id: string,
         public user_ip: string,

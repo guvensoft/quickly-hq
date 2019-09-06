@@ -21,8 +21,21 @@ export class DatabaseUser {
         this._id = "org.couchdb.user:" + username;
         this.name = username;
         this.password = passphrase;
-        this.type = 'user',
-        this.roles = []
+        this.type = 'user';
+        this.roles = [];
+    }
+
+    secObject(): DatabaseSecObject | any {
+        return {
+            admins: {
+                names: [],
+                roles: []
+            },
+            members: {
+                names: [this.name],
+                roles: []
+            }
+        };
     }
 }
 

@@ -1,9 +1,10 @@
 import { Response, Request } from "express";
-import { ManagementDB } from "../../configrations/database";
+import { ManagementDB, DatabaseQueryLimit } from "../../configrations/database";
 import { AccountMessages } from '../../utils/messages';
 import { Account } from "../../models/management/account";
 import { createLog, LogType } from '../../utils/logger';
 
+//////  /account [POST]
 export const createAccount = (req: Request, res: Response) => {
     let newAccount: Account = req.body;
     ManagementDB.Accounts.find({ selector: { name: newAccount.name } }).then(accounts => {
@@ -24,6 +25,7 @@ export const createAccount = (req: Request, res: Response) => {
     });
 };
 
+//////  /account/:id [PUT]
 export const updateAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     let formData = req.body;
@@ -40,6 +42,7 @@ export const updateAccount = (req: Request, res: Response) => {
     });
 }
 
+//////  /account/:id [GET]
 export const getAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     ManagementDB.Accounts.get(accountID).then((obj: any) => {
@@ -50,6 +53,7 @@ export const getAccount = (req: Request, res: Response) => {
     });
 }
 
+//////  /account/:id [DELETE]
 export const deleteAccount = (req: Request, res: Response) => {
     let accountID = req.params.id;
     ManagementDB.Accounts.get(accountID).then(obj => {
@@ -65,8 +69,9 @@ export const deleteAccount = (req: Request, res: Response) => {
     });
 }
 
+//////  /accounts + QueryString [POST]
 export const queryAccounts = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
+    let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;

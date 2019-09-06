@@ -1,11 +1,12 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { ManagementDB } from "../../configrations/database";
-import { AuthObject } from "../../models/management/auth";
+import { Session } from "../../models/management/session";
 import { User } from "../../models/management/users";
 import { createLog, LogType } from '../../utils/logger';
 import { SessionMessages } from "../../utils/messages";
 
+//////  /auth/login [POST]
 export let Login = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Users.find({ selector: { username: formData.username } }).then((users: any) => {
@@ -13,20 +14,20 @@ export let Login = (req: Request, res: Response) => {
             const User: User = users.docs[0];
             bcrypt.compare(formData.password, User.password, (err, same) => {
                 if (!err && same) {
-                    let auth_object = new AuthObject(User._id, req.ip, Date.now(), (Date.now() + 3600000));
-                    ManagementDB.Sessions.find({ selector: { user_id: auth_object.user_id } }).then(query => {
+                    let session = new Session(User._id, req.ip, Date.now(), (Date.now() + 3600000));
+                    ManagementDB.Sessions.find({ selector: { user_id: session.user_id } }).then(query => {
                         if (query.docs.length > 0) {
                             let tokenWillUpdate = query.docs[0];
-                            auth_object._id = tokenWillUpdate._id;
-                            auth_object._rev = tokenWillUpdate._rev;
-                            ManagementDB.Sessions.put(auth_object, {}).then(db_res => {
+                            session._id = tokenWillUpdate._id;
+                            session._rev = tokenWillUpdate._rev;
+                            ManagementDB.Sessions.put(session, {}).then(db_res => {
                                 res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id } });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
                                 res.status(SessionMessages.SESSION_NOT_CREATED.code).json(SessionMessages.SESSION_NOT_CREATED.response);
                             });
                         } else {
-                            ManagementDB.Sessions.post(auth_object).then(db_res => {
+                            ManagementDB.Sessions.post(session).then(db_res => {
                                 res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id } });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
@@ -51,6 +52,7 @@ export let Login = (req: Request, res: Response) => {
     });
 };
 
+//////  /auth/logout [POST]
 export const Logout = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
     ManagementDB.Sessions.get(AuthToken.toString()).then(session => {
@@ -66,6 +68,7 @@ export const Logout = (req: Request, res: Response) => {
     })
 };
 
+//////  /auth/verify [POST]
 export const Verify = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
     ManagementDB.Sessions.get(AuthToken.toString()).then((session: any) => {

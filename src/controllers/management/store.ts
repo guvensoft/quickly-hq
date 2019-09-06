@@ -1,11 +1,11 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { ManagementDB } from "../../configrations/database";
-import { Store } from "../../models/social/stores";
+import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
+import { Store } from "../../models/management/store";
 import { createLog, LogType } from '../../utils/logger';
 import { StoreMessages } from "../../utils/messages";
 
-
+//////  /store [POST]
 export const createStore = (req: Request, res: Response) => {
     let newStore: Store = req.body;
     ManagementDB.Stores.find({ selector: { name: newStore.name } }).then(stores => {
@@ -28,6 +28,7 @@ export const createStore = (req: Request, res: Response) => {
     });
 };
 
+//////  /store/:id [PUT]
 export const updateStore = (req: Request, res: Response) => {
     let storeID = req.params.id;
     let formData = req.body;
@@ -44,6 +45,7 @@ export const updateStore = (req: Request, res: Response) => {
     });
 }
 
+//////  /store/:id [GET]
 export const getStore = (req: Request, res: Response) => {
     let storeID = req.params.id;
     ManagementDB.Stores.get(storeID).then((obj: any) => {
@@ -54,6 +56,7 @@ export const getStore = (req: Request, res: Response) => {
     });
 }
 
+//////  /store/:id [DELETE]
 export const deleteStore = (req: Request, res: Response) => {
     let storeID = req.params.id;
     ManagementDB.Stores.get(storeID).then(obj => {
@@ -69,8 +72,9 @@ export const deleteStore = (req: Request, res: Response) => {
     });
 }
 
+//////  /stores + QueryString [GET]
 export const queryStores = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
+    let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;

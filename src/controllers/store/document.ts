@@ -16,7 +16,7 @@ export const getDocument = async (req: Request, res: Response) => {
 
 export const createDocument = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const Document = req.params.body;
+    const Document = req.body;
     try {
         const Database = await StoreCollection(StoreID);
         const ResponseData = await Database.post(Document)
@@ -28,7 +28,7 @@ export const createDocument = async (req: Request, res: Response) => {
 
 export const updateDocument = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const Document = req.params.body;
+    const Document = req.body;
     try {
         const Database = await StoreCollection(StoreID);
         await Database.put(Document)
@@ -40,10 +40,11 @@ export const updateDocument = async (req: Request, res: Response) => {
 
 export const deleteDocument = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const Document = req.params.body;
+    const Document = req.params.id;
     try {
         const Database = await StoreCollection(StoreID);
-        await Database.remove(Document)
+        const DocumentWillRemove = await Database.get(Document)
+        await Database.remove(DocumentWillRemove);
         res.status(StoreDocumentMessages.DOCUMENT_DELETED.code).json(StoreDocumentMessages.DOCUMENT_DELETED.code);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_DELETED.code).json(StoreDocumentMessages.DOCUMENT_NOT_DELETED.code);

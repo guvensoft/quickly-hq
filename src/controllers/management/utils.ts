@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import fetch from "node-fetch";
 import request from 'request';
-import { ManagementDB } from "../../configrations/database";
+import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
 import { createLog, LogType } from '../../utils/logger';
-
-
+import { fstat, readFile, createReadStream } from "fs";
+import { accessLogs } from "../../configrations/paths";
+import { createInterface } from 'readline'
 
 export const getImage = (req: Request, res: Response) => {
 
@@ -95,15 +96,31 @@ export const getVenues = (req: Request, res: Response) => {
     });
 }
 
-export const getLogs = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
+export const getErrorLogs = (req: Request, res: Response) => {
+    let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;
     ManagementDB.Logs.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
         res.send(obj.docs);
     }).catch((err) => {
-        res.status(404).json({ ok: false, message: 'Loglar Bulu' });
+        res.status(404).json({ ok: false, message: 'Loglar Bulunamadı!' });
         createLog(req, LogType.DATABASE_ERROR, err);
     });
 }
+
+
+
+export const getAccessLogs = (req: Request, res: Response) => {
+    let logs = [];
+    const readInterface = createInterface({
+        input: createReadStream(accessLogs),
+    });
+    readInterface.on('line', function (line) {
+        logs.push(line);
+    });
+    readInterface.on('close', function (line) {
+        res.json(logs);
+    });
+}
+

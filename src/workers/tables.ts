@@ -1,7 +1,6 @@
 import { CouchDB, ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Store } from '../models/social/stores';
-import { readFile, exists } from 'fs';
 import { Stock } from '../models/store/pos/stocks.mock';
 import { backupPath } from '../configrations/paths';
 import { BackupData, EndDay } from '../models/store/pos/endoftheday.mock';
@@ -9,6 +8,7 @@ import { Report } from '../models/store/pos/report.mock';
 import { Cashbox } from '../models/store/pos/cashbox.mock';
 import { ClosedCheck } from '../models/store/pos/check.mock';
 import { Log } from '../models/store/pos/log.mock';
+import { readJsonFile } from '../functions/files';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -141,18 +141,18 @@ export const Logs = () => {
     // })
 }
 
-export const Fixer = () => {
+export const Fixer = (db_name: string) => {
 
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res) => {
         let db = res.docs[0];
 
-        RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'endday' }, limit: 2500 }).then((res: any) => {
+        RemoteDB(db, db_name).find({ selector: { db_name: 'endday' }, limit: 2500 }).then((res: any) => {
             let lastDay: EndDay = res.docs.sort((a, b) => b.timestamp - a.timestamp)[0];
             console.log(new Date(lastDay.timestamp).toDateString());
             return lastDay;
         }).then(lastDay => {
 
-            RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'checks' }, limit: 2500 }).then((res: any) => {
+            RemoteDB(db, db_name).find({ selector: { db_name: 'closed_checks' }, limit: 2500 }).then((res: any) => {
                 // // res.docs.forEach(element => {
                 // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
                 // // });
@@ -189,7 +189,7 @@ export const Fixer = () => {
                 // })
 
                 oldChecks.forEach((check, index) => {
-                    RemoteDB(db, 'kosmos-db15').remove(check).then(res => {
+                    RemoteDB(db, db_name).remove(check).then(res => {
                         console.log(check._id, 'Removed');
                     });
                 })
@@ -204,7 +204,7 @@ export const Fixer = () => {
 }
 
 
-export const DailySellingReport = () => {
+export const DailySalesReport = (store_db_name: string) => {
 
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
@@ -212,7 +212,11 @@ export const DailySellingReport = () => {
         //     let lastDay = res.docs.sort((a, b) => b.timestamp - a.timestamp)[0].timestamp;
         //     console.log(new Date(lastDay));
 
-        RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'closed_checks' }, limit: 2500 }).then((res: any) => {
+        // RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'checks' }, limit: 2500 }).then(res => {
+        //     console.log()
+        // })
+
+        RemoteDB(db, store_db_name).find({ selector: { db_name: 'closed_checks' }, limit: 2500 }).then((res: any) => {
             // // res.docs.forEach(element => {
             // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
             // // });
@@ -231,7 +235,8 @@ export const DailySellingReport = () => {
             // checks = checks.sort((a, b) => b.timestamp - a.timestamp);
 
             // let newChecks = checks.filter(obj => new Date(obj.timestamp).getDay() == 6);
-            checks = checks.filter(obj => new Date(obj.timestamp).getDay() == new Date().getDay());
+            // checks = checks.filter(obj => new Date(obj.timestamp).getDay() == new Date().getDay());
+
 
             // console.log(checks.length);
             // console.log(oldChecks.length);
@@ -244,6 +249,10 @@ export const DailySellingReport = () => {
             //         console.log(check.name, 'updated');
             //     });
             // })
+
+            checks.forEach(element => {
+                console.log(new Date(element.timestamp).toDateString());
+            });
 
 
 
@@ -282,31 +291,11 @@ export const DailySellingReport = () => {
 
 }
 
-export const readJsonFile = (file_path: string) => {
-    return new Promise((resolve, reject) => {
-        exists(file_path, (exists) => {
-            if (exists) {
-                readFile(file_path, (err, data) => {
-                    if (!err) {
-                        let buffer = data.toString('utf8');
-                        let json_data = JSON.parse(buffer);
-                        resolve(json_data);
-                    } else {
-                        reject('Dosya Okunurken Hata Oluştu.');
-                    }
-                });
-            } else {
-                reject('Dosya Bulunamadı');
-            }
-        });
-    });
-
-}
 
 
 export const BackupReportGenerator = () => {
     readJsonFile(backupPath + 'db.dat').then((res: Array<any>) => {
-        let enddays: Array<EndDay> = res.filter(obj => obj.db_name == 'endday').filter((obj) => new Date(obj.timestamp).getDate() == 14 && new Date(obj.timestamp).getMonth() == 6);
+        let enddays: Array<EndDay> = res.filter(obj => obj.db_name == 'endday').sort((a, b) => b.timestamp - a.timestamp).filter(obj => new Date(obj.timestamp).getDay() == 0);
         let categories = res.filter(obj => obj.db_name == 'categories');
         let sub_categories = res.filter(obj => obj.db_name == 'sub_categories');
 
@@ -320,7 +309,7 @@ export const BackupReportGenerator = () => {
                 let logs: Array<Log> = data.find(obj => obj.database == 'logs').docs;
 
                 console.log('---------------------------------');
-                console.log(new Date(day.timestamp).toLocaleString('tr-TR'));
+                console.log(new Date(day.timestamp).toLocaleDateString('tr-TR'));
                 console.log('Raporlar', reports.length);
                 console.log('Kasa', cashbox.length);
                 console.log('Hesaplar', closed_checks.length);
@@ -335,7 +324,7 @@ export const BackupReportGenerator = () => {
                 // reports = reports.filter(report => report.type == 'Product')
                 // console.log(reports[0]);
             }).catch(err => {
-
+                console.log(err);
             })
             // }
         })
@@ -345,47 +334,94 @@ export const BackupReportGenerator = () => {
 
 export const thatDay = () => {
 
-    let day = '1560560187590.qdat';
-    readJsonFile(backupPath + 'backup/' + day).then((data: Array<BackupData>) => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'endday' }, limit: 2500 }).then((res: any) => {
+            let lastDay: EndDay = res.docs.sort((a, b) => b.timestamp - a.timestamp)[0];
+            console.log(new Date(lastDay.timestamp).toLocaleDateString('tr-TR'));
+            return lastDay.data_file;
+        }).then(day => {
+            // let day = '1560560187590.qdat';
+            readJsonFile(backupPath + 'backup/' + day).then((data: Array<BackupData>) => {
 
-        let reports: Array<Report> = data.find(obj => obj.database == 'reports').docs;
-        let closed_checks: Array<ClosedCheck> = data.find(obj => obj.database == 'closed_checks').docs;
-        let cashbox: Array<Cashbox> = data.find(obj => obj.database == 'cashbox').docs;
-        let logs: Array<Log> = data.find(obj => obj.database == 'logs').docs;
+                let reports: Array<Report> = data.find(obj => obj.database == 'reports').docs;
+                let closed_checks: Array<ClosedCheck> = data.find(obj => obj.database == 'closed_checks').docs;
+                let cashbox: Array<Cashbox> = data.find(obj => obj.database == 'cashbox').docs;
+                let logs: Array<Log> = data.find(obj => obj.database == 'logs').docs;
 
-        logs = logs.sort((a, b) => a.timestamp - b.timestamp).filter(obj => obj.connection_id == 'b24b55f0-7b30-4657-9f0f-aeb0317b525a')
-        logs.forEach(log => {
-            // if (log.type) {
-            console.log('                ');
-            console.log('----------------------------------------------------------------------');
-            console.log(new Date(log.timestamp).toLocaleTimeString('tr'))
-            console.log('Tür', log.type);
-            console.log(log.user);
-            console.log(log.description);
-            console.log('----------------------------------------------------------------------');
-            // }
+
+
+                let cash = closed_checks.filter(obj => obj.payment_method == 'Nakit').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+                let card = closed_checks.filter(obj => obj.payment_method == 'Kart').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+                let coupon = closed_checks.filter(obj => obj.payment_method == 'Kupon').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+                let free = closed_checks.filter(obj => obj.payment_method == 'İkram' && obj.type == 1).map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+                let canceled = closed_checks.filter(obj => obj.payment_method == 'İkram' && obj.type == 3).map(obj => obj.total_price).reduce((a, b) => a + b, 0);
+                let partial = closed_checks.filter(obj => obj.payment_method == 'Parçalı')
+
+                partial.forEach(element => {
+                    element.payment_flow.forEach(payment => {
+                        if (payment.method == 'Nakit') {
+                            cash += payment.amount;
+                        }
+                        if (payment.method == 'Kart') {
+                            card += payment.amount;
+                        }
+                        if (payment.method == 'Kupon') {
+                            coupon += payment.amount;
+                        }
+                        if (payment.method == 'İkram') {
+                            free += payment.amount;
+                        }
+                    })
+                })
+
+                let outcome = cashbox.map(obj => obj.cash).reduce((a, b) => a + b, 0);
+                let discount = closed_checks.map(obj => obj.discount).reduce((a, b) => a + b, 0);
+
+
+                console.log('Nakit:', Math.floor(cash), 'TL');
+                console.log('Kart:', Math.floor(card), 'TL');
+                console.log('Kupon:', Math.floor(coupon), 'TL');
+                console.log('İkram:', Math.floor(free), 'TL');
+                console.log('İptal:', Math.floor(canceled), 'TL');
+                console.log('İndirim:', Math.floor(discount), 'TL');
+                console.log('Gider:', Math.floor(outcome), 'TL');
+                console.log('Toplam', Math.floor(cash + card + coupon), 'TL');
+
+                // logs = logs.sort((a, b) => a.timestamp - b.timestamp).filter(obj => obj.connection_id == 'b24b55f0-7b30-4657-9f0f-aeb0317b525a')
+
+                // logs.forEach(log => {
+                //     // if (log.type) {
+                //     console.log('                ');
+                //     console.log('----------------------------------------------------------------------');
+                //     console.log(new Date(log.timestamp).toLocaleTimeString('tr'))
+                //     console.log('Tür', log.type);
+                //     console.log(log.user);
+                //     console.log(log.description);
+                //     console.log('----------------------------------------------------------------------');
+                //     // }
+                // })
+
+
+                // let b13 = closed_checks.filter(obj => obj.table_id == '675c4637-d503-4d29-8df5-11f678b30f09');
+
+                // b13.forEach((check, index) => {
+                //     console.log(index)
+
+                //     console.log(check)
+
+                //     70 + 14.5 + 60 + 3 + 110
+
+                //     // if(check.payment_method == 'Parçalı'){
+                //     //     check.payment_flow.forEach(obj => {
+                //     //         console.log(obj)
+                //     //     })
+                //     // }
+                // })
+
+            })
         })
-
-
-        let b13 = closed_checks.filter(obj => obj.table_id == '675c4637-d503-4d29-8df5-11f678b30f09');
-
-        b13.forEach((check, index) => {
-            console.log(index)
-
-            console.log(check)
-
-            70 + 14.5 + 60 + 3 + 110
-
-            // if(check.payment_method == 'Parçalı'){
-            //     check.payment_flow.forEach(obj => {
-            //         console.log(obj)
-            //     })
-            // }
-        })
-
-    })
-
-
+    });
 }
 
 
@@ -395,7 +431,7 @@ export const veryOldUpdate = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
 
-        RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'reports', type: 'Product' }, limit: 2500 }).then((res: any) => {
+        RemoteDB(db, 'goches-coffee-18fa').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
 
             // let test = res.docs.map(obj => obj.weekly_count[1]);
             // console.log(test);
@@ -431,29 +467,25 @@ export const veryOldUpdate = () => {
             // });
 
 
-            // let products = res.docs;
-            // products.forEach(element => {
+            let products = res.docs;
+            products.forEach(element => {
 
-            //     element.tax_value = 8;
-            //     element.barcode = 0;
+                element.tax_value = 8;
+                element.barcode = 0;
 
-            //     RemoteDB(db, 'dilek-pastanesi-9da1').put(element).then(res => {
-            //         console.log(element.name, 'updated');
-            //     }).catch(err => {
-            //         console.error(element.name, 'error');
-            //     });
+                RemoteDB(db, 'goches-coffee-18fa').put(element).then(res => {
+                    console.log(element.name, 'updated');
+                }).catch(err => {
+                    console.error(element.name, 'error');
+                });
 
-            // });
+            });
 
         })
     })
 }
 
-
-
 export const MoveData = () => {
-
-
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
 

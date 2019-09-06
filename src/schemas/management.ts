@@ -102,9 +102,10 @@ export const DatabaseSchema = joi.object().keys({
 
 export const AdressSchema = joi.object().keys({
     country: joi.string(),
-    state: joi.string(),
     city: joi.string(),
     province: joi.string(),
+    district: joi.string(),
+    street: joi.string(),
     description: joi.string(),
     cordinates: joi.object().keys({
         latitude: joi.number(),
@@ -203,4 +204,29 @@ export const StoreSchema = joi.object().keys({
     status: joi.number().allow(0, 1, 2, 3),
     email: joi.string().email({ minDomainAtoms: 2 }),
     phone_number: joi.number(),
+});
+
+
+export const SupplierSchema = joi.object().keys({
+    name: joi.string(),
+    description: joi.string(),
+    address: joi.string(),
+    phone_number: joi.number(),
+    email: joi.string(),
+    tax_no: joi.number(),
+    account_id: joi.string(),
+    products: joi.array().items(joi.string()),
+    status: joi.number(),
+});
+
+export const SupplierSchemaSafe = joi.object().keys({
+    name: joi.string().required(),
+    description: joi.string().required(),
+    address: joi.string().required(),
+    phone_number: joi.number().required(),
+    email: joi.string().required(),
+    tax_no: joi.number().required(),
+    account_id: joi.string().required(),
+    products: joi.array().items(joi.string()),
+    status: joi.number().required(),
 });

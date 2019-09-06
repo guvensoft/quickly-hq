@@ -351,6 +351,183 @@ export const StoreMessages = {
     },
 }
 
+export const ProducerMessages = {
+    PRODUCER_CREATED: {
+        response: {
+            ok: true,
+            message: "Üretici oluşturuldu.",
+        },
+        code: 201
+    },
+    PRODUCER_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Üretici oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    PRODUCER_UPDATED: {
+        response: {
+            ok: true,
+            message: "Üretici Düzenlendi.",
+        },
+        code: 200
+    },
+    PRODUCER_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Üretici Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    PRODUCER_DELETED: {
+        response: {
+            ok: true,
+            message: "Üretici Silindi.",
+        },
+        code: 200
+    },
+    PRODUCER_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Üretici Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    PRODUCER_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Üretici Adı mevcut. Lütfen farklı bir Üretici adı giririniz.",
+        },
+        code: 406
+    },
+    PRODUCER_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Üretici Bulunamadı",
+        },
+        code: 404
+    },
+}
+
+export const ProductMessages = {
+    PRODUCT_CREATED: {
+        response: {
+            ok: true,
+            message: "Ürün oluşturuldu.",
+        },
+        code: 201
+    },
+    PRODUCT_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Ürün oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    PRODUCT_UPDATED: {
+        response: {
+            ok: true,
+            message: "Ürün Düzenlendi.",
+        },
+        code: 200
+    },
+    PRODUCT_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Ürün Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    PRODUCT_DELETED: {
+        response: {
+            ok: true,
+            message: "Ürün Silindi.",
+        },
+        code: 200
+    },
+    PRODUCT_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Ürün Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    PRODUCT_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Ürün Adı mevcut. Lütfen farklı bir Ürün adı giririniz.",
+        },
+        code: 406
+    },
+    PRODUCT_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Ürün Bulunamadı",
+        },
+        code: 404
+    },
+}
+
+export const SupplierMessages = {
+    SUPPLIER_CREATED: {
+        response: {
+            ok: true,
+            message: "Tedarikçi oluşturuldu.",
+        },
+        code: 201
+    },
+    SUPPLIER_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Tedarikçi oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    SUPPLIER_UPDATED: {
+        response: {
+            ok: true,
+            message: "Tedarikçi Düzenlendi.",
+        },
+        code: 200
+    },
+    SUPPLIER_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Tedarikçi Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    SUPPLIER_DELETED: {
+        response: {
+            ok: true,
+            message: "Tedarikçi Silindi.",
+        },
+        code: 200
+    },
+    SUPPLIER_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Tedarikçi Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    SUPPLIER_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Tedarikçi Adı mevcut. Lütfen farklı bir Tedarikçi adı giririniz.",
+        },
+        code: 406
+    },
+    SUPPLIER_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Tedarikçi Bulunamadı",
+        },
+        code: 404
+    },
+}
+
 export const SessionMessages = {
     SESSION_CREATED: {
         response: {

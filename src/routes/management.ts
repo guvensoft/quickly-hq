@@ -7,6 +7,7 @@ import * as OwnerController from '../controllers/management/owner';
 import * as StoreController from '../controllers/management/store';
 import * as UserController from '../controllers/management/user';
 import * as UtilsController from '../controllers/management/utils';
+import * as AddressController from '../controllers/management/address';
 
 import { AuthenticateGuard, SchemaGuard } from '../middlewares/management';
 import * as ManagementSchema from '../schemas/management';
@@ -182,14 +183,23 @@ router.get("/stores",
     AuthenticateGuard,
     StoreController.queryStores);
 
+// Address
+router.get("/address/:country?/:city?/:province?/:district?",
+    AddressController.getAddress);
+
+
 // Utils
 router.get("/utils/images/:text",
     AuthenticateGuard,
     UtilsController.getImage);
 
-router.get("/utils/logs",
+router.get("/utils/logs/errors",
     AuthenticateGuard,
-    UtilsController.getLogs);
+    UtilsController.getErrorLogs);
+
+router.get("/utils/logs/access",
+    AuthenticateGuard,
+    UtilsController.getAccessLogs);
 
 router.get("/utils/venues/:text",
     AuthenticateGuard,

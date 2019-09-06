@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { ManagementDB } from "../../configrations/database";
+import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
 import { Group } from "../../models/management/users";
 import { createLog, LogType } from '../../utils/logger';
 import { GroupMessages } from "../../utils/messages";
 
+//////  /group [POST]
 export const createGroup = (req: Request, res: Response) => {
     let newGroup: Group = req.body;
     ManagementDB.Groups.find({ selector: { name: newGroup.name } }).then(group => {
@@ -24,6 +25,7 @@ export const createGroup = (req: Request, res: Response) => {
     });
 };
 
+//////  /group/:id [PUT]
 export const updateGroup = (req: Request, res: Response) => {
     let groupID = req.params.id;
     let formData = req.body;
@@ -40,6 +42,7 @@ export const updateGroup = (req: Request, res: Response) => {
     });
 }
 
+//////  /group/:id [GET]
 export const getGroup = (req: Request, res: Response) => {
     let groupID = req.params.id;
     ManagementDB.Groups.get(groupID).then((obj: any) => {
@@ -50,6 +53,7 @@ export const getGroup = (req: Request, res: Response) => {
     });
 }
 
+//////  /group/:id [DELETE]
 export const deleteGroup = (req: Request, res: Response) => {
     let userID = req.params.id;
     ManagementDB.Groups.get(userID).then(obj => {
@@ -65,8 +69,9 @@ export const deleteGroup = (req: Request, res: Response) => {
     });
 }
 
+//////  /groups + QueryString [POST]
 export const queryGroups = (req: Request, res: Response) => {
-    let qLimit = req.query.limit || 25;
+    let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;

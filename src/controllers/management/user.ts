@@ -1,10 +1,11 @@
-import { Response, Request } from "express";
 import * as bcrypt from "bcrypt";
-import { ManagementDB } from "../../configrations/database";
+import { Request, Response } from "express";
+import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
 import { User } from "../../models/management/users";
-import { UserMessages } from '../../utils/messages';
 import { createLog, LogType } from '../../utils/logger';
+import { UserMessages } from '../../utils/messages';
 
+//////  /user [POST]
 export const createUser = (req: Request, res: Response) => {
 	let newUser: User = req.body;
 	ManagementDB.Users.find({ selector: { username: newUser.username } }).then(user => {
@@ -40,6 +41,7 @@ export const createUser = (req: Request, res: Response) => {
 	});
 };
 
+//////  /user/:id [PUT]
 export const updateUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	let formData = req.body;
@@ -56,6 +58,7 @@ export const updateUser = (req: Request, res: Response) => {
 	});
 }
 
+//////  /user/:id [GET]
 export const getUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	ManagementDB.Users.get(userID).then((obj: any) => {
@@ -66,6 +69,7 @@ export const getUser = (req: Request, res: Response) => {
 	});
 }
 
+//////  /user/:id [DELETE]
 export const deleteUser = (req: Request, res: Response) => {
 	let userID = req.params.id;
 	ManagementDB.Users.get(userID).then(obj => {
@@ -81,8 +85,9 @@ export const deleteUser = (req: Request, res: Response) => {
 	});
 }
 
+//////  /users + QueryString [GET]
 export const queryUsers = (req: Request, res: Response) => {
-	let qLimit = req.query.limit || 25;
+	let qLimit = req.query.limit || DatabaseQueryLimit;
 	let qSkip = req.query.skip || 0;
 	delete req.query.skip;
 	delete req.query.limit;

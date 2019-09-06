@@ -9,7 +9,9 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
-import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySellingReport, thatDay, veryOldUpdate, MoveData } from './workers/tables';
+import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData } from './workers/tables';
+import { dailyStockExpense } from './functions/stocks';
+import { importAdress, getCities, createIndexesForDatabase } from './functions/address';
 
 //// 19286545426
 
@@ -32,16 +34,14 @@ app.use('/store', require('./routes/store'));
 
 app.all('/', (req, res) => res.status(404).end());
 
-app.listen(3000, () => console.log('Quickly Reporter Started at http://localhost:3000/'));
+app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
 
 // TablesWorker();
 
-// console.log(databasePath);
+// Fixer('goches-coffee-18fa');
 
-// Fixer();
-
-DailySellingReport();
+// DailySalesReport('goches-coffee-18fa');
 
 // StockCleaner();
 
@@ -52,3 +52,11 @@ DailySellingReport();
 // veryOldUpdate();
 
 // MoveData()
+
+// dailyStockExpense();
+
+// importAdress();
+
+// getCities()
+
+// createIndexesForDatabase();

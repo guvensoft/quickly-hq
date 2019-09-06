@@ -36,8 +36,7 @@ export const SchemaGuard = (schema: joi.ObjectSchema) => {
             next();
         }).catch(err => {
             createLog(req, LogType.UNVALID_SCHEMA_ERROR, err);
-            res.json(err);
-            // res.status(400).json({ ok: false, message: err.details[0].message });
+            res.status(400).json({ ok: false, message: err.details[0].message });
         })
     }
 }
