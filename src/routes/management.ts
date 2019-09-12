@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import * as AccountController from '../controllers/management/account';
 import * as AuthController from '../controllers/management/authentication';
 import * as DatabaseController from '../controllers/management/database';
@@ -6,6 +7,9 @@ import * as GroupController from '../controllers/management/group';
 import * as OwnerController from '../controllers/management/owner';
 import * as StoreController from '../controllers/management/store';
 import * as UserController from '../controllers/management/user';
+import * as ProducerController from '../controllers/management/producer';
+import * as ProductController from '../controllers/management/product';
+import * as SupplierController from '../controllers/management/supplier';
 import * as UtilsController from '../controllers/management/utils';
 import * as AddressController from '../controllers/management/address';
 
@@ -182,6 +186,75 @@ router.delete("/store/:id",
 router.get("/stores",
     AuthenticateGuard,
     StoreController.queryStores);
+
+// Products
+router.get("/product/:id",
+    AuthenticateGuard,
+    ProductController.getProduct);
+
+router.post("/product",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.ProductSchemaSafe),
+    ProductController.createProduct);
+
+router.put("/product/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.ProductSchema),
+    ProductController.updateProduct);
+
+router.delete("/product/:id",
+    AuthenticateGuard,
+    ProductController.deleteProduct);
+
+router.get("/products",
+    AuthenticateGuard,
+    ProductController.queryProducts);
+
+// Suppliers
+router.get("/supplier/:id",
+    AuthenticateGuard,
+    SupplierController.getSupplier);
+
+router.post("/supplier",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.SupplierSchemaSafe),
+    SupplierController.createSupplier);
+
+router.put("/supplier/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.SupplierSchema),
+    SupplierController.updateSupplier);
+
+router.delete("/supplier/:id",
+    AuthenticateGuard,
+    SupplierController.deleteSupplier);
+
+router.get("/suppliers",
+    AuthenticateGuard,
+    SupplierController.querySuppliers);
+
+// Producers
+router.get("/producer/:id",
+    AuthenticateGuard,
+    ProducerController.getProducer);
+
+router.post("/producer",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.ProducerSchemaSafe),
+    ProducerController.createProducer);
+
+router.put("/producer/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.ProducerSchema),
+    ProducerController.updateProducer);
+
+router.delete("/producer/:id",
+    AuthenticateGuard,
+    ProducerController.deleteProducer);
+
+router.get("/producers",
+    AuthenticateGuard,
+    ProducerController.queryProducers);
 
 // Address
 router.get("/address/:country?/:city?/:province?/:district?",

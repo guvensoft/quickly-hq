@@ -5,8 +5,6 @@ export class Product {
     sub_category: string;
     unit: string;
     portion: number;
-    production_date: number;
-    expiration_date: number;
     producer_id: string;
     tax_value: number;
     image: string;

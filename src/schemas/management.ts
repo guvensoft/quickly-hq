@@ -25,7 +25,6 @@ export const UserSchema = joi.object().keys({
     avatar: joi.string()
 });
 
-
 export const OwnerSchemaSafe = joi.object().keys({
     username: joi.string().trim().required(),
     password: joi.string().trim().required(),
@@ -206,27 +205,80 @@ export const StoreSchema = joi.object().keys({
     phone_number: joi.number(),
 });
 
-
 export const SupplierSchema = joi.object().keys({
+    logo: joi.string(),
     name: joi.string(),
     description: joi.string(),
-    address: joi.string(),
+    address: AdressSchema,
     phone_number: joi.number(),
     email: joi.string(),
+    web_site: joi.string().uri(),
     tax_no: joi.number(),
-    account_id: joi.string(),
+    account: joi.string(),
     products: joi.array().items(joi.string()),
     status: joi.number(),
 });
 
 export const SupplierSchemaSafe = joi.object().keys({
+    logo: joi.string().required(),
     name: joi.string().required(),
     description: joi.string().required(),
-    address: joi.string().required(),
+    address: AdressSchema.required(),
     phone_number: joi.number().required(),
     email: joi.string().required(),
+    web_site: joi.string().uri(),
     tax_no: joi.number().required(),
-    account_id: joi.string().required(),
+    account: joi.string().required(),
     products: joi.array().items(joi.string()),
     status: joi.number().required(),
+});
+
+export const ProducerSchema = joi.object().keys({
+    name: joi.string(),
+    description: joi.string(),
+    account: joi.string(),
+    logo: joi.string(),
+    status: joi.number()
+});
+
+export const ProducerSchemaSafe = joi.object().keys({
+    name: joi.string().required(),
+    description: joi.string().required(),
+    account: joi.string().required(),
+    logo: joi.string().required(),
+    status: joi.number().required()
+});
+
+export const ProductSchema = joi.object().keys({
+    name: joi.string(),
+    description: joi.string(),
+    category: joi.string(),
+    sub_category: joi.string(),
+    unit: joi.string(),
+    portion: joi.number(),
+    producer_id: joi.string(),
+    tax_value: joi.number(),
+    image: joi.string(),
+    ingredients: joi.string(), // joi.array().items(joi.string())
+    tags: joi.string(), // joi.array().items(joi.string())
+    calorie: joi.number(),
+    barcode: joi.number(),
+    status: joi.number()
+});
+
+export const ProductSchemaSafe = joi.object().keys({
+    name: joi.string().required(),
+    description: joi.string().required(),
+    category: joi.string().required(),
+    sub_category: joi.string().required(),
+    unit: joi.string().required(),
+    portion: joi.number().required(),
+    producer_id: joi.string().required(),
+    tax_value: joi.number().required(),
+    image: joi.string().required(),
+    ingredients: joi.string().required(), // joi.array().items(joi.string())
+    tags: joi.string().required(), // joi.array().items(joi.string())
+    calorie: joi.number().required(),
+    barcode: joi.number().required(),
+    status: joi.number().required()
 });
