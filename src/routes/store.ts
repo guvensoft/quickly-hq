@@ -8,6 +8,8 @@ import * as DocumentController from '../controllers/store/document';
 import * as StoreAuthController from '../controllers/store/authentication';
 import * as StoreReportsController from '../controllers/store/reports';
 
+import * as ProductsController from '../controllers/management/product';
+
 import { AuthSchemaSafe } from '../schemas/management'
 
 const router = Router();
@@ -103,5 +105,10 @@ router.get("/db/:db_name",
     AccountGuard,
     DocumentController.queryDocuments
 );
+
+router.get("/market",
+    StoreAuthenticateGuard,
+    ProductsController.queryProducts
+)
 
 module.exports = router;

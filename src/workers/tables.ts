@@ -1,4 +1,4 @@
-import { CouchDB, ManagementDB, RemoteDB } from '../configrations/database';
+import { CouchDB, ManagementDB, RemoteDB, StoreDB, StoreCollection } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Store } from '../models/social/stores';
 import { Stock } from '../models/store/pos/stocks.mock';
@@ -9,6 +9,8 @@ import { Cashbox } from '../models/store/pos/cashbox.mock';
 import { ClosedCheck } from '../models/store/pos/check.mock';
 import { Log } from '../models/store/pos/log.mock';
 import { readJsonFile } from '../functions/files';
+import { writeFile, readFile } from 'fs';
+import { Product } from '../models/store/pos/product.mock';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -151,55 +153,50 @@ export const Fixer = (db_name: string) => {
             console.log(new Date(lastDay.timestamp).toDateString());
             return lastDay;
         }).then(lastDay => {
+            let databasesWillFix = ['closed_checks', 'checks', 'logs', 'cashbox'];
+            databasesWillFix.forEach(selectedDatabase => {
+                RemoteDB(db, db_name).find({ selector: { db_name: selectedDatabase }, limit: 2500 }).then((res: any) => {
+                    // // res.docs.forEach(element => {
+                    // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
+                    // // });
+                    // // timestamp: { $gt: Date.now() }
+                    // res.docs = res.docs.sort((a, b) => a.timestamp - b.timestamp).map(obj => new Date(obj.timestamp));
+                    // res.docs.forEach((element: Date) => {
+                    //     console.log(element.getDay(),element.getHours());
+                    //     console.log
+                    // });
 
-            RemoteDB(db, db_name).find({ selector: { db_name: 'closed_checks' }, limit: 2500 }).then((res: any) => {
-                // // res.docs.forEach(element => {
-                // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
-                // // });
-                // // timestamp: { $gt: Date.now() }
-                // res.docs = res.docs.sort((a, b) => a.timestamp - b.timestamp).map(obj => new Date(obj.timestamp));
-                // res.docs.forEach((element: Date) => {
-                //     console.log(element.getDay(),element.getHours());
-                //     console.log
-                // });
+                    let checks = res.docs;
+                    checks = checks.sort((a, b) => b.timestamp - a.timestamp);
+
+                    // checks.forEach(element => {
+                    //     console.log(new Date(element.timestamp).getDay());
+                    // });
+
+                    let newChecks = checks.filter(obj => obj.timestamp > lastDay.data_file.split('.')[0]);
+                    let oldChecks = checks.filter(obj => obj.timestamp < lastDay.data_file.split('.')[0]);
+
+                    console.log('Toplam', checks.length);
+                    console.log('Bugün', newChecks.length);
+                    console.log('Eski', oldChecks.length);
+
+                    // oldChecks.forEach((check, index) => {
+                    //     check.status = 1;
+                    //     RemoteDB(db, 'kosmos-db15').put(check).then(res => {
+                    //         console.log(check.name, 'updated');
+                    //     });
+                    // })
+
+                    oldChecks.forEach((check, index) => {
+                        RemoteDB(db, db_name).remove(check).then(res => {
+                            console.log(check._id, 'Silindi');
+                        });
+                    })
 
 
-                let checks = res.docs;
-
-                checks = checks.sort((a, b) => b.timestamp - a.timestamp);
-
-                // checks.forEach(element => {
-                //     console.log(new Date(element.timestamp).getDay());
-                // });
-
-
-                let newChecks = checks.filter(obj => obj.timestamp > lastDay.data_file.split('.')[0]);
-                let oldChecks = checks.filter(obj => obj.timestamp < lastDay.data_file.split('.')[0]);
-
-                console.log('Toplam', checks.length);
-                console.log('Bugün', newChecks.length);
-                console.log('Eski', oldChecks.length);
-
-
-                // oldChecks.forEach((check, index) => {
-                //     check.status = 1;
-                //     RemoteDB(db, 'kosmos-db15').put(check).then(res => {
-                //         console.log(check.name, 'updated');
-                //     });
-                // })
-
-                oldChecks.forEach((check, index) => {
-                    RemoteDB(db, db_name).remove(check).then(res => {
-                        console.log(check._id, 'Removed');
-                    });
                 })
-
-
-            })
-
+            });
         })
-
-
     })
 }
 
@@ -288,6 +285,39 @@ export const DailySalesReport = (store_db_name: string) => {
             console.log('Toplam', cash + card + coupon);
         })
     })
+
+}
+
+
+export const ReportsFixer = async (db_name) => {
+
+    try {
+
+        const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })
+        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'products' }, limit: 2500 });
+        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'Product' }, limit: 2500 });
+        let reportsWillUpdate = reports.docs;
+        console.log() 
+        reportsWillUpdate.map((report: any) => {
+            try {
+                report.description = products.docs.find(obj => obj._id == report.connection_id).name;
+                // console.log(report)
+
+            } catch  (error) {
+                RemoteDB(db.docs[0], db_name).remove(report).then(res => {
+                    console.log('UNUSED REPORT DELETED', report)
+                })
+            }
+        });
+
+        RemoteDB(db.docs[0], db_name).bulkDocs(reportsWillUpdate).then(response => {
+            console.log(response);
+        })
+
+
+    } catch (error) {
+        console.error(error);
+    }
 
 }
 
@@ -484,6 +514,39 @@ export const veryOldUpdate = () => {
         })
     })
 }
+
+
+export const getProducts = (store_id) => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        readJsonFile(__dirname + 'tete.json').then((productsJson: Array<Product>) => {
+            RemoteDB(db, 'mansion-cafe-restaurant-4b24').find({ selector: { db_name: 'products' }, limit: 2500 }).then(db_products => {
+
+                productsJson.map(product => {
+                    try {
+                        let newRev = db_products.docs.find(obj => obj._id == product._id)._rev;
+                        product._rev = newRev;
+                    } catch (error) {
+                        // console.log(error);
+                    }
+                });
+
+                RemoteDB(db, 'mansion-cafe-restaurant-4b24').bulkDocs(productsJson).then(res => {
+                    console.log(res);
+                }).catch(err => {
+                    console.error(err);
+                })
+                // console.log(products);
+
+            }).catch(err => {
+                console.error(err);
+            })
+
+
+        })
+    })
+}
+
 
 export const MoveData = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {

@@ -8,7 +8,7 @@ export const getProductReports = async (req: Request, res: Response) => {
     try {
         const Database = await StoreCollection(StoreID);
         const ProductReports = await Database.find({ selector: { db_name: 'reports', type: 'Product' }, limit: DatabaseQueryLimit })
-        res.json(ProductReports);
+        res.json(ProductReports.docs);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
     }
@@ -20,7 +20,7 @@ export const getTableReports = async (req: Request, res: Response) => {
     try {
         const Database = await StoreCollection(StoreID);
         const TableReports = await Database.find({ selector: { db_name: 'reports', type: 'Table' }, limit: DatabaseQueryLimit })
-        res.json(TableReports);
+        res.json(TableReports.docs);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
     }
@@ -32,7 +32,7 @@ export const getUserReports = async (req: Request, res: Response) => {
     try {
         const Database = await StoreCollection(StoreID);
         const UserReports = await Database.find({ selector: { db_name: 'reports', type: 'User' }, limit: DatabaseQueryLimit })
-        res.json(UserReports);
+        res.json(UserReports.docs);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
     }
@@ -45,7 +45,7 @@ export const getSalesReports = async (req: Request, res: Response) => {
     try {
         const Database = await StoreCollection(StoreID);
         const ActivityReports = await Database.find({ selector: { db_name: 'reports', type: 'Store' }, limit: DatabaseQueryLimit })
-        res.json(ActivityReports);
+        res.json(ActivityReports.docs);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
     }
@@ -57,7 +57,7 @@ export const getActivityReports = async (req: Request, res: Response) => {
     try {
         const Database = await StoreCollection(StoreID);
         const ActivityReports = await Database.find({ selector: { db_name: 'reports', type: 'Activity' }, limit: DatabaseQueryLimit })
-        res.json(ActivityReports);
+        res.json(ActivityReports.docs);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
     }

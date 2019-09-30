@@ -601,7 +601,6 @@ export const SessionMessages = {
     },
 }
 
-
 export const StoreDocumentMessages = {
     DOCUMENT_CREATED: {
         response: {
@@ -656,6 +655,301 @@ export const StoreDocumentMessages = {
         response: {
             ok: false,
             message: "Döküman Bulunamadı!",
+        },
+        code: 404
+    },
+}
+
+export const TableMessages = {
+    TABLE_CREATED: {
+        response: {
+            ok: true,
+            message: "Masa Oluşturuldu!",
+        },
+        code: 201
+    },
+    TABLE_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Masa Oluşturalamadı!",
+        },
+        code: 400
+    },
+    TABLE_UPDATED: {
+        response: {
+            ok: true,
+            message: "Masa Güncellendi!",
+        },
+        code: 200
+    },
+    TABLE_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Masa Güncellenemedi!",
+        },
+        code: 400
+    },
+    TABLE_DELETED: {
+        response: {
+            ok: true,
+            message: "Masa Silindi!",
+        },
+        code: 200
+    },
+    TABLE_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Masa Silinemedi!",
+        },
+        code: 400
+    },
+    TABLE_EXIST: {
+        response: {
+            ok: false,
+            message: "Belirtilen Masa Var!",
+        },
+        code: 406
+    },
+    TABLE_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Masa Bulunamadı!",
+        },
+        code: 404
+    },
+}
+
+export const StockMessages = {
+    STOCK_CREATED: {
+        response: {
+            ok: true,
+            message: "Stok Oluşturuldu!",
+        },
+        code: 201
+    },
+    STOCK_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Stok Oluşturalamadı!",
+        },
+        code: 400
+    },
+    STOCK_UPDATED: {
+        response: {
+            ok: true,
+            message: "Stok Güncellendi!",
+        },
+        code: 200
+    },
+    STOCK_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Stok Güncellenemedi!",
+        },
+        code: 400
+    },
+    STOCK_DELETED: {
+        response: {
+            ok: true,
+            message: "Stok Silindi!",
+        },
+        code: 200
+    },
+    STOCK_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Stok Silinemedi!",
+        },
+        code: 400
+    },
+    STOCK_EXIST: {
+        response: {
+            ok: false,
+            message: "Belirtilen Stok Var!",
+        },
+        code: 406
+    },
+    STOCK_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Stok Bulunamadı!",
+        },
+        code: 404
+    },
+}
+
+export const FloorMessages = {
+    FLOOR_CREATED: {
+        response: {
+            ok: true,
+            message: "Bölge Oluşturuldu!",
+        },
+        code: 201
+    },
+    FLOOR_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Bölge Oluşturalamadı!",
+        },
+        code: 400
+    },
+    FLOOR_UPDATED: {
+        response: {
+            ok: true,
+            message: "Bölge Güncellendi!",
+        },
+        code: 200
+    },
+    FLOOR_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Bölge Güncellenemedi!",
+        },
+        code: 400
+    },
+    FLOOR_DELETED: {
+        response: {
+            ok: true,
+            message: "Bölge Silindi!",
+        },
+        code: 200
+    },
+    FLOOR_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Bölge Silinemedi!",
+        },
+        code: 400
+    },
+    FLOOR_EXIST: {
+        response: {
+            ok: false,
+            message: "Belirtilen Bölge Var!",
+        },
+        code: 406
+    },
+    FLOOR_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Bölge Bulunamadı!",
+        },
+        code: 404
+    },
+}
+
+export const CategoryMessages = {
+    CATEGORY_CREATED: {
+        response: {
+            ok: true,
+            message: "Kategori Oluşturuldu!",
+        },
+        code: 201
+    },
+    CATEGORY_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Kategori Oluşturalamadı!",
+        },
+        code: 400
+    },
+    CATEGORY_UPDATED: {
+        response: {
+            ok: true,
+            message: "Kategori Güncellendi!",
+        },
+        code: 200
+    },
+    CATEGORY_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Kategori Güncellenemedi!",
+        },
+        code: 400
+    },
+    CATEGORY_DELETED: {
+        response: {
+            ok: true,
+            message: "Kategori Silindi!",
+        },
+        code: 200
+    },
+    CATEGORY_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Kategori Silinemedi!",
+        },
+        code: 400
+    },
+    CATEGORY_EXIST: {
+        response: {
+            ok: false,
+            message: "Belirtilen Kategori Var!",
+        },
+        code: 406
+    },
+    CATEGORY_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Kategori Bulunamadı!",
+        },
+        code: 404
+    },
+}
+
+export const CashboxEntryMessages = {
+    ENTRY_CREATED: {
+        response: {
+            ok: true,
+            message: "Kasa Girdisi oluşturuldu.",
+        },
+        code: 201
+    },
+    ENTRY_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Kasa Girdisi oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    ENTRY_UPDATED: {
+        response: {
+            ok: true,
+            message: "Kasa Girdisi Düzenlendi.",
+        },
+        code: 200
+    },
+    ENTRY_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Kasa Girdisi Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    ENTRY_DELETED: {
+        response: {
+            ok: true,
+            message: "Kasa Girdisi Silindi.",
+        },
+        code: 200
+    },
+    ENTRY_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Kasa Girdisi Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    ENTRY_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Kasa Girdisi Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    ENTRY_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Kasa Girdisi Bulunamadı",
         },
         code: 404
     },

@@ -9,7 +9,7 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
-import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData } from './workers/tables';
+import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData, ReportsFixer, getProducts } from './workers/tables';
 import { dailyStockExpense } from './functions/stocks';
 import { importAdress, getCities, createIndexesForDatabase } from './functions/address';
 
@@ -37,11 +37,22 @@ app.all('/', (req, res) => res.status(404).end());
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
 
+
+////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
+
+// Fixer('kosmos-db15');
+
+// DailySalesReport('kosmos-db15');
+
+
+
+
+
 // TablesWorker();
 
-// Fixer('goches-coffee-18fa');
+// ReportsFixer('kosmos-db15');
 
-// DailySalesReport('goches-coffee-18fa');
+// getProducts('sdfsdfsd');
 
 // StockCleaner();
 
