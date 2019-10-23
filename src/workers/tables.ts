@@ -294,8 +294,8 @@ export const ReportsFixer = async (db_name) => {
     try {
 
         const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })
-        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'products' }, limit: 2500 });
-        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'Product' }, limit: 2500 });
+        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'users' }, limit: 2500 });
+        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'User' }, limit: 2500 });
         let reportsWillUpdate = reports.docs;
         console.log() 
         reportsWillUpdate.map((report: any) => {

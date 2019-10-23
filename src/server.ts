@@ -40,13 +40,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 ////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
 
-// Fixer('kosmos-db15');
+// Fixer('yuri-burger-beer-ecbb');
 
 // DailySalesReport('kosmos-db15');
-
-
-
-
 
 // TablesWorker();
 
