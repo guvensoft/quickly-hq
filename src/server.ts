@@ -42,7 +42,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 // Fixer('yuri-burger-beer-ecbb');
 
-// DailySalesReport('kosmos-db15');
+// DailySalesReport('yuri-burger-beer-ecbb');
 
 // TablesWorker();
 
