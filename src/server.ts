@@ -37,25 +37,25 @@ app.use('/store', require('./routes/store'));
 
 app.all('/', (req, res) => res.status(404).end());
 
-// app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
+app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
 
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/quickly.com.tr/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/quickly.com.tr/cert.pem', 'utf8');
-const chain = fs.readFileSync('/etc/letsencrypt/live/quickly.com.tr/chain.pem', 'utf8');
+// const privateKey = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/privkey.pem', 'utf8');
+// const certificate = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/cert.pem', 'utf8');
+// const chain = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/chain.pem', 'utf8');
 
-const credentials = { key: privateKey, cert: certificate, ca: chain };
+// const credentials = { key: privateKey, cert: certificate, ca: chain };
 
-const httpServer = http.createServer(app);
-const httpsServer = https.createServer(credentials, app);
+// const httpServer = http.createServer(app);
+// const httpsServer = https.createServer(credentials, app);
 
-httpServer.listen(80, () => {
-    console.log('HTTP Server running on port 80');
-});
+// httpServer.listen(80, () => {
+//     console.log('HTTP Server running on port 80');
+// });
 
-httpsServer.listen(443, () => {
-    console.log('HTTPS Server running on port 443');
-});
+// httpsServer.listen(443, () => {
+//     console.log('HTTPS Server running on port 443');
+// });
 
 ////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
 
