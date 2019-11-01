@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
+import swagger from 'express-swagger-generator';
 
 import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData, ReportsFixer, getProducts } from './workers/tables';
 import { dailyStockExpense } from './functions/stocks';
@@ -67,3 +68,34 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // getCities()
 
 // createIndexesForDatabase();
+
+
+// const expressSwagger = swagger(app);
+
+
+// let options = {
+//     swaggerDefinition: {
+//         info: {
+//             description: 'Quickly Hq Api Docs',
+//             title: 'Swagger',
+//             version: '1.0.0',
+//         },
+//         host: 'localhost:3000',
+//         basePath: '/',
+//         produces: [
+//             "application/json",
+//         ],
+//         schemes: ['http', 'https'],
+//         securityDefinitions: {
+//             JWT: {
+//                 type: 'apiKey',
+//                 in: 'header',
+//                 name: 'Authorization',
+//                 description: "",
+//             }
+//         }
+//     },
+//     basedir: __dirname, //app absolute path
+//     files: ['./routes/**/*.js'] //Path to the API handle folder
+// };
+// expressSwagger(options)
