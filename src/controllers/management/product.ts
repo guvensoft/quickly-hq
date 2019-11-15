@@ -72,10 +72,15 @@ export const deleteProduct = (req: Request, res: Response) => {
 
 //////  /products + QueryString [GET]
 export const queryProducts = (req: Request, res: Response) => {
+    let qRegex = req.query.regex;
     let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
     delete req.query.skip;
     delete req.query.limit;
+    if (qRegex) {
+        req.query.name = JSON.parse(req.query.name);
+        delete req.query.regex;
+    }
     ManagementDB.Products.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
         res.send(obj.docs);
     }).catch(err => {

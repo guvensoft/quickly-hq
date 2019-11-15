@@ -1,5 +1,4 @@
-
-import { exists,readFile } from 'fs';
+import { exists, readFile, writeFile } from 'fs';
 
 export const readJsonFile = (file_path: string) => {
     return new Promise((resolve, reject) => {
@@ -16,6 +15,24 @@ export const readJsonFile = (file_path: string) => {
                 });
             } else {
                 reject('Dosya Bulunamadı');
+            }
+        });
+    });
+}
+
+export const writeJsonFile = (file_path: string, data: any) => {
+    return new Promise<boolean>((resolve, reject) => {
+        exists(file_path, (exists) => {
+            if (exists) {
+                writeFile(file_path, data, (err) => {
+                    if (!err) {
+                        resolve(true);
+                    } else {
+                        reject('Dosya Yazılırken Hata Oluştu.');
+                    }
+                })
+            } else {
+                reject(false);
             }
         });
     });

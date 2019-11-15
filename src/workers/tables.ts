@@ -10,9 +10,12 @@ import { ClosedCheck } from '../models/store/pos/check.mock';
 import { Log } from '../models/store/pos/log.mock';
 import { readJsonFile } from '../functions/files';
 import { writeFile, readFile } from 'fs';
-import { Product } from '../models/store/pos/product.mock';
+import { Product } from '../models/management/product';
+import path from 'path';
+
 
 export const TableWorker = () => {
+    console.log('test');
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
         const Databases: Database[] = databases.docs;
         Databases.forEach(db_server => {
@@ -290,31 +293,24 @@ export const DailySalesReport = (store_db_name: string) => {
 
 
 export const ReportsFixer = async (db_name) => {
-
     try {
-
         const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })
         const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'users' }, limit: 2500 });
         const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'User' }, limit: 2500 });
         let reportsWillUpdate = reports.docs;
-        console.log() 
+        console.log()
         reportsWillUpdate.map((report: any) => {
             try {
                 report.description = products.docs.find(obj => obj._id == report.connection_id).name;
-                // console.log(report)
-
-            } catch  (error) {
+            } catch (error) {
                 RemoteDB(db.docs[0], db_name).remove(report).then(res => {
                     console.log('UNUSED REPORT DELETED', report)
                 })
             }
         });
-
         RemoteDB(db.docs[0], db_name).bulkDocs(reportsWillUpdate).then(response => {
             console.log(response);
         })
-
-
     } catch (error) {
         console.error(error);
     }
@@ -551,7 +547,6 @@ export const getProducts = (store_id) => {
 export const MoveData = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-
         RemoteDB(db, 'quickly-cafe-130c').find({ selector: { db_name: 'stocks_cat' }, limit: 2500 }).then((res: any) => {
             return res.docs;
         }).then(stocks => {
@@ -560,8 +555,66 @@ export const MoveData = () => {
                 console.log('Stocks Added');
             })
         })
-
-
-
     })
+}
+
+
+export const importProducts = () => {
+
+    // {
+    //     sku -> sku
+    //     name -> ürün adı
+    //     category -> alt kategori
+    //     brand -> ürün markası
+    //     price -> ürün fiyatı
+    //     currency -> ürün kuru
+    //     image -> ürün fotoğrafı (base64)
+    // }
+
+    // name: string;
+    // description: string;
+    // category: string;
+    // sub_category: string;
+    // unit: string;
+    // portion: number;
+    // producer_id: string;
+    // tax_value: number;
+    // image: string;
+    // ingredients: Array<any>;
+    // tags: Array<any>;
+    // calorie: number;
+    // barcode: number;
+    // timestamp: number;
+
+    let filesPath = path.join(__dirname, '../..', '/products/SütKahvaltılık.json');
+    readJsonFile(filesPath).then((res: Array<any>) => {
+        let products = [];
+        res.forEach(res => {
+            let mutated = {
+                name: res.name,
+                description: res.brand + ' ' + res.name + ' ' + res.category,
+                category: 0,
+                sub_category: res.category,
+                unit: 'Gram',
+                portion: 100,
+                producer_id: res.brand,
+                tax_value: 8,
+                image: 'data:image/jpeg;base64,'+encodeURI(res.image),
+                ingredients: [],
+                tags: res.name.split(' '),
+                calorie: 0,
+                barcode: res.sku,
+                timestamp: Date.now()
+            };
+            products.push(mutated);
+        })
+        ManagementDB.Products.bulkDocs(products).then(res => {
+            console.log(res);
+        }).catch(err => {
+            console.log(err);
+        })
+    }).catch(err => {
+        console.log(err);
+    })
+
 }

@@ -1,5 +1,3 @@
-import http from 'http';
-import https from 'https';
 import express from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
@@ -11,10 +9,7 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
-// import swagger from 'express-swagger-generator';
-// import { TablesWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData, ReportsFixer, getProducts } from './workers/tables';
-// import { dailyStockExpense } from './functions/stocks';
-// import { importAdress, getCities, createIndexesForDatabase } from './functions/address';
+import { TableWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData, ReportsFixer, getProducts, importProducts } from './workers/tables';
 
 //// 19286545426
 
@@ -34,85 +29,45 @@ app.use(queryParser());
 
 app.use('/management', require('./routes/management'));
 app.use('/store', require('./routes/store'));
+app.use('/market', require('./routes/market'));
 
 app.all('/', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
 
-// const privateKey = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/privkey.pem', 'utf8');
-// const certificate = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/cert.pem', 'utf8');
-// const chain = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/chain.pem', 'utf8');
-
-// const credentials = { key: privateKey, cert: certificate, ca: chain };
-
-// const httpServer = http.createServer(app);
-// const httpsServer = https.createServer(credentials, app);
-
-// httpServer.listen(80, () => {
-//     console.log('HTTP Server running on port 80');
-// });
-
-// httpsServer.listen(443, () => {
-//     console.log('HTTPS Server running on port 443');
-// });
+// TableWorker();
 
 ////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
 
-// Fixer('yuri-burger-beer-ecbb');
-
-// DailySalesReport('yuri-burger-beer-ecbb');
-
-// TablesWorker();
-
-// ReportsFixer('kosmos-db15');
-
+// Fixer('kosmos-db15');
+// DailySalesReport('kosmos-db15');
+// ReportsFixer('goches-coffee-18fa');
 // getProducts('sdfsdfsd');
-
 // StockCleaner();
-
 // BackupReportGenerator();
-
 // thatDay()
-
 // veryOldUpdate();
-
 // MoveData()
-
 // dailyStockExpense();
-
 // importAdress();
-
 // getCities()
-
 // createIndexesForDatabase();
 
+// importProducts()
 
-// const expressSwagger = swagger(app);
 
-// let options = {
-//     swaggerDefinition: {
-//         info: {
-//             description: 'Quickly Hq Api Docs',
-//             title: 'Swagger',
-//             version: '1.0.0',
-//         },
-//         host: 'localhost:3000',
-//         basePath: '/',
-//         produces: [
-//             "application/json",
-//         ],
-//         schemes: ['http', 'https'],
-//         securityDefinitions: {
-//             JWT: {
-//                 type: 'apiKey',
-//                 in: 'header',
-//                 name: 'Authorization',
-//                 description: "",
-//             }
-//         }
-//     },
-//     basedir: __dirname, //app absolute path
-//     files: ['./routes/**/*.js'] //Path to the API handle folder
-// };
-// expressSwagger(options)
+/* For Standalone No Reverse-Proxy Operations */
+
+// const privateKey = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/privkey.pem', 'utf8');
+// const certificate = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/cert.pem', 'utf8');
+// const chain = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/chain.pem', 'utf8');
+// const credentials = { key: privateKey, cert: certificate, ca: chain };
+// const httpServer = http.createServer(app);
+// const httpsServer = https.createServer(credentials, app);
+// httpServer.listen(80, () => {
+//     console.log('HTTP Server running on port 80');
+// });
+// httpsServer.listen(443, () => {
+//     console.log('HTTPS Server running on port 443');
+// });

@@ -106,9 +106,4 @@ router.get("/db/:db_name",
     DocumentController.queryDocuments
 );
 
-router.get("/market",
-    StoreAuthenticateGuard,
-    ProductsController.queryProducts
-)
-
 module.exports = router;

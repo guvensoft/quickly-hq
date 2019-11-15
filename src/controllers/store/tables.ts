@@ -11,7 +11,7 @@ export const createTable = async (req: Request, res: Response) => {
         const StoreDB = await StoreCollection(StoreID);
         const TableWillCreate = { db_name: 'tables', db_seq: 0, ...req.body };
         const Table = await StoreDB.post(TableWillCreate);
-        const TableReport = new Report('tables', Table.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
+        const TableReport = new Report('Table', Table.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], req.body.name, Date.now());
         StoreDB.post({ db_name: 'reports', db_seq: 0, ...TableReport });
         res.status(TableMessages.TABLE_CREATED.code).json(TableMessages.TABLE_CREATED.response);
     } catch (error) {
@@ -20,7 +20,7 @@ export const createTable = async (req: Request, res: Response) => {
 }
 
 
-////// /tables/id [DELETE]
+////// /tables/:id [DELETE]
 export const deleteTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -36,7 +36,7 @@ export const deleteTable = async (req: Request, res: Response) => {
 
 }
 
-////// /tables/id [PUT]
+////// /tables/:id [PUT]
 export const updateTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -50,7 +50,7 @@ export const updateTable = async (req: Request, res: Response) => {
 
 }
 
-////// /tables/id [GET]
+////// /tables/:id [GET]
 export const getTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {

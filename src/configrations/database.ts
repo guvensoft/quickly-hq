@@ -5,6 +5,9 @@ import PouchDBInMemory from 'pouchdb-adapter-memory';
 import PouchDB from 'pouchdb-core';
 import PouchDBFind from 'pouchdb-find';
 
+import { Log } from '../utils/logger';
+import { databasePath } from './paths';
+
 import { Account } from '../models/management/account';
 import { Session } from '../models/management/session';
 import { Database } from '../models/management/database';
@@ -12,9 +15,6 @@ import { Owner } from '../models/management/owner';
 import { Group, User } from '../models/management/users';
 import { Store, StoreSettings } from '../models/social/stores';
 import { Supplier } from '../models/management/supplier';
-import { Log } from '../utils/logger';
-
-import { databasePath } from './paths';
 import { Producer } from '../models/management/producer';
 import { Product } from '../models/management/product';
 
