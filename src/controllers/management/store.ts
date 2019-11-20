@@ -4,6 +4,7 @@ import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
 import { Store } from "../../models/management/store";
 import { createLog, LogType } from '../../utils/logger';
 import { StoreMessages } from "../../utils/messages";
+import { createStoreDatabase } from '../../functions/database';
 
 //////  /store [POST]
 export const createStore = (req: Request, res: Response) => {
@@ -15,11 +16,16 @@ export const createStore = (req: Request, res: Response) => {
             newStore.timestamp = Date.now();
             newStore.auth.database_user = bcrypt.genSaltSync();
             newStore.auth.database_password = bcrypt.hashSync(newStore.auth.database_name, bcrypt.genSaltSync());
-            ManagementDB.Stores.post(newStore).then(db_res => {
-                res.status(StoreMessages.STORE_CREATED.code).json(StoreMessages.STORE_CREATED.response);
-            }).catch((err) => {
+            createStoreDatabase(newStore.auth).then(databaseInfo => {
+                ManagementDB.Stores.post(newStore).then(db_res => {
+                    res.status(StoreMessages.STORE_CREATED.code).json(StoreMessages.STORE_CREATED.response);
+                }).catch((err) => {
+                    res.status(StoreMessages.STORE_NOT_CREATED.code).json(StoreMessages.STORE_NOT_CREATED.response);
+                    createLog(req, LogType.DATABASE_ERROR, err);
+                })
+            }).catch(err => {
                 res.status(StoreMessages.STORE_NOT_CREATED.code).json(StoreMessages.STORE_NOT_CREATED.response);
-                createLog(req, LogType.DATABASE_ERROR, err);
+                createLog(req, LogType.INNER_LIBRARY_ERROR, err);
             })
         }
     }).catch((err) => {

@@ -23,7 +23,6 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
-
 app.use(cors());
 app.use(queryParser());
 

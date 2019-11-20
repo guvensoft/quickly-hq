@@ -62,7 +62,7 @@ export const updateOwner = (req: Request, res: Response) => {
 //////  /owner/:id [GET]
 export const getOwner = (req: Request, res: Response) => {
 	let ownerID = req.params.id;
-	ManagementDB.Owners.get(ownerID).then((obj: any) => {
+	ManagementDB.Owners.get(ownerID).then((obj: Owner) => {
 		res.send(obj);
 	}).catch(err => {
 		res.status(OwnerMessages.OWNER_NOT_EXIST.code).json(OwnerMessages.OWNER_NOT_EXIST.response);
