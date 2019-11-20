@@ -43,46 +43,46 @@ TODO
 
 ##### Authentication
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
 **management/auth/login** | PUT  | None  | SchemaGuard |`AuthController.Login()`
-**management/auth/logout** | PUT  | Authorization  | AuthenticateGuard |`AuthController.Logout()`
-**management/auth/verify** | PUT  | Authorization  | AuthenticateGuard |`AuthController.Verify()`
+**management/auth/logout** | PUT  | AuthenticateGuard |`AuthController.Logout()`
+**management/auth/verify** | PUT  | AuthenticateGuard |`AuthController.Verify()`
 
 ##### Accounts
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/account** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`AccountController.createAccount()`
-**management/account/:id** | GET  | Authorization  | AuthenticateGuard |`AccountController.getAccount()`
-**management/account/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`AccountController.updateAccount()`
-**management/account/:id** | DELETE  | Authorization  | AuthenticateGuard |`AccountController.deleteAccount()`
-**management/accounts** | GET  | Authorization  | AuthenticateGuard |`AccountController.queryAccounts()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/account** | POST  | AuthenticateGuard, SchemaGuard |`AccountController.createAccount()`
+**management/account/:id** | GET  | AuthenticateGuard |`AccountController.getAccount()`
+**management/account/:id** | PUT  | AuthenticateGuard, SchemaGuard |`AccountController.updateAccount()`
+**management/account/:id** | DELETE  | AuthenticateGuard |`AccountController.deleteAccount()`
+**management/accounts** | GET  | AuthenticateGuard |`AccountController.queryAccounts()`
 
 ##### Owners
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/account** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`OwnerController.createOwner()`
-**management/account/:id** | GET  | Authorization  | AuthenticateGuard  |`OwnerController.getOwner()`
-**management/account/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`OwnerController.updateOwner()`
-**management/account/:id** | DELETE  | Authorization  | AuthenticateGuard, |`OwnerController.deleteOwner()`
-**management/accounts** | GET  | Authorization  | AuthenticateGuard, |`OwnerController.queryOwners()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/account** | POST  | AuthenticateGuard, SchemaGuard |`OwnerController.createOwner()`
+**management/account/:id** | GET  | AuthenticateGuard  |`OwnerController.getOwner()`
+**management/account/:id** | PUT  | AuthenticateGuard, SchemaGuard |`OwnerController.updateOwner()`
+**management/account/:id** | DELETE  | AuthenticateGuard, |`OwnerController.deleteOwner()`
+**management/accounts** | GET  | AuthenticateGuard, |`OwnerController.queryOwners()`
 
 ##### Databases
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/database** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`DatabaseController.createDatabase()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/database** | POST  | AuthenticateGuard, SchemaGuard |`DatabaseController.createDatabase()`
 **management/database/:id** | GET  |  Authorization  | AuthenticateGuard  |`DatabaseController.getDatabase()`
 **management/database/:id** | PUT  |  Authorization  | AuthenticateGuard, SchemaGuard |`DatabaseController.updateDatabase()`
-**management/database/:id** | DELETE  | Authorization  | AuthenticateGuard, |`DatabaseController.deleteDatabase()`
-**management/databases** | GET  | Authorization  | AuthenticateGuard, |`DatabaseController.queryDatabases()`
+**management/database/:id** | DELETE  | AuthenticateGuard, |`DatabaseController.deleteDatabase()`
+**management/databases** | GET  | AuthenticateGuard, |`DatabaseController.queryDatabases()`
 
 ##### Users
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
 **management/user** | POST  |  Authorization  | AuthenticateGuard, SchemaGuard |`UserController.createUser()`
 **management/user/:id** | GET  |  Authorization  | AuthenticateGuard  |`UserController.getUser()`
 **management/user/:id** | PUT  |  Authorization  | AuthenticateGuard, SchemaGuard |`UserController.updateUser()`
@@ -92,74 +92,74 @@ Route | Method | Header | Middlewares | Controller
 
 ##### Groups
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/group** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`GroupController.createGroup()`
-**management/group/:id** | GET  | Authorization  | AuthenticateGuard  |`GroupController.getGroup()`
-**management/group/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`GroupController.updateGroup()`
-**management/group/:id** | DELETE  | Authorization  | AuthenticateGuard, |`GroupController.deleteGroup()`
-**management/groups** | GET  | Authorization  | AuthenticateGuard, |`GroupController.queryGroups()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/group** | POST  | AuthenticateGuard, SchemaGuard |`GroupController.createGroup()`
+**management/group/:id** | GET  | AuthenticateGuard  |`GroupController.getGroup()`
+**management/group/:id** | PUT  | AuthenticateGuard, SchemaGuard |`GroupController.updateGroup()`
+**management/group/:id** | DELETE  | AuthenticateGuard, |`GroupController.deleteGroup()`
+**management/groups** | GET  | AuthenticateGuard, |`GroupController.queryGroups()`
 
 ##### Stores
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/store** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`StoreController.createStore()`
-**management/store/:id** | GET  | Authorization  | AuthenticateGuard  |`StoreController.getStore()`
-**management/store/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`StoreController.updateStore()`
-**management/store/:id** | DELETE  | Authorization  | AuthenticateGuard, |`StoreController.deleteStore()`
-**management/stores** | GET  | Authorization  | AuthenticateGuard, |`StoreController.queryStores()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/store** | POST  | AuthenticateGuard, SchemaGuard |`StoreController.createStore()`
+**management/store/:id** | GET  | AuthenticateGuard  |`StoreController.getStore()`
+**management/store/:id** | PUT  | AuthenticateGuard, SchemaGuard |`StoreController.updateStore()`
+**management/store/:id** | DELETE  | AuthenticateGuard, |`StoreController.deleteStore()`
+**management/stores** | GET  | AuthenticateGuard, |`StoreController.queryStores()`
 
 ##### Producers
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/producer** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`ProducerController.createProducer()`
-**management/producer/:id** | GET  | Authorization  | AuthenticateGuard  |`ProducerController.getProducer()`
-**management/producer/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`ProducerController.updateProducer()`
-**management/producer/:id** | DELETE  | Authorization  | AuthenticateGuard, |`ProducerController.deleteProducer()`
-**management/producers** | GET  | Authorization  | AuthenticateGuard, |`ProducerController.queryProducers()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/producer** | POST  | AuthenticateGuard, SchemaGuard |`ProducerController.createProducer()`
+**management/producer/:id** | GET  | AuthenticateGuard  |`ProducerController.getProducer()`
+**management/producer/:id** | PUT  | AuthenticateGuard, SchemaGuard |`ProducerController.updateProducer()`
+**management/producer/:id** | DELETE  | AuthenticateGuard, |`ProducerController.deleteProducer()`
+**management/producers** | GET  | AuthenticateGuard, |`ProducerController.queryProducers()`
 
 ##### Products
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/product** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`ProductController.createProduct()` 
-**management/product/:id** | GET  | Authorization  | AuthenticateGuard  |`ProductController.getProduct()`
-**management/product/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`ProductController.updateProduct()`
-**management/product/:id** | DELETE  | Authorization  | AuthenticateGuard, |`ProductController.deleteProduct()`
-**management/products** | GET  | Authorization  | AuthenticateGuard, |`ProductController.queryProducts()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/product** | POST  | AuthenticateGuard, SchemaGuard |`ProductController.createProduct()` 
+**management/product/:id** | GET  | AuthenticateGuard  |`ProductController.getProduct()`
+**management/product/:id** | PUT  | AuthenticateGuard, SchemaGuard |`ProductController.updateProduct()`
+**management/product/:id** | DELETE  | AuthenticateGuard, |`ProductController.deleteProduct()`
+**management/products** | GET  | AuthenticateGuard, |`ProductController.queryProducts()`
 
 ##### Categories (TODO)
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/category** | POST | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.createCategory()`
-**management/category/:id** | GET  | Authorization  | AuthenticateGuard  |`CategoryController.getCategory()`
-**management/category/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.updateCategory()`
-**management/category/:id** | DELETE  | Authorization  | AuthenticateGuard, |`CategoryController.deleteCategory()`
-**management/categories** | GET | Authorization  | AuthenticateGuard, |`CategoryController.queryCategories()`
-**management/sub_category** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.createSubCategory()`
-**management/sub_category/:id** | GET | Authorization  | AuthenticateGuard  |`CategoryController.getSubCategory()`
-**management/sub_category/:id** | PUT | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.updateSubCategory()`
-**management/sub_category/:id** | DELETE  | Authorization  | AuthenticateGuard, |`CategoryController.deleteSubCategory()`
-**management/sub_categories** | GET | Authorization  | AuthenticateGuard, |`CategoryController.querySubCategories()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/category** | POST | AuthenticateGuard, SchemaGuard |`CategoryController.createCategory()`
+**management/category/:id** | GET  | AuthenticateGuard  |`CategoryController.getCategory()`
+**management/category/:id** | PUT  | AuthenticateGuard, SchemaGuard |`CategoryController.updateCategory()`
+**management/category/:id** | DELETE  | AuthenticateGuard, |`CategoryController.deleteCategory()`
+**management/categories** | GET | AuthenticateGuard, |`CategoryController.queryCategories()`
+**management/sub_category** | POST  | AuthenticateGuard, SchemaGuard |`CategoryController.createSubCategory()`
+**management/sub_category/:id** | GET | AuthenticateGuard  |`CategoryController.getSubCategory()`
+**management/sub_category/:id** | PUT | AuthenticateGuard, SchemaGuard |`CategoryController.updateSubCategory()`
+**management/sub_category/:id** | DELETE  | AuthenticateGuard, |`CategoryController.deleteSubCategory()`
+**management/sub_categories** | GET | AuthenticateGuard, |`CategoryController.querySubCategories()`
 
 ##### Suppliers
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
-**management/supplier** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`SupplierController.createSupplier()`
-**management/supplier/:id** | GET  | Authorization  | AuthenticateGuard  |`SupplierController.getSupplier()`
-**management/supplier/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`SupplierController.updateSupplier()`
-**management/supplier/:id** | DELETE  | Authorization  | AuthenticateGuard, |`SupplierController.deleteSupplier()`
-**management/suppliers** | GET  | Authorization  | AuthenticateGuard, |`SupplierController.querySuppliers()`
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
+**management/supplier** | POST  | AuthenticateGuard, SchemaGuard |`SupplierController.createSupplier()`
+**management/supplier/:id** | GET  | AuthenticateGuard  |`SupplierController.getSupplier()`
+**management/supplier/:id** | PUT  | AuthenticateGuard, SchemaGuard |`SupplierController.updateSupplier()`
+**management/supplier/:id** | DELETE  | AuthenticateGuard, |`SupplierController.deleteSupplier()`
+**management/suppliers** | GET  | AuthenticateGuard, |`SupplierController.querySuppliers()`
 
 
 ##### Address
 
-Route | Method | Header | Middlewares | Controller
------------- | ------------- | ------------ | ------------- | ------------
+Route | Method | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- 
 **management/address/:country?/:city?/:province?/:district?** | GET   |Authorization| AuthenticateGuard |`AddressController.getAddress()`
 
 
