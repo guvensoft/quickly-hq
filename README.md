@@ -132,23 +132,18 @@ TODO
 
 ##### Categories (TODO)
 
-First Header | Second Header
------------- | -------------
-Content from cell 1 | Content from cell 2
-Content in the first column | Content in the second column
-
-Route| Method |Header|Middlewares|Controller|
--------------| ---------|------------------|---------------------|---------------|----------|
- **management/category** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.createCategory()` |
-** management/category/:id** | GET  | Authorization  | AuthenticateGuard  |`CategoryController.getCategory()` |
-** management/category/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.updateCategory()` |
- **management/category/:id** | DELETE  | Authorization  | AuthenticateGuard, |`CategoryController.deleteCategory()` |
-** management/categories** | GET  | Authorization  | AuthenticateGuard, |`CategoryController.queryCategories()` |
- **management/sub_category** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.createSubCategory()` |
-** management/sub_category/:id** | GET  | Authorization  | AuthenticateGuard  |`CategoryController.getSubCategory()` |
-** management/sub_category/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.updateSubCategory()` |
- **management/sub_category/:id** | DELETE  | Authorization  | AuthenticateGuard, |`CategoryController.deleteSubCategory()` |
-** management/sub_categories** | GET  | Authorization  | AuthenticateGuard, |`CategoryController.querySubCategories()` |
+Route | Method | Header | Middlewares | Controller
+------------ | ------------- | ------------ | ------------- | ------------
+**management/category** | POST | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.createCategory()`
+** management/category/:id** | GET  | Authorization  | AuthenticateGuard  |`CategoryController.getCategory()`
+** management/category/:id** | PUT  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.updateCategory()`
+**management/category/:id** | DELETE  | Authorization  | AuthenticateGuard, |`CategoryController.deleteCategory()`
+** management/categories** | GET | Authorization  | AuthenticateGuard, |`CategoryController.queryCategories()`
+**management/sub_category** | POST  | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.createSubCategory()`
+** management/sub_category/:id** | GET | Authorization  | AuthenticateGuard  |`CategoryController.getSubCategory()` |
+** management/sub_category/:id** | PUT | Authorization  | AuthenticateGuard, SchemaGuard |`CategoryController.updateSubCategory()`
+**management/sub_category/:id** | DELETE  | Authorization  | AuthenticateGuard, |`CategoryController.deleteSubCategory()`
+** management/sub_categories** | GET | Authorization  | AuthenticateGuard, |`CategoryController.querySubCategories()`
 
 ##### Suppliers
 
