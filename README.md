@@ -74,8 +74,8 @@ Route | Method | Middlewares | Controller
 Route | Method | Middlewares | Controller
 ------------ | ------------- | ------------ | ------------- 
 **management/database** | POST  | AuthenticateGuard, SchemaGuard |`DatabaseController.createDatabase()`
-**management/database/:id** | GET  |  Authorization  | AuthenticateGuard  |`DatabaseController.getDatabase()`
-**management/database/:id** | PUT  |  Authorization  | AuthenticateGuard, SchemaGuard |`DatabaseController.updateDatabase()`
+**management/database/:id** | GET  | AuthenticateGuard  |`DatabaseController.getDatabase()`
+**management/database/:id** | PUT  | AuthenticateGuard, SchemaGuard |`DatabaseController.updateDatabase()`
 **management/database/:id** | DELETE  | AuthenticateGuard, |`DatabaseController.deleteDatabase()`
 **management/databases** | GET  | AuthenticateGuard, |`DatabaseController.queryDatabases()`
 
@@ -83,11 +83,11 @@ Route | Method | Middlewares | Controller
 
 Route | Method | Middlewares | Controller
 ------------ | ------------- | ------------ | ------------- 
-**management/user** | POST  |  Authorization  | AuthenticateGuard, SchemaGuard |`UserController.createUser()`
-**management/user/:id** | GET  |  Authorization  | AuthenticateGuard  |`UserController.getUser()`
-**management/user/:id** | PUT  |  Authorization  | AuthenticateGuard, SchemaGuard |`UserController.updateUser()`
-**management/user/:id** | DELETE  |  Authorization  | AuthenticateGuard, |`UserController.deleteUser()`
-**management/users** | GET  |  Authorization  | AuthenticateGuard, |`UserController.queryUsers()`
+**management/user** | POST  | AuthenticateGuard, SchemaGuard |`UserController.createUser()`
+**management/user/:id** | GET  | AuthenticateGuard  |`UserController.getUser()`
+**management/user/:id** | PUT  | AuthenticateGuard, SchemaGuard |`UserController.updateUser()`
+**management/user/:id** | DELETE  | AuthenticateGuard, |`UserController.deleteUser()`
+**management/users** | GET  | AuthenticateGuard, |`UserController.queryUsers()`
 
 
 ##### Groups
