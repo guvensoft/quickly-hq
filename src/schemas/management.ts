@@ -183,7 +183,7 @@ export const StoreSchemaSafe = joi.object().keys({
     auth: StoreAuthSchemaSafe.required(),
     settings: StoreSettingsSchema,
     accounts: joi.array().items(joi.string()).required(),
-    status: joi.number().allow(0, 1, 2, 3).required(),
+    status: joi.number().allow(0, 1, 2).required(),
     email: joi.string().required().email({ minDomainAtoms: 2 }),
     phone_number: joi.number().required(),
 });
@@ -200,7 +200,7 @@ export const StoreSchema = joi.object().keys({
     auth: StoreAuthSchemaSafe,
     settings: StoreSettingsSchema,
     accounts: joi.array().items(joi.string()),
-    status: joi.number().allow(0, 1, 2, 3),
+    status: joi.number().allow(0, 1, 2),
     email: joi.string().email({ minDomainAtoms: 2 }),
     phone_number: joi.number(),
 });
@@ -216,7 +216,7 @@ export const SupplierSchema = joi.object().keys({
     tax_no: joi.number(),
     account: joi.string(),
     products: joi.array().items(joi.string()),
-    status: joi.number(),
+    status: joi.number().allow(0, 1, 2),
 });
 
 export const SupplierSchemaSafe = joi.object().keys({
@@ -230,7 +230,7 @@ export const SupplierSchemaSafe = joi.object().keys({
     tax_no: joi.number().required(),
     account: joi.string().required(),
     products: joi.array().items(joi.string()),
-    status: joi.number().required(),
+    status: joi.number().allow(0, 1, 2, 3).required(),
 });
 
 export const ProducerSchema = joi.object().keys({
@@ -238,7 +238,7 @@ export const ProducerSchema = joi.object().keys({
     description: joi.string(),
     account: joi.string(),
     logo: joi.string(),
-    status: joi.number()
+    status: joi.number().allow(0, 1, 2)
 });
 
 export const ProducerSchemaSafe = joi.object().keys({
@@ -246,7 +246,24 @@ export const ProducerSchemaSafe = joi.object().keys({
     description: joi.string().required(),
     account: joi.string().required(),
     logo: joi.string().required(),
-    status: joi.number().required()
+    status: joi.number().allow(0, 1, 2).required()
+});
+
+
+export const BrandSchema = joi.object().keys({
+    name: joi.string(),
+    description: joi.string(),
+    logo: joi.string(),
+    producer_id: joi.string(),
+    status: joi.number().allow(0, 1, 2),
+})
+
+export const BrandSchemaSafe = joi.object().keys({
+    name: joi.string().required(),
+    description: joi.string().required(),
+    logo: joi.string().required(),
+    producer_id: joi.string().required(),
+    status: joi.number().allow(0, 1, 2).required(),
 });
 
 export const ProductSchema = joi.object().keys({
@@ -257,13 +274,14 @@ export const ProductSchema = joi.object().keys({
     unit: joi.string(),
     portion: joi.number(),
     producer_id: joi.string(),
+    brand_id: joi.string(),
+    channel: joi.number().allow(0, 1),
     tax_value: joi.number(),
     image: joi.string(),
-    ingredients: joi.string(), // joi.array().items(joi.string())
-    tags: joi.string(), // joi.array().items(joi.string())
-    calorie: joi.number(),
+    ingredients: joi.array().items(joi.string()),
+    tags: joi.array().items(joi.string()),
     barcode: joi.number(),
-    status: joi.number()
+    status: joi.number().allow(0, 1, 2)
 });
 
 export const ProductSchemaSafe = joi.object().keys({
@@ -274,11 +292,44 @@ export const ProductSchemaSafe = joi.object().keys({
     unit: joi.string().required(),
     portion: joi.number().required(),
     producer_id: joi.string().required(),
+    brand_id: joi.string().required(),
+    channel: joi.number().allow(0, 1).required(),
     tax_value: joi.number().required(),
     image: joi.string().required(),
-    ingredients: joi.string().required(), // joi.array().items(joi.string())
-    tags: joi.string().required(), // joi.array().items(joi.string())
-    calorie: joi.number().required(),
+    ingredients: joi.array().items(joi.string()).required(),
+    tags: joi.array().items(joi.string()).required(),
     barcode: joi.number().required(),
-    status: joi.number().required()
+    status: joi.number().allow(0, 1, 2).required()
+});
+
+export const CategorySchemaSafe = joi.object().keys({
+    name: joi.string().required(),
+    description: joi.string().required(),
+    image: joi.string().required(),
+    type: joi.number().required(),
+    status: joi.number().allow(0, 1, 2).required()
+});
+
+export const CategorySchema = joi.object().keys({
+    name: joi.string(),
+    description: joi.string(),
+    image: joi.string(),
+    type: joi.number(),
+    status: joi.number().allow(0, 1, 2)
+});
+
+export const SubCategorySchemaSafe = joi.object().keys({
+    category_id: joi.string().required(),
+    name: joi.string().required(),
+    description: joi.string().required(),
+    image: joi.string().required(),
+    status: joi.number().allow(0, 1, 2).required()
+});
+
+export const SubCategorySchema = joi.object().keys({
+    category_id: joi.string(),
+    name: joi.string(),
+    description: joi.string(),
+    image: joi.string(),
+    status: joi.number().allow(0, 1, 2)
 });

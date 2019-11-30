@@ -1,17 +1,15 @@
-export class Owner {
-    constructor(
-        public username: string,
-        public password: string,
-        public fullname: string,
-        public email: string,
-        public phone_number: number,
-        public avatar: string,
-        public account: string,
-        public stores: Array<string>,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Owner {
+    username: string;
+    password: string;
+    fullname: string;
+    email: string;
+    phone_number: number;
+    avatar: string;
+    account: string;
+    stores: Array<string>;
+    timestamp: number;
+    _id?: string;
+    _rev?: string;
 }
 
 export enum OwnerType {

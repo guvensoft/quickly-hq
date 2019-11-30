@@ -1,10 +1,8 @@
-export class Session {
-    constructor(
-        public user_id: string,
-        public user_ip: string,
-        public timestamp: number,
-        public expire_date: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Session {
+    user_id: string,
+    user_ip: string,
+    timestamp: number,
+    expire_date: number,
+    _id?: string,
+    _rev?: string
 }

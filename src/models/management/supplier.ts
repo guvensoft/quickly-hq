@@ -1,6 +1,6 @@
 import { Address } from './locations'
 
-export class Supplier {
+export interface Supplier {
     logo: string;
     name: string;
     description: string;

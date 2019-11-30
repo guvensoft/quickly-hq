@@ -1,25 +1,23 @@
 import { Address } from './locations';
 
-export class Store {
-    constructor(
-        public name: string,
-        public type: StoreType,
-        public category: StoreCategory | Array<StoreCategory>,
-        public cuisine: StoreCuisine | Array<StoreCuisine>,
-        public address: Address,
-        public email: string | Array<string>,
-        public phone_number: string | Array<string>,
-        public motto: string,
-        public description: string,
-        public logo: string,
-        public auth: StoreAuth,
-        public accounts: Array<string>,
-        public settings: StoreSettings,
-        public status: StoreStatus,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Store {
+    name: string,
+    type: StoreType,
+    category: StoreCategory | Array<StoreCategory>,
+    cuisine: StoreCuisine | Array<StoreCuisine>,
+    address: Address,
+    email: string | Array<string>,
+    phone_number: string | Array<string>,
+    motto: string,
+    description: string,
+    logo: string,
+    auth: StoreAuth,
+    accounts: Array<string>,
+    settings: StoreSettings,
+    status: StoreStatus,
+    timestamp: number,
+    _id?: string,
+    _rev?: string
 }
 
 export interface StoreAuth {
@@ -189,4 +187,3 @@ export enum StoreCuisine {
     Yamal,
     Zanzibari
 }
-

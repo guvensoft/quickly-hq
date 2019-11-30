@@ -8,10 +8,12 @@ import * as OwnerController from '../controllers/management/owner';
 import * as StoreController from '../controllers/management/store';
 import * as UserController from '../controllers/management/user';
 import * as ProducerController from '../controllers/management/producer';
+import * as BrandController from '../controllers/management/brand';
 import * as ProductController from '../controllers/management/product';
 import * as SupplierController from '../controllers/management/supplier';
 import * as UtilsController from '../controllers/management/utils';
 import * as AddressController from '../controllers/management/address';
+import * as CategoryController from '../controllers/management/category';
 
 import { AuthenticateGuard, SchemaGuard } from '../middlewares/management';
 import * as ManagementSchema from '../schemas/management';
@@ -256,10 +258,82 @@ router.get("/producers",
     AuthenticateGuard,
     ProducerController.queryProducers);
 
+
+// Brands
+router.get("/brand/:id",
+    AuthenticateGuard,
+    BrandController.getBrand);
+
+router.post("/brand",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.BrandSchemaSafe),
+    BrandController.createBrand);
+
+router.put("/brand/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.BrandSchema),
+    BrandController.updateBrand);
+
+router.delete("/brand/:id",
+    AuthenticateGuard,
+    BrandController.deleteBrand);
+
+router.get("/brands",
+    AuthenticateGuard,
+    BrandController.queryBrands);
+
+
+// Categories
+router.get("/category/:id",
+    AuthenticateGuard,
+    CategoryController.getCategory);
+
+router.post("/category",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.CategorySchemaSafe),
+    CategoryController.createCategory);
+
+router.put("/category/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.CategorySchema),
+    CategoryController.updateCategory);
+
+router.delete("/category/:id",
+    AuthenticateGuard,
+    CategoryController.deleteCategory);
+
+router.get("/categories",
+    AuthenticateGuard,
+    CategoryController.queryCategories);
+
+
+// SubCategories
+router.get("/sub_category/:id",
+    AuthenticateGuard,
+    CategoryController.getSubCategory);
+
+router.post("/sub_category",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.SubCategorySchemaSafe),
+    CategoryController.createSubCategory);
+
+router.put("/sub_category/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.SubCategorySchema),
+    CategoryController.updateSubCategory);
+
+router.delete("/sub_category/:id",
+    AuthenticateGuard,
+    CategoryController.deleteSubCategory);
+
+router.get("/sub_categories",
+    AuthenticateGuard,
+    CategoryController.querySubCategories);
+
+
 // Address
 router.get("/address/:country?/:city?/:province?/:district?",
     AddressController.getAddress);
-
 
 // Utils
 router.get("/utils/images/:text",

@@ -1,28 +1,24 @@
-export class User {
-    constructor(
-        public username: string,
-        public password: string,
-        public fullname: string,
-        public email: string,
-        public phone_number: number,
-        public avatar: string,
-        public group: string,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface User {
+    username: string,
+    password: string,
+    fullname: string,
+    email: string,
+    phone_number: number,
+    avatar: string,
+    group: string,
+    timestamp: number,
+    _id?: string,
+    _rev?: string
 }
 
-export class Group {
-    constructor(
-        public name: string,
-        public description: string,
-        public canRead: boolean,
-        public canWrite: boolean,
-        public canEdit: boolean,
-        public canDelete: boolean,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Group {
+    name: string,
+    description: string,
+    canRead: boolean,
+    canWrite: boolean,
+    canEdit: boolean,
+    canDelete: boolean,
+    timestamp: number,
+    _id?: string,
+    _rev?: string
 }

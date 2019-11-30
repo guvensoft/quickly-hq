@@ -410,6 +410,65 @@ export const ProducerMessages = {
     },
 }
 
+export const BrandMessages = {
+    BRAND_CREATED: {
+        response: {
+            ok: true,
+            message: "Marka oluşturuldu.",
+        },
+        code: 201
+    },
+    BRAND_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Marka oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    BRAND_UPDATED: {
+        response: {
+            ok: true,
+            message: "Marka Düzenlendi.",
+        },
+        code: 200
+    },
+    BRAND_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Marka Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    BRAND_DELETED: {
+        response: {
+            ok: true,
+            message: "Marka Silindi.",
+        },
+        code: 200
+    },
+    BRAND_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Marka Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    BRAND_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Marka Adı mevcut. Lütfen farklı bir Marka adı giririniz.",
+        },
+        code: 406
+    },
+    BRAND_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Marka Bulunamadı",
+        },
+        code: 404
+    },
+}
+
 export const ProductMessages = {
     PRODUCT_CREATED: {
         response: {

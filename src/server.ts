@@ -19,9 +19,9 @@ const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'),
 
 app.use(morgan('combined', { stream: accessLogStream }))
 app.use(compression());
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message: { ok: false, message: 'Too Many Request...' } }))
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message: 'Too Many Request...' }))
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '2048kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
 app.use(cors());
 app.use(queryParser());
@@ -34,6 +34,12 @@ app.all('/', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
+// setInterval(() => {
+//     console.clear();
+//     const used = process.memoryUsage().heapUsed / 1024 / 1024;
+//     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
+// }, 1000)
+
 
 // TableWorker();
 
@@ -41,7 +47,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 // Fixer('kosmos-db15');
 // DailySalesReport('kosmos-db15');
-// ReportsFixer('goches-coffee-18fa');
+// ReportsFixer('quickly-cafe-130c');
 // getProducts('sdfsdfsd');
 // StockCleaner();
 // BackupReportGenerator();

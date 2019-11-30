@@ -1,0 +1,1 @@
+export const defaultSessionTime = 3600000;

@@ -69,7 +69,7 @@ export const deleteAccount = (req: Request, res: Response) => {
     });
 }
 
-//////  /accounts + QueryString [POST]
+//////  /accounts + QueryString [GET]
 export const queryAccounts = (req: Request, res: Response) => {
     let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;

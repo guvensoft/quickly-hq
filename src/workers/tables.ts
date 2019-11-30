@@ -298,7 +298,6 @@ export const ReportsFixer = async (db_name) => {
         const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'users' }, limit: 2500 });
         const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'User' }, limit: 2500 });
         let reportsWillUpdate = reports.docs;
-        console.log()
         reportsWillUpdate.map((report: any) => {
             try {
                 report.description = products.docs.find(obj => obj._id == report.connection_id).name;
@@ -310,6 +309,8 @@ export const ReportsFixer = async (db_name) => {
         });
         RemoteDB(db.docs[0], db_name).bulkDocs(reportsWillUpdate).then(response => {
             console.log(response);
+        }).catch(err => {
+            console.log(err);
         })
     } catch (error) {
         console.error(error);
@@ -586,7 +587,7 @@ export const importProducts = () => {
     // barcode: number;
     // timestamp: number;
 
-    let filesPath = path.join(__dirname, '../..', '/products/SütKahvaltılık.json');
+    let filesPath = path.join(__dirname, '../..', '/products/alcohols.json');
     readJsonFile(filesPath).then((res: Array<any>) => {
         let products = [];
         res.forEach(res => {
@@ -595,7 +596,7 @@ export const importProducts = () => {
                 description: res.brand + ' ' + res.name + ' ' + res.category,
                 category: 0,
                 sub_category: res.category,
-                unit: 'Gram',
+                unit: 'Mililitre',
                 portion: 100,
                 producer_id: res.brand,
                 tax_value: 8,
@@ -603,7 +604,8 @@ export const importProducts = () => {
                 ingredients: [],
                 tags: res.name.split(' '),
                 calorie: 0,
-                barcode: res.sku,
+                barcode: 0,
+                status:0,
                 timestamp: Date.now()
             };
             products.push(mutated);

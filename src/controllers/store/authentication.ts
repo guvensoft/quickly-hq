@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { StoreDB, ManagementDB } from "../../configrations/database";
-import { Session } from "../../models/management/session";
+import { createSession } from "../../functions/session";
 import { Owner } from "../../models/management/owner";
 import { createLog, LogType } from '../../utils/logger';
 import { SessionMessages } from "../../utils/messages";
@@ -13,7 +13,7 @@ export let Login = (req: Request, res: Response) => {
             const Owner: Owner = owners.docs[0];
             bcrypt.compare(formData.password, Owner.password, (err, same) => {
                 if (!err && same) {
-                    let session = new Session(Owner._id, req.ip, Date.now(), (Date.now() + 360000));
+                    let session = createSession(Owner._id, req.ip);
                     StoreDB.Sessions.find({ selector: { user_id: session.user_id } }).then(query => {
                         if (query.docs.length > 0) {
                             let tokenWillUpdate = query.docs[0];

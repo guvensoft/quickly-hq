@@ -69,7 +69,7 @@ export const deleteGroup = (req: Request, res: Response) => {
     });
 }
 
-//////  /groups + QueryString [POST]
+//////  /groups + QueryString [GET]
 export const queryGroups = (req: Request, res: Response) => {
     let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;

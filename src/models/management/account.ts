@@ -1,13 +1,11 @@
-export class Account {
-    constructor(
-        public name: string,
-        public description: string,
-        public type: AccountType,
-        public status: AccountStatus,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Account {
+    name: string;
+    description: string;
+    type: AccountType;
+    status: AccountStatus;
+    timestamp: number;
+    _id?: string;
+    _rev?: string;
 }
 
 export enum AccountType {

@@ -1,14 +1,12 @@
-export class Database {
-    constructor(
-        public host: string,
-        public port: string,
-        public username: string,
-        public password: string,
-        public codename: string,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Database {
+    host: string;
+    port: string;
+    username: string;
+    password: string;
+    codename: string;
+    timestamp: number;
+    _id?: string;
+    _rev?: string;
 }
 
 export class DatabaseUser {

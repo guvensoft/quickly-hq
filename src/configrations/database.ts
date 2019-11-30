@@ -17,6 +17,8 @@ import { Store, StoreSettings } from '../models/social/stores';
 import { Supplier } from '../models/management/supplier';
 import { Producer } from '../models/management/producer';
 import { Product } from '../models/management/product';
+import { Category, SubCategory } from '../models/management/category';
+import { Brand } from '../models/management/brand';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBInMemory);
@@ -37,7 +39,10 @@ export const ManagementDB = {
     Stores: new PouchDB<Store>(databasePath + 'management/stores', FileSystemConfigration),
     Suppliers: new PouchDB<Supplier>(databasePath + 'management/suppliers', FileSystemConfigration),
     Producers: new PouchDB<Producer>(databasePath + 'management/producers', FileSystemConfigration),
+    Brands: new PouchDB<Brand>(databasePath + 'management/brands', FileSystemConfigration),
     Products: new PouchDB<Product>(databasePath + 'management/products', FileSystemConfigration),
+    Categories: new PouchDB<Category>(databasePath + 'management/categories', FileSystemConfigration),
+    SubCategories: new PouchDB<SubCategory>(databasePath + 'management/sub_categories', FileSystemConfigration),
     Logs: new PouchDB<Log>(databasePath + 'management/logs', FileSystemConfigration),
     Sessions: new PouchDB<Session>(databasePath + 'management/sessions', InMemoryConfigration)
 }
