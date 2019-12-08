@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
 import { UserMessages, GroupMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report.mock";
+import { Report } from "../../models/store/pos/report";
 
 
 ////// /users/new [POST]
@@ -11,8 +11,8 @@ export const createUser = async (req: Request, res: Response) => {
         const StoreDB = await StoreCollection(StoreID);
         const UserWillCreate = { db_name: 'users', db_seq: 0, ...req.body };
         const User = await StoreDB.post(UserWillCreate);
-        const UserReport = new Report('users', User.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        StoreDB.post({ db_name: 'reports', db_seq: 0, ...UserReport });
+        // const UserReport = new Report('users', User.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
+        // StoreDB.post({ db_name: 'reports', db_seq: 0, ...UserReport });
         res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
     } catch (error) {
         res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
@@ -86,8 +86,8 @@ export const createGroup = async (req: Request, res: Response) => {
         const StoreDB = await StoreCollection(StoreID);
         const GroupWillCreate = { db_name: 'users_group', db_seq: 0, ...req.body };
         const Group = await StoreDB.post(GroupWillCreate);
-        const GroupReport = new Report('users_group', Group.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        StoreDB.post(Object.assign(GroupReport, { db_name: 'reports', db_seq: 0 }));
+        // const GroupReport = new Report('users_group', Group.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
+        // StoreDB.post(Object.assign(GroupReport, { db_name: 'reports', db_seq: 0 }));
         res.status(GroupMessages.GROUP_CREATED.code).json(GroupMessages.GROUP_CREATED.response);
     } catch (error) {
         res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);

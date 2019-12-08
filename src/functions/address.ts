@@ -13,11 +13,11 @@ export const importAdress = () => {
             AdressDB.Streets.post(districts[index]).then(res => {
                 console.log(index, 'Done!')
             }).catch(err => {
-                console.error(index, 'Not Added TO DB cux:', err);
+                console.error(index, 'Not added to DB couse:', err);
             });
         }
     }).catch(err => {
-        console.log('File Read Error..')
+        console.log('File Read Error..', err)
     })
 }
 
@@ -27,11 +27,3 @@ export const getCities = () => {
     })
 }
 
-export const createIndexesForDatabase = () => {
-    let indexObj: PouchDB.Find.CreateIndexOptions = {
-        index: {
-            fields: ['parent'],
-        },
-    }
-    AdressDB.Streets.createIndex(indexObj).then(res => { console.log(res) })
-}

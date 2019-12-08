@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
 import { TableMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report.mock";
+import { Report } from "../../models/store/pos/report";
 
 
 ////// /tables/new [POST]
@@ -11,8 +11,8 @@ export const createTable = async (req: Request, res: Response) => {
         const StoreDB = await StoreCollection(StoreID);
         const TableWillCreate = { db_name: 'tables', db_seq: 0, ...req.body };
         const Table = await StoreDB.post(TableWillCreate);
-        const TableReport = new Report('Table', Table.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], req.body.name, Date.now());
-        StoreDB.post({ db_name: 'reports', db_seq: 0, ...TableReport });
+        // const TableReport = new Report('Table', Table.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], req.body.name, Date.now());
+        // StoreDB.post({ db_name: 'reports', db_seq: 0, ...TableReport });
         res.status(TableMessages.TABLE_CREATED.code).json(TableMessages.TABLE_CREATED.response);
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_CREATED.code).json(TableMessages.TABLE_NOT_CREATED.response);

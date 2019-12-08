@@ -42,3 +42,12 @@ export const moveStoreDatabase = () => {
 
     });
 }
+
+export const createIndexesForDatabase = (Database: PouchDB.Database) => {
+    let indexObj: PouchDB.Find.CreateIndexOptions = {
+        index: {
+            fields: ['parent'],
+        },
+    }
+    Database.createIndex(indexObj).then(res => { console.log(res) })
+}

@@ -1,6 +1,6 @@
 import { ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
-import { Report } from '../models/store/pos/report.mock';
+import { Report } from '../models/store/pos/report';
 
 export const dailyStockExpense = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {

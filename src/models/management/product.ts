@@ -3,6 +3,8 @@ export class Product {
     description: string;
     category: string;
     sub_category: string;
+    unit: string;
+    portion: number;
     producer_id: string;
     brand_id: string;
     channel: MarketingChannel;
@@ -19,7 +21,8 @@ export class Product {
 
 export enum MarketingChannel {
     ON_TRADE,
-    OFF_TRADE
+    OFF_TRADE,
+    BOTH
 }
 
 export enum ProductStatus {

@@ -89,7 +89,12 @@ export const RemoteCollection = (database: Database, collection: string, usernam
 }
 
 export const StoreCollection = async (store_id: any) => {
-    let Store: Store = await ManagementDB.Stores.get(store_id);
-    let Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
-    return RemoteDB(Database, Store.auth.database_name);
+    try {
+        const Store: Store = await ManagementDB.Stores.get(store_id);
+        const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
+        return RemoteDB(Database, Store.auth.database_name);
+    } catch (error) {
+        console.log(error);
+        throw Error('Store DB Connection Error:');
+    }
 }

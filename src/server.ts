@@ -9,7 +9,7 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
-import { TableWorker, Fixer, StockCleaner, BackupReportGenerator, DailySalesReport, thatDay, veryOldUpdate, MoveData, ReportsFixer, getProducts, importProducts } from './workers/tables';
+import * as blackboard from './workers/tables';
 
 //// 19286545426
 
@@ -44,22 +44,26 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // TableWorker();
 
 ////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
+// bambam-burger-pizza-a4cb
 
-// Fixer('kosmos-db15');
-// DailySalesReport('kosmos-db15');
-// ReportsFixer('quickly-cafe-130c');
-// getProducts('sdfsdfsd');
-// StockCleaner();
-// BackupReportGenerator();
-// thatDay()
-// veryOldUpdate();
-// MoveData()
-// dailyStockExpense();
-// importAdress();
-// getCities()
-// createIndexesForDatabase();
 
-// importProducts()
+// blackboard.Fixer('kosmos-db15');
+// blackboard.DailySalesReport('kosmos-db15');
+// blackboard.ReportsFixer('quickly-cafe-130c');
+
+// blackboard.getProducts('sdfsdfsd');
+// blackboard.StockCleaner();
+// blackboard.BackupReportGenerator();
+// blackboard.thatDay()
+// blackboard.veryOldUpdate();
+// blackboard.MoveData()
+// blackboard.importProducts()
+
+// blackboard.productToStock('339a35b5-b13c-4184-8b24-b4209d0784f9',10,'867f64c9-297f-4dfb-9030-bd3b5462bbb8').then(res => {
+//     console.log(res);
+// }).catch(err => {
+//     console.log(err);
+// })
 
 
 /* For Standalone No Reverse-Proxy Operations */

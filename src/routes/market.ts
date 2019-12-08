@@ -10,34 +10,61 @@ import { StoreAuthenticateGuard } from '../middlewares/store';
 
 const router = Router();
 
+// Products
+router.get("/product/:id",
+    StoreAuthenticateGuard,
+    ProductController.getProduct);
+
 router.get("/products",
     StoreAuthenticateGuard,
-    ProductController.queryProducts
-)
+    ProductController.queryProducts);
 
-router.get("/producers",
+// Suppliers
+router.get("/supplier/:id",
     StoreAuthenticateGuard,
-    ProducerController.queryProducers
-)
+    SupplierController.getSupplier);
 
 router.get("/suppliers",
     StoreAuthenticateGuard,
-    SupplierController.querySuppliers
-)
+    SupplierController.querySuppliers);
+
+// Producers
+router.get("/producer/:id",
+    StoreAuthenticateGuard,
+    ProducerController.getProducer);
+
+router.get("/producers",
+    StoreAuthenticateGuard,
+    ProducerController.queryProducers);
+
+
+// Brands
+router.get("/brand/:id",
+    StoreAuthenticateGuard,
+    BrandController.getBrand);
 
 router.get("/brands",
     StoreAuthenticateGuard,
-    BrandController.queryBrands
-)
+    BrandController.queryBrands);
+
+
+// Categories
+router.get("/category/:id",
+    StoreAuthenticateGuard,
+    CategoryController.getCategory);
 
 router.get("/categories",
     StoreAuthenticateGuard,
-    CategoryController.queryCategories
-)
+    CategoryController.queryCategories);
+
+
+// SubCategories
+router.get("/sub_category/:id",
+    StoreAuthenticateGuard,
+    CategoryController.getSubCategory);
 
 router.get("/sub_categories",
     StoreAuthenticateGuard,
-    CategoryController.querySubCategories
-)
+    CategoryController.querySubCategories);
 
 module.exports = router;

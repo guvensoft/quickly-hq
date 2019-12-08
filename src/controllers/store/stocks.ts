@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import { StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
 import { StockMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report.mock";
+import { Report } from "../../models/store/pos/report";
 
 ////// /stocks/new [POST]
 export const createStock = async (req: Request, res: Response) => {
@@ -11,8 +11,8 @@ export const createStock = async (req: Request, res: Response) => {
         const StoreDB = await StoreCollection(StoreID);
         const StockWillCreate = { db_name: 'stocks', db_seq: 0, ...req.body };
         const Stock = await StoreDB.post(StockWillCreate);
-        const StockReport = new Report('stocks', Stock.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        StoreDB.post({ db_name: 'reports', db_seq: 0, ...StockReport });
+        // const StockReport = new Report('stocks', Stock.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
+        // StoreDB.post({ db_name: 'reports', db_seq: 0, ...StockReport });
         res.status(StockMessages.STOCK_CREATED.code).json(StockMessages.STOCK_CREATED.response);
     } catch (error) {
         res.status(StockMessages.STOCK_NOT_CREATED.code).json(StockMessages.STOCK_NOT_CREATED.response);

@@ -1,13 +1,13 @@
 import { CouchDB, ManagementDB, RemoteDB, StoreDB, StoreCollection } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Store } from '../models/social/stores';
-import { Stock } from '../models/store/pos/stocks.mock';
+import { Stock, StockTransfer } from '../models/store/pos/stocks';
 import { backupPath } from '../configrations/paths';
-import { BackupData, EndDay } from '../models/store/pos/endoftheday.mock';
-import { Report } from '../models/store/pos/report.mock';
-import { Cashbox } from '../models/store/pos/cashbox.mock';
-import { ClosedCheck } from '../models/store/pos/check.mock';
-import { Log } from '../models/store/pos/log.mock';
+import { BackupData, EndDay } from '../models/store/pos/endoftheday';
+import { Report } from '../models/store/pos/report';
+import { Cashbox } from '../models/store/pos/cashbox';
+import { ClosedCheck } from '../models/store/pos/check';
+import { Log } from '../models/store/pos/log';
 import { readJsonFile } from '../functions/files';
 import { writeFile, readFile } from 'fs';
 import { Product } from '../models/management/product';
@@ -173,11 +173,13 @@ export const Fixer = (db_name: string) => {
                     checks = checks.sort((a, b) => b.timestamp - a.timestamp);
 
                     // checks.forEach(element => {
-                    //     console.log(new Date(element.timestamp).getDay());
+                    //     console.log(new Date(element.timestampFixer).getDay());
                     // });
 
-                    let newChecks = checks.filter(obj => obj.timestamp > lastDay.data_file.split('.')[0]);
-                    let oldChecks = checks.filter(obj => obj.timestamp < lastDay.data_file.split('.')[0]);
+                    let dayThat = lastDay.data_file.split('.')[0];
+
+                    let newChecks = checks.filter(obj => obj.timestamp > dayThat);
+                    let oldChecks = checks.filter(obj => obj.timestamp < dayThat);
 
                     console.log('Toplam', checks.length);
                     console.log('Bugün', newChecks.length);
@@ -253,10 +255,6 @@ export const DailySalesReport = (store_db_name: string) => {
             checks.forEach(element => {
                 console.log(new Date(element.timestamp).toDateString());
             });
-
-
-
-
 
             let cash = checks.filter(obj => obj.payment_method == 'Nakit').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
             let card = checks.filter(obj => obj.payment_method == 'Kart').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
@@ -600,12 +598,12 @@ export const importProducts = () => {
                 portion: 100,
                 producer_id: res.brand,
                 tax_value: 8,
-                image: 'data:image/jpeg;base64,'+encodeURI(res.image),
+                image: 'data:image/jpeg;base64,' + encodeURI(res.image),
                 ingredients: [],
                 tags: res.name.split(' '),
                 calorie: 0,
                 barcode: 0,
-                status:0,
+                status: 0,
                 timestamp: Date.now()
             };
             products.push(mutated);
@@ -619,4 +617,21 @@ export const importProducts = () => {
         console.log(err);
     })
 
+}
+
+
+export const productToStock = async (product_id: string, quantity: number, store_id: string) => {
+    try {
+        const product = await ManagementDB.Products.get(product_id);
+        const StoreDB = await StoreCollection(store_id);
+        const isAlreadyAdded = await StoreDB.find({ selector: { db_name: 'stocks', product: product_id } });
+        if (isAlreadyAdded.docs.length > 0) {
+            throw Error('Stock Already Added');
+        } else {
+            let newStock = new StockTransfer(product, quantity);
+            return StoreDB.post({ db_name: 'stocks', ...newStock });
+        }
+    } catch (error) {
+        throw Error(error);
+    }
 }
