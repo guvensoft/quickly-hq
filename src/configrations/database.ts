@@ -47,7 +47,7 @@ export const ManagementDB = {
     Sessions: new PouchDB<Session>(databasePath + 'management/sessions', InMemoryConfigration)
 }
 
-export const StoreDB = {
+export const StoresDB = {
     Infos: new PouchDB<Store>(databasePath + 'store/info', FileSystemConfigration),
     Settings: new PouchDB<StoreSettings>(databasePath + 'store/settings', FileSystemConfigration),
     Sessions: new PouchDB<Session>(databasePath + 'store/sessions', InMemoryConfigration)
@@ -84,11 +84,7 @@ export const RemoteDB = (database: Database, collection: string) => {
     return new PouchDB(`http://${database.username}:${database.password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
 }
 
-export const RemoteCollection = (database: Database, collection: string, username: string, password: string) => {
-    return new PouchDB(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
-}
-
-export const StoreCollection = async (store_id: any) => {
+export const StoreDB = async (store_id: any) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(store_id);
         const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
@@ -97,4 +93,8 @@ export const StoreCollection = async (store_id: any) => {
         console.log(error);
         throw Error('Store DB Connection Error:');
     }
+}
+
+export const RemoteCollection = (database: Database, collection: string, username: string, password: string) => {
+    return new PouchDB(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
 }

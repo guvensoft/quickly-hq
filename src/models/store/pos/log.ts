@@ -1,14 +1,12 @@
-export class Log {
-  constructor(
-    public type: logType,
-    public user: string,
-    public connection_id: string,
-    public description: string,
-    public status: number,
-    public timestamp: number,
-    public _id?: string,
-    public _rev?: string
-  ) { }
+export interface Log {
+  type: logType;
+  user: string;
+  connection_id: string;
+  description: string;
+  status: number;
+  timestamp: number;
+  _id?: string;
+  _rev?: string
 }
 
 export enum logType {

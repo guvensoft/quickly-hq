@@ -1,22 +1,18 @@
-export class Customer {
-    constructor(
-        public name: string,
-        public surname: string,
-        public phone_number: string,
-        public picture: string,
-        public address: string,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Customer {
+    name: string;
+    surname: string;
+    phone_number: string;
+    picture: string;
+    address: string;
+    _id?: string;
+    _rev?: string
 }
 
-export class Account {
-    constructor(
-        public customer_id:string,
-        public points:number,
-        public limit: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Account {
+    customer_id:string;
+    points:number;
+    limit: number;
+    _id?: string;
+    _rev?: string
 }
 

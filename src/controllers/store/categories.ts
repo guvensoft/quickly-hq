@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
+import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { CategoryMessages } from '../../utils/messages';
 import { Report } from "../../models/store/pos/report";
 import { Category, SubCategory } from "../../models/store/pos/product";
@@ -9,11 +9,11 @@ export const createCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const newCategory: Category = req.body;
     try {
-        const StoreDB = await StoreCollection(StoreID);
+        const StoresDB = await StoreDB(StoreID);
         const CategoryWillCreate = { db_name: 'categories', db_seq: 0, ...newCategory };
         // const CategoryReport = new Report('Category', newCategory);
-        await StoreDB.post(CategoryWillCreate);
-        // await StoreDB.post({ db_name: 'reports', db_seq: 0, ...CategoryReport });
+        await StoresDB.post(CategoryWillCreate);
+        // await StoresDB.post({ db_name: 'reports', db_seq: 0, ...CategoryReport });
         res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
@@ -24,11 +24,11 @@ export const createCategory = async (req: Request, res: Response) => {
 export const deleteCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Category = await StoreDB.get(req.params.id);
-        const CategoryReport = await StoreDB.find({ selector: { db_name: 'reports', connection_id: Category._id } });
-        StoreDB.remove(Category);
-        StoreDB.remove(CategoryReport.docs[0]);
+        const StoresDB = await StoreDB(StoreID);
+        const Category = await StoresDB.get(req.params.id);
+        const CategoryReport = await StoresDB.find({ selector: { db_name: 'reports', connection_id: Category._id } });
+        StoresDB.remove(Category);
+        StoresDB.remove(CategoryReport.docs[0]);
         res.status(CategoryMessages.CATEGORY_DELETED.code).json(CategoryMessages.CATEGORY_DELETED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_DELETED.code).json(CategoryMessages.CATEGORY_NOT_DELETED.response);
@@ -40,9 +40,9 @@ export const deleteCategory = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Category = await StoreDB.get(req.params.id);
-        await StoreDB.put({ Category, ...req.body });
+        const StoresDB = await StoreDB(StoreID);
+        const Category = await StoresDB.get(req.params.id);
+        await StoresDB.put({ Category, ...req.body });
         res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
@@ -54,8 +54,8 @@ export const updateCategory = async (req: Request, res: Response) => {
 export const getCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Category = await StoreDB.get(req.params.id);
+        const StoresDB = await StoreDB(StoreID);
+        const Category = await StoresDB.get(req.params.id);
         res.json(Category);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
@@ -70,8 +70,8 @@ export const queryCategories = async (req: Request, res: Response) => {
     delete req.query.skip;
     delete req.query.limit;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Categories = await StoreDB.find({ selector: { db_name: 'categories', ...req.query }, limit: qLimit, skip: qSkip });
+        const StoresDB = await StoreDB(StoreID);
+        const Categories = await StoresDB.find({ selector: { db_name: 'categories', ...req.query }, limit: qLimit, skip: qSkip });
         res.json(Categories.docs);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_EXIST.code).json(CategoryMessages.CATEGORY_NOT_EXIST.response);
@@ -83,11 +83,11 @@ export const createSubCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const newSubCategory: SubCategory = req.body;
     try {
-        const StoreDB = await StoreCollection(StoreID);
+        const StoresDB = await StoreDB(StoreID);
         const SubCategoryWillCreate = { db_name: 'sub_categories', db_seq: 0, ...newSubCategory };
         // const SubCategoryReport = new Report('SubCategory', newSubCategory);
-        await StoreDB.post(SubCategoryWillCreate);
-        // await StoreDB.post({ db_name: 'reports', db_seq: 0, ...SubCategoryReport });
+        await StoresDB.post(SubCategoryWillCreate);
+        // await StoresDB.post({ db_name: 'reports', db_seq: 0, ...SubCategoryReport });
         res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
@@ -98,11 +98,11 @@ export const createSubCategory = async (req: Request, res: Response) => {
 export const deleteSubCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const SubCategory = await StoreDB.get(req.params.id);
-        const SubCategoryReport = await StoreDB.find({ selector: { db_name: 'reports', connection_id: SubCategory._id } });
-        StoreDB.remove(SubCategory);
-        StoreDB.remove(SubCategoryReport.docs[0]);
+        const StoresDB = await StoreDB(StoreID);
+        const SubCategory = await StoresDB.get(req.params.id);
+        const SubCategoryReport = await StoresDB.find({ selector: { db_name: 'reports', connection_id: SubCategory._id } });
+        StoresDB.remove(SubCategory);
+        StoresDB.remove(SubCategoryReport.docs[0]);
         res.status(CategoryMessages.CATEGORY_DELETED.code).json(CategoryMessages.CATEGORY_DELETED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_DELETED.code).json(CategoryMessages.CATEGORY_NOT_DELETED.response);
@@ -114,9 +114,9 @@ export const deleteSubCategory = async (req: Request, res: Response) => {
 export const updateSubCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const SubCategory = await StoreDB.get(req.params.id);
-        await StoreDB.put({ SubCategory, ...req.body });
+        const StoresDB = await StoreDB(StoreID);
+        const SubCategory = await StoresDB.get(req.params.id);
+        await StoresDB.put({ SubCategory, ...req.body });
         res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
@@ -128,8 +128,8 @@ export const updateSubCategory = async (req: Request, res: Response) => {
 export const getSubCategory = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const SubCategory = await StoreDB.get(req.params.id);
+        const StoresDB = await StoreDB(StoreID);
+        const SubCategory = await StoresDB.get(req.params.id);
         res.json(SubCategory);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
@@ -144,8 +144,8 @@ export const querySubCategories = async (req: Request, res: Response) => {
     delete req.query.skip;
     delete req.query.limit;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const SubCategories = await StoreDB.find({ selector: { db_name: 'sub_categories', ...req.query }, limit: qLimit, skip: qSkip });
+        const StoresDB = await StoreDB(StoreID);
+        const SubCategories = await StoresDB.find({ selector: { db_name: 'sub_categories', ...req.query }, limit: qLimit, skip: qSkip });
         res.json(SubCategories.docs);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_EXIST.code).json(CategoryMessages.CATEGORY_NOT_EXIST.response);

@@ -266,6 +266,11 @@ export const BrandSchemaSafe = joi.object().keys({
     status: joi.number().allow(0, 1, 2).required(),
 });
 
+export const ProductPackageSchema = joi.object().keys({
+    name: joi.string(),
+    quantity: joi.number(),
+});
+
 export const ProductSchema = joi.object().keys({
     name: joi.string(),
     description: joi.string(),
@@ -273,6 +278,7 @@ export const ProductSchema = joi.object().keys({
     sub_category: joi.string(),
     unit: joi.string(),
     portion: joi.number(),
+    packages: joi.array().items(ProductPackageSchema),
     producer_id: joi.string(),
     brand_id: joi.string(),
     channel: joi.number().allow(0, 1, 2),
@@ -281,6 +287,8 @@ export const ProductSchema = joi.object().keys({
     ingredients: joi.array().items(joi.string()),
     tags: joi.array().items(joi.string()),
     barcode: joi.number(),
+    sku: joi.string(),
+    type: joi.number().allow(0, 1, 2),
     status: joi.number().allow(0, 1, 2)
 });
 
@@ -291,6 +299,7 @@ export const ProductSchemaSafe = joi.object().keys({
     sub_category: joi.string().required(),
     unit: joi.string().required(),
     portion: joi.number().required(),
+    packages: joi.array().items(ProductPackageSchema).required(),
     producer_id: joi.string().required(),
     brand_id: joi.string().required(),
     channel: joi.number().allow(0, 1, 2).required(),
@@ -299,6 +308,8 @@ export const ProductSchemaSafe = joi.object().keys({
     ingredients: joi.array().items(joi.string()).required(),
     tags: joi.array().items(joi.string()).required(),
     barcode: joi.number().required(),
+    sku: joi.string().required(),
+    type: joi.number().allow(0, 1, 2).required(),
     status: joi.number().allow(0, 1, 2).required()
 });
 

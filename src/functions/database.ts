@@ -1,5 +1,5 @@
-import { Database, DatabaseUser } from '../models/management/database';
-import { CouchDB, ManagementDB, RemoteCollection } from '../configrations/database';
+import { Database, DatabaseUser, DatabaseU } from '../models/management/database';
+import { CouchDB, ManagementDB, RemoteCollection, RemoteDB } from '../configrations/database';
 import { StoreAuth } from '../models/management/store';
 
 export const createStoreDatabase = (storeAuth: StoreAuth) => {
@@ -33,21 +33,12 @@ export const createStoreDatabase = (storeAuth: StoreAuth) => {
 };
 
 
-export const moveStoreDatabase = () => {
-    return new Promise((resolve, reject) => {
+export const createDatabaseUser = (username: string, password: string): DatabaseU => ({ _id: `org.couchdb.user:${username}`, name: username, password: password, type: 'user', roles: [] })
 
+export const createIndexesForDatabase = (Database: PouchDB.Database, indexObj: PouchDB.Find.CreateIndexOptions) =>  Database.createIndex(indexObj);
 
-
-
-
-    });
-}
-
-export const createIndexesForDatabase = (Database: PouchDB.Database) => {
-    let indexObj: PouchDB.Find.CreateIndexOptions = {
-        index: {
-            fields: ['parent'],
-        },
-    }
-    Database.createIndex(indexObj).then(res => { console.log(res) })
-}
+// export const moveStoreDatabase = () => {
+//     return new Promise((resolve, reject) => {
+//         resolve(true);
+//     });
+// }

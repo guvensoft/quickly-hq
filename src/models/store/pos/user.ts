@@ -1,42 +1,34 @@
-export class User {
-  constructor(
-    public name: string,
-    public role: string,
-    public role_id: string,
-    public pincode: number,
-    public status: number,
-    public timestamp: number,
-    public _id?: string,
-    public _rev?: string
-  ) { }
+export interface User {
+  name: string,
+  role: string,
+  role_id: string,
+  pincode: number,
+  status: number,
+  timestamp: number,
+  _id?: string,
+  _rev?: string
 }
-export class UserGroup {
-  constructor(
-    public name: string,
-    public description: string,
-    public auth: UserAuth,
-    public status: number,
-    public timestamp: number,
-    public _id?: string,
-    public _rev?: string
-  ) { }
+export interface UserGroup {
+  name: string,
+  description: string,
+  auth: UserAuth,
+  status: number,
+  timestamp: number,
+  _id?: string,
+  _rev?: string
 }
-export class UserAuth {
-  constructor(
-    public components: ComponentsAuth,
-    public cancelCheck: boolean,
-    public cancelProduct: boolean,
-    public discount: boolean,
-    public payment: boolean,
-    public end: boolean,
-  ) { }
+export interface UserAuth {
+  components: ComponentsAuth,
+  cancelCheck: boolean,
+  cancelProduct: boolean,
+  discount: boolean,
+  payment: boolean,
+  end: boolean,
 }
-export class ComponentsAuth {
-  constructor(
-    public store: boolean,
-    public cashbox: boolean,
-    public endoftheday: boolean,
-    public reports: boolean,
-    public settings: boolean
-  ) { }
+export interface ComponentsAuth {
+  store: boolean,
+  cashbox: boolean,
+  endoftheday: boolean,
+  reports: boolean,
+  settings: boolean
 }

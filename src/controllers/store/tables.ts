@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
+import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { TableMessages } from '../../utils/messages';
 import { Report } from "../../models/store/pos/report";
 
@@ -8,11 +8,11 @@ import { Report } from "../../models/store/pos/report";
 export const createTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
+        const StoresDB = await StoreDB(StoreID);
         const TableWillCreate = { db_name: 'tables', db_seq: 0, ...req.body };
-        const Table = await StoreDB.post(TableWillCreate);
+        const Table = await StoresDB.post(TableWillCreate);
         // const TableReport = new Report('Table', Table.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], req.body.name, Date.now());
-        // StoreDB.post({ db_name: 'reports', db_seq: 0, ...TableReport });
+        // StoresDB.post({ db_name: 'reports', db_seq: 0, ...TableReport });
         res.status(TableMessages.TABLE_CREATED.code).json(TableMessages.TABLE_CREATED.response);
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_CREATED.code).json(TableMessages.TABLE_NOT_CREATED.response);
@@ -24,11 +24,11 @@ export const createTable = async (req: Request, res: Response) => {
 export const deleteTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Table = await StoreDB.get(req.params.id);
-        const TableReport = await StoreDB.find({ selector: { db_name: 'reports', connection_id: Table._id } });
-        StoreDB.remove(Table);
-        StoreDB.remove(TableReport.docs[0]);
+        const StoresDB = await StoreDB(StoreID);
+        const Table = await StoresDB.get(req.params.id);
+        const TableReport = await StoresDB.find({ selector: { db_name: 'reports', connection_id: Table._id } });
+        StoresDB.remove(Table);
+        StoresDB.remove(TableReport.docs[0]);
         res.status(TableMessages.TABLE_DELETED.code).json(TableMessages.TABLE_DELETED.response);
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_DELETED.code).json(TableMessages.TABLE_NOT_DELETED.response);
@@ -40,9 +40,9 @@ export const deleteTable = async (req: Request, res: Response) => {
 export const updateTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Table = await StoreDB.get(req.params.id);
-        await StoreDB.put({ Table, ...req.body });
+        const StoresDB = await StoreDB(StoreID);
+        const Table = await StoresDB.get(req.params.id);
+        await StoresDB.put({ Table, ...req.body });
         res.status(TableMessages.TABLE_CREATED.code).json(TableMessages.TABLE_CREATED.response);
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_CREATED.code).json(TableMessages.TABLE_NOT_CREATED.response);
@@ -54,8 +54,8 @@ export const updateTable = async (req: Request, res: Response) => {
 export const getTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Table = await StoreDB.get(req.params.id);
+        const StoresDB = await StoreDB(StoreID);
+        const Table = await StoresDB.get(req.params.id);
         res.json(Table);
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_CREATED.code).json(TableMessages.TABLE_NOT_CREATED.response);
@@ -71,8 +71,8 @@ export const queryTables = async (req: Request, res: Response) => {
     delete req.query.skip;
     delete req.query.limit;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Tables = await StoreDB.find({ selector: { db_name: 'tables', ...req.query }, limit: qLimit, skip: qSkip });
+        const StoresDB = await StoreDB(StoreID);
+        const Tables = await StoresDB.find({ selector: { db_name: 'tables', ...req.query }, limit: qLimit, skip: qSkip });
         res.json(Tables.docs);
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_EXIST.code).json(TableMessages.TABLE_NOT_EXIST.response);

@@ -1,4 +1,4 @@
-import { CouchDB, ManagementDB, RemoteDB, StoreDB, StoreCollection } from '../configrations/database';
+import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Store } from '../models/social/stores';
 import { Stock, StockTransfer } from '../models/store/pos/stocks';
@@ -12,10 +12,11 @@ import { readJsonFile } from '../functions/files';
 import { writeFile, readFile } from 'fs';
 import { Product } from '../models/management/product';
 import path from 'path';
+import { createIndexesForDatabase } from '../functions/database';
+// import { productToStock } from 'src/functions/stocks';
 
 
 export const TableWorker = () => {
-    console.log('test');
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
         const Databases: Database[] = databases.docs;
         Databases.forEach(db_server => {
@@ -55,8 +56,6 @@ export const StockCleaner = () => {
         let db: Database = res.docs[0];
         let remote = RemoteDB(db, 'kosmos-db15');
 
-
-
         remote.find({ selector: { db_name: 'stocks' }, limit: 1000 }).then((res: any) => {
             let untouchedStocks: Array<Stock> = res.docs;
             let stocks: Array<Stock> = untouchedStocks.map((element: Stock, index) => {
@@ -65,8 +64,8 @@ export const StockCleaner = () => {
                 element.first_quantity = 1;
                 return element;
             });
-            // let indexOfBols = stocks.findIndex(element => element.name.startsWith("Bols Sour Apple"));
 
+            // let indexOfBols = stocks.findIndex(element => element.name.startsWith("Bols Sour Apple"));
             // console.log(indexOfBols);
 
             remote.bulkDocs(stocks).then(res => {
@@ -74,17 +73,12 @@ export const StockCleaner = () => {
 
             }).catch(err => console.log(err));
         })
-
-
     })
-
-
 }
 
 
 
 export const Logs = () => {
-
 
     // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
     //     let db: Database = res.docs[0];
@@ -106,8 +100,6 @@ export const Logs = () => {
     //         // console.log(today);
     //     })
     // })
-
-
 
     // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
     //     let db: Database = res.docs[0];
@@ -292,9 +284,9 @@ export const DailySalesReport = (store_db_name: string) => {
 
 export const ReportsFixer = async (db_name) => {
     try {
-        const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })
-        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'users' }, limit: 2500 });
-        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'User' }, limit: 2500 });
+        const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } });
+        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'tables' }, limit: 2500 });
+        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'Table' }, limit: 2500 });
         let reportsWillUpdate = reports.docs;
         reportsWillUpdate.map((report: any) => {
             try {
@@ -302,6 +294,8 @@ export const ReportsFixer = async (db_name) => {
             } catch (error) {
                 RemoteDB(db.docs[0], db_name).remove(report).then(res => {
                     console.log('UNUSED REPORT DELETED', report)
+                }).catch(err => {
+                    console.log('Remote Connection Error');
                 })
             }
         });
@@ -620,18 +614,36 @@ export const importProducts = () => {
 }
 
 
-export const productToStock = async (product_id: string, quantity: number, store_id: string) => {
-    try {
-        const product = await ManagementDB.Products.get(product_id);
-        const StoreDB = await StoreCollection(store_id);
-        const isAlreadyAdded = await StoreDB.find({ selector: { db_name: 'stocks', product: product_id } });
-        if (isAlreadyAdded.docs.length > 0) {
-            throw Error('Stock Already Added');
-        } else {
-            let newStock = new StockTransfer(product, quantity);
-            return StoreDB.post({ db_name: 'stocks', ...newStock });
-        }
-    } catch (error) {
-        throw Error(error);
-    }
+
+// export const productToStockApi = async (product_id: string, quantity: number, store_id: string) => {
+//     try {
+//         const product = await ManagementDB.Products.get(product_id);
+//         const StoresDB = await StoreDB(store_id);
+//         const isAlreadyAdded = await StoresDB.find({ selector: { db_name: 'stocks', product: product_id } });
+//         if (isAlreadyAdded.docs.length > 0) {
+//             throw Error('Stock Already Added');
+//         } else {
+//             return StoresDB.post({ db_name: 'stocks', ...productToStock(product, quantity) });
+//         }
+//     } catch (error) {
+//         throw Error(error);
+//     }
+// }
+
+
+
+
+
+
+
+
+export const createProductIndexes = () => {
+    console.log('Indexing Started For Products Database');
+    createIndexesForDatabase(ManagementDB.Products, { index: { fields: ['producer_id', 'brand_id'] } }).then(res => {
+        console.log(res);
+        console.log('Indexing Finished Succesfully For Products Database');
+    }).catch(err => {
+        console.log('Indexing Throw Error For Products Database');
+        console.error(err);
+    })
 }

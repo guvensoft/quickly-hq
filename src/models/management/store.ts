@@ -44,14 +44,14 @@ export interface StoreAccesibilty {
 }
 
 export interface StoreDaysStatus {
-    is_open: boolean;
-    opening: string
-    closing: string;
+    is_open: boolean,
+    opening: string,
+    closing: string
 }
 
 export interface StoreWifiSettings {
-    ssid: string;
-    password: string;
+    ssid: string,
+    password: string
 }
 
 export enum StoreStatus {
@@ -63,8 +63,8 @@ export enum StoreStatus {
 
 export enum StoreType {
     RESTAURANT,
-    SHOP,
-    MARKET
+    MARKET,
+    SHOP
 }
 
 export enum StoreCategory {

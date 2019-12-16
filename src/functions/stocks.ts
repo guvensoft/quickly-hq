@@ -1,6 +1,7 @@
 import { ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Report } from '../models/store/pos/report';
+import { Product } from '../models/management/product';
 
 export const dailyStockExpense = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
@@ -20,4 +21,26 @@ export const dailyStockExpense = () => {
             })
         });
     })
+}
+
+export const productToStock = (product: Product, quantity: number, warning?: number, warehouse?: string) => {
+    return {
+        name: product.name,
+        description: product.description,
+        unit: product.unit,
+        portion: product.portion,
+        quantity: quantity,
+        first_quantity: quantity,
+        total: product.portion * quantity,
+        first_total: product.portion * quantity,
+        warning_value: (warning ? warning : 25),
+        warning_limit: (this.total * this.quantity) * this.warning_value / 100,
+        category: product.category,
+        sub_category: product.sub_category,
+        producer: product.producer_id,
+        product: product._id,
+        warehouse: (warehouse ? warehouse : ''),
+        supplier: '',
+        timestamp: Date.now(),
+    }
 }

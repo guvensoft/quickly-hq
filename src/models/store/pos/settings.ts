@@ -1,51 +1,39 @@
-export class Settings {
-    constructor(
-        public key: string,
-        public value: any,
-        public description: string,
-        public timestamp: number,
-    ) { }
+export interface Settings {
+    key: string,
+    value: any,
+    description: string,
+    timestamp: number,
 }
-export class AuthInfo {
-    constructor(
-        public app_remote: string,
-        public app_port: string,
-        public app_db: string,
-        public app_id: string,
-        public app_token: string,
-    ) { }
+export interface AuthInfo {
+    app_remote: string,
+    app_port: string,
+    app_db: string,
+    app_id: string,
+    app_token: string,
 }
-export class ServerInfo {
-    constructor(
-        public type: number,
-        public status: number,
-        public ip_address: string,
-        public ip_port: number,
-        public key: string
-    ) { }
+export interface ServerInfo {
+    type: number,
+    status: number,
+    ip_address: string,
+    ip_port: number,
+    key: string
 }
-export class Printer {
-    constructor(
-        public name: string,
-        public type: string,
-        public note: string,
-        public device_port: number,
-    ) { }
+export interface Printer {
+    name: string,
+    type: string,
+    note: string,
+    device_port: number,
 }
-export class PaymentMethod {
-    constructor(
-        public name: string,
-        public description: string,
-        public color: string,
-        public icon: string,
-        public type: number,
-        public status: number
-    ) { }
+export interface PaymentMethod {
+    name: string,
+    description: string,
+    color: string,
+    icon: string,
+    type: number,
+    status: number
 }
-export class DayInfo {
-    constructor(
-        public day: number,
-        public started: boolean,
-        public time: number,
-    ) { }
+export interface DayInfo {
+    day: number,
+    started: boolean,
+    time: number,
 }

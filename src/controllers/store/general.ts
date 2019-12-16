@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ManagementDB, StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
+import { ManagementDB, StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { Store } from '../../models/social/stores';
 import { StoreMessages } from '../../utils/messages';
 
@@ -25,7 +25,7 @@ export const storesInfo = (req: Request, res: Response) => {
             let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
             OwnerStores.forEach((store, index) => {
 
-                StoreCollection(store._id).then(StoreDatabase => {
+                StoreDB(store._id).then(StoreDatabase => {
 
                     let StoreInfoObject: any = {};
 

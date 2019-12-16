@@ -1,86 +1,68 @@
-export class Category {
-    constructor(
-        public name: string,
-        public description: string,
-        public status: number,
-        public printer: string,
-        public order: number,
-        public tags: string,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Category {
+    name: string,
+    description: string,
+    status: number,
+    printer: string,
+    order: number,
+    tags: string,
+    _id?: string,
+    _rev?: string
 }
-export class SubCategory {
-    constructor(
-        public cat_id: string,
-        public name: string,
-        public description: string,
-        public status: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface SubCategory {
+    cat_id: string,
+    name: string,
+    description: string,
+    status: number,
+    _id?: string,
+    _rev?: string
 }
-export class Occations {
-    constructor(
-        public name: string,
-        public price_list: Array<OccationUnit>
-    ) { }
+export interface Occations {
+    name: string,
+    price_list: Array<OccationUnit>
 }
-export class OccationUnit {
-    constructor(
-        public product_id: string,
-        public price: number,
-    ) { }
+export interface OccationUnit {
+    product_id: string,
+    price: number,
 }
-export class Product {
-    constructor(
-        public cat_id: string,
-        public type: number,
-        public description: string,
-        public name: string,
-        public price: number,
-        public status: number,
-        public tax_value: number,
-        public barcode: number,
-        public subcat_id?: string,
-        public specifies?: Array<ProductSpecs>,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Product {
+    cat_id: string,
+    type: number,
+    description: string,
+    name: string,
+    price: number,
+    status: number,
+    tax_value: number,
+    barcode: number,
+    subcat_id?: string,
+    specifies?: Array<ProductSpecs>,
+    _id?: string,
+    _rev?: string
 }
-export class ProductGroup {
-    constructor(
-        public cat_id: string,
-        public name: string,
-        public description: string,
-        public price: number,
-        public products: Array<Product>,
-        public status: number,
-        public subcat_id?: string,
-        public specifies?: Array<ProductSpecs>,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface ProductGroup {
+    cat_id: string,
+    name: string,
+    description: string,
+    price: number,
+    products: Array<Product>,
+    status: number,
+    subcat_id?: string,
+    specifies?: Array<ProductSpecs>,
+    _id?: string,
+    _rev?: string
 }
-export class ProductSpecs {
-    constructor(
-        public spec_name: string,
-        public spec_price: number
-    ) { }
+export interface ProductSpecs {
+    spec_name: string,
+    spec_price: number
 }
-export class Recipe {
-    constructor(
-        public product_id: string,
-        public recipe: Array<Ingredient>,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Recipe {
+    product_id: string,
+    recipe: Array<Ingredient>,
+    _id?: string,
+    _rev?: string
 }
-export class Ingredient {
-    constructor(
-        public stock_id: string,
-        public amount: number
-    ) { }
+export interface Ingredient {
+    stock_id: string,
+    amount: number
 }
 
 export enum ProductType {

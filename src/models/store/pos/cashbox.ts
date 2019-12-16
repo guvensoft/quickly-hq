@@ -1,15 +1,13 @@
-export class Cashbox {
-  constructor(
-    public type: string,
-    public description: string,
-    public timestamp: number,
-    public cash: number,
-    public card: number,
-    public coupon: number,
-    public user: string,
-    public _id?: string,
-    public _rev?: string
-  ) { }
+export interface Cashbox {
+    type: string;
+    description: string;
+    timestamp: number;
+    cash: number;
+    card: number;
+    coupon: number;
+    user: string;
+    _id?: string;
+    _rev?: string
 }
 
 export enum CashboxType {

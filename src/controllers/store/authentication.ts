@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { StoreDB, ManagementDB } from "../../configrations/database";
+import { StoresDB, ManagementDB } from "../../configrations/database";
 import { createSession } from "../../functions/session";
 import { Owner } from "../../models/management/owner";
 import { createLog, LogType } from '../../utils/logger';
@@ -14,19 +14,19 @@ export let Login = (req: Request, res: Response) => {
             bcrypt.compare(formData.password, Owner.password, (err, same) => {
                 if (!err && same) {
                     let session = createSession(Owner._id, req.ip);
-                    StoreDB.Sessions.find({ selector: { user_id: session.user_id } }).then(query => {
+                    StoresDB.Sessions.find({ selector: { user_id: session.user_id } }).then(query => {
                         if (query.docs.length > 0) {
                             let tokenWillUpdate = query.docs[0];
                             session._id = tokenWillUpdate._id;
                             session._rev = tokenWillUpdate._rev;
-                            StoreDB.Sessions.put(session, {}).then(db_res => {
+                            StoresDB.Sessions.put(session, {}).then(db_res => {
                                 res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id, owner: Owner } });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
                                 res.status(SessionMessages.SESSION_NOT_CREATED.code).json(SessionMessages.SESSION_NOT_CREATED.response);
                             });
                         } else {
-                            StoreDB.Sessions.post(session).then(db_res => {
+                            StoresDB.Sessions.post(session).then(db_res => {
                                 res.status(SessionMessages.SESSION_CREATED.code).json({ ...SessionMessages.SESSION_CREATED.response, ...{ token: db_res.id, owner: Owner } });
                             }).catch(err => {
                                 createLog(req, LogType.DATABASE_ERROR, err);
@@ -53,8 +53,8 @@ export let Login = (req: Request, res: Response) => {
 
 export const Logout = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
-    StoreDB.Sessions.get(AuthToken.toString()).then(session => {
-        StoreDB.Sessions.remove(session).then(() => {
+    StoresDB.Sessions.get(AuthToken.toString()).then(session => {
+        StoresDB.Sessions.remove(session).then(() => {
             res.status(SessionMessages.SESSION_DELETED.code).json(SessionMessages.SESSION_DELETED.response);
         }).catch(err => {
             createLog(req, LogType.DATABASE_ERROR, err);
@@ -68,10 +68,10 @@ export const Logout = (req: Request, res: Response) => {
 
 export const Verify = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
-    StoreDB.Sessions.get(AuthToken).then((session: any) => {
+    StoresDB.Sessions.get(AuthToken).then((session: any) => {
         if (session) {
             if (session.expire_date < Date.now()) {
-                StoreDB.Sessions.remove(session).then(() => {
+                StoresDB.Sessions.remove(session).then(() => {
                     res.status(SessionMessages.SESSION_EXPIRED.code).json(SessionMessages.SESSION_EXPIRED.response);
                 }).catch(err => {
                     createLog(req, LogType.DATABASE_ERROR, err);

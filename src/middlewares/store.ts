@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
-import { StoreDB, ManagementDB } from '../configrations/database';
+import { StoresDB, ManagementDB } from '../configrations/database';
 import { createLog, LogType } from '../utils/logger';
 import { SessionMessages } from '../utils/messages';
 
 export const StoreAuthenticateGuard = (req: Request, res: Response, next: NextFunction) => {
     let AuthToken = req.headers.authorization;
     if (AuthToken) {
-        StoreDB.Sessions.get(AuthToken.toString()).then((session) => {
+        StoresDB.Sessions.get(AuthToken.toString()).then((session) => {
             if (session) {
                 req.app.locals.user = session.user_id;
                 next();

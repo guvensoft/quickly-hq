@@ -7,7 +7,7 @@ export type reportType = 'Product' | 'Category' | 'SubCategory' | 'Table' | 'Flo
 export type activityType = 'Product' | 'Category' | 'SubCategory' | 'Table' | 'Floor' | 'User' | 'Group';
 
 
-export class Report {
+export interface Report {
     type: reportType;
     connection_id: string;
     count: number;

@@ -1,24 +1,20 @@
-export class EndDay {
-    constructor(
-       public timestamp: number,
-       public owner: string,
-       public total_income: number,
-       public cash_total: number,
-       public card_total: number,
-       public coupon_total: number,
-       public free_total: number,
-       public canceled_total: number,
-       public check_count: number,
-       public incomes: number,
-       public outcomes: number,
-       public data_file: string,
-       public _id?:string,
-       public _rev?:string
-    ) { }
+export interface EndDay {
+    timestamp: number,
+    owner: string,
+    total_income: number,
+    cash_total: number,
+    card_total: number,
+    coupon_total: number,
+    free_total: number,
+    canceled_total: number,
+    check_count: number,
+    incomes: number,
+    outcomes: number,
+    data_file: string,
+    _id?:string,
+    _rev?:string
 }
-export class BackupData {
-    constructor(
-       public database:string,
-       public docs:Array<any>
-    ) { }
+export interface BackupData {
+    database:string,
+    docs:Array<any>
 }

@@ -1,62 +1,57 @@
-export class Check {
-    constructor(
-        public table_id: string,
-        public total_price: number,
-        public discount: number,
-        public owner: string,
-        public note: string,
-        public status: number,
-        public products: Array<CheckProduct>,
-        public timestamp: number,
-        public type: number,
-        public check_no: number,
-        public payment_flow?: Array<PaymentStatus>,
-        public discountPercent?: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Check {
+    table_id: string;
+    total_price: number;
+    discount: number;
+    owner: string;
+    note: string;
+    status: number;
+    products: Array<CheckProduct>;
+    timestamp: number;
+    type: number;
+    check_no: number;
+    payment_flow?: Array<PaymentStatus>;
+    discountPercent?: number;
+    _id?: string;
+    _rev?: string
 }
-export class ClosedCheck {
-    constructor(
-        public table_id: string,
-        public total_price: number,
-        public discount: number,
-        public owner: string,
-        public note: string,
-        public status: number,
-        public products: Array<CheckProduct>,
-        public timestamp: number,
-        public type: number,
-        public payment_method: string,
-        public payment_flow?: Array<PaymentStatus>,
-        public description?: string,
-        public _id?: string,
-        public _rev?: string,
-    ) { }
+
+export interface ClosedCheck {
+    table_id: string;
+    total_price: number;
+    discount: number;
+    owner: string;
+    note: string;
+    status: number;
+    products: Array<CheckProduct>;
+    timestamp: number;
+    type: number;
+    payment_method: string;
+    payment_flow?: Array<PaymentStatus>;
+    description?: string;
+    _id?: string;
+    _rev?: string;
 }
-export class PaymentStatus {
-    constructor(
-        public owner: string,
-        public method: string,
-        public amount: number,
-        public discount: number,
-        public timestamp: number,
-        public payed_products: Array<CheckProduct>
-    ) { }
+
+export interface PaymentStatus {
+    owner: string;
+    method: string;
+    amount: number;
+    discount: number;
+    timestamp: number;
+    payed_products: Array<CheckProduct>
 }
-export class CheckProduct {
-    constructor(
-        public id: string,
-        public cat_id: string,
-        public name: string,
-        public price: number,
-        public note: string,
-        public status: number,
-        public owner: string,
-        public timestamp: number,
-        public tax_value: number,
-        public barcode: number,
-    ) { }
+
+export interface CheckProduct {
+    id: string;
+    cat_id: string;
+    name: string;
+    price: number;
+    note: string;
+    status: number;
+    owner: string;
+    timestamp: number;
+    tax_value: number;
+    barcode: number;
 }
 
 export enum CheckType {

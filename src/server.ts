@@ -11,7 +11,7 @@ import queryParser from 'express-query-int';
 
 import * as blackboard from './workers/tables';
 
-//// 19286545426
+//// 19286545426 - 0(212)-367-60-60:3678
 
 const app = express();
 
@@ -34,18 +34,17 @@ app.all('/', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
+
 // setInterval(() => {
 //     console.clear();
 //     const used = process.memoryUsage().heapUsed / 1024 / 1024;
 //     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)
 
-
 // TableWorker();
 
 ////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
 // bambam-burger-pizza-a4cb
-
 
 // blackboard.Fixer('kosmos-db15');
 // blackboard.DailySalesReport('kosmos-db15');
@@ -65,6 +64,8 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 //     console.log(err);
 // })
 
+
+// blackboard.createProductIndexes();
 
 /* For Standalone No Reverse-Proxy Operations */
 

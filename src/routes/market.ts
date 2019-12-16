@@ -6,6 +6,8 @@ import * as SupplierController from '../controllers/management/supplier';
 import * as CategoryController from '../controllers/management/category';
 import * as BrandController from '../controllers/management/brand';
 
+import * as StockController from '../controllers/market/stock';
+
 import { StoreAuthenticateGuard } from '../middlewares/store';
 
 const router = Router();
@@ -66,5 +68,11 @@ router.get("/sub_category/:id",
 router.get("/sub_categories",
     StoreAuthenticateGuard,
     CategoryController.querySubCategories);
+
+
+router.post("/add_stock/:product_id/:quantity",
+    StoreAuthenticateGuard,
+    StockController.addStock
+)
 
 module.exports = router;

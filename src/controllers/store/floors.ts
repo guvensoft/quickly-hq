@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { StoreCollection, DatabaseQueryLimit } from '../../configrations/database';
+import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { FloorMessages } from '../../utils/messages';
 import { Report } from "../../models/store/pos/report";
 
@@ -8,11 +8,11 @@ import { Report } from "../../models/store/pos/report";
 export const createFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
+        const StoresDB = await StoreDB(StoreID);
         const FloorWillCreate = { db_name: 'floors', db_seq: 0, ...req.body };
-        const Floor = await StoreDB.post(FloorWillCreate);
+        const Floor = await StoresDB.post(FloorWillCreate);
         // const FloorReport = new Report('floors', Floor.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        // StoreDB.post(Object.assign(FloorReport, { db_name: 'reports', db_seq: 0 }));
+        // StoresDB.post(Object.assign(FloorReport, { db_name: 'reports', db_seq: 0 }));
         res.status(FloorMessages.FLOOR_CREATED.code).json(FloorMessages.FLOOR_CREATED.response);
     } catch (error) {
         res.status(FloorMessages.FLOOR_NOT_CREATED.code).json(FloorMessages.FLOOR_NOT_CREATED.response);
@@ -23,11 +23,11 @@ export const createFloor = async (req: Request, res: Response) => {
 export const deleteFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Floor = await StoreDB.get(req.params.id);
-        const FloorReport = await StoreDB.find({ selector: { db_name: 'reports', connection_id: Floor._id } });
-        StoreDB.remove(Floor);
-        StoreDB.remove(FloorReport.docs[0]);
+        const StoresDB = await StoreDB(StoreID);
+        const Floor = await StoresDB.get(req.params.id);
+        const FloorReport = await StoresDB.find({ selector: { db_name: 'reports', connection_id: Floor._id } });
+        StoresDB.remove(Floor);
+        StoresDB.remove(FloorReport.docs[0]);
         res.status(FloorMessages.FLOOR_DELETED.code).json(FloorMessages.FLOOR_DELETED.response);
     } catch (error) {
         res.status(FloorMessages.FLOOR_NOT_DELETED.code).json(FloorMessages.FLOOR_NOT_DELETED.response);
@@ -39,9 +39,9 @@ export const deleteFloor = async (req: Request, res: Response) => {
 export const updateFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Floor = await StoreDB.get(req.params.id);
-        await StoreDB.put({ Floor, ...req.body });
+        const StoresDB = await StoreDB(StoreID);
+        const Floor = await StoresDB.get(req.params.id);
+        await StoresDB.put({ Floor, ...req.body });
         res.status(FloorMessages.FLOOR_CREATED.code).json(FloorMessages.FLOOR_CREATED.response);
     } catch (error) {
         res.status(FloorMessages.FLOOR_NOT_CREATED.code).json(FloorMessages.FLOOR_NOT_CREATED.response);
@@ -53,8 +53,8 @@ export const updateFloor = async (req: Request, res: Response) => {
 export const getFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Floor = await StoreDB.get(req.params.id);
+        const StoresDB = await StoreDB(StoreID);
+        const Floor = await StoresDB.get(req.params.id);
         res.json(Floor);
     } catch (error) {
         res.status(FloorMessages.FLOOR_NOT_CREATED.code).json(FloorMessages.FLOOR_NOT_CREATED.response);
@@ -69,8 +69,8 @@ export const queryFloors = async (req: Request, res: Response) => {
     delete req.query.skip;
     delete req.query.limit;
     try {
-        const StoreDB = await StoreCollection(StoreID);
-        const Floors = await StoreDB.find({ selector: { db_name: 'floors', ...req.query }, limit: qLimit, skip: qSkip });
+        const StoresDB = await StoreDB(StoreID);
+        const Floors = await StoresDB.find({ selector: { db_name: 'floors', ...req.query }, limit: qLimit, skip: qSkip });
         res.json(Floors.docs);
     } catch (error) {
         res.status(FloorMessages.FLOOR_NOT_EXIST.code).json(FloorMessages.FLOOR_NOT_EXIST.response);
