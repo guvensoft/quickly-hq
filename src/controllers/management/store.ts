@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
+import { DatabaseQueryLimit, ManagementDB, StoreDB } from "../../configrations/database";
 import { Store } from "../../models/management/store";
 import { createLog, LogType } from '../../utils/logger';
 import { StoreMessages } from "../../utils/messages";
@@ -91,3 +91,23 @@ export const queryStores = (req: Request, res: Response) => {
         createLog(req, LogType.DATABASE_ERROR, err);
     });
 };
+
+
+export const queryStoreDocuments = async (req: Request, res: Response) => {
+    const storeID = req.params.id;
+
+    let qLimit = req.query.limit || DatabaseQueryLimit;
+    let qSkip = req.query.skip || 0;
+    
+    delete req.query.skip;
+    delete req.query.limit;
+
+    try {
+        const DB = await StoreDB(storeID);
+        const Query = await DB.find({ selector: req.query, limit: qLimit, skip: qSkip });
+        res.json(Query.docs);
+    } catch (err) {
+        res.status(StoreMessages.STORE_NOT_EXIST.code).json(StoreMessages.STORE_NOT_EXIST.response);
+        createLog(req, LogType.DATABASE_ERROR, err);
+    }
+}

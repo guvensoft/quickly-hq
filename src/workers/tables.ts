@@ -13,6 +13,7 @@ import { writeFile, readFile } from 'fs';
 import { Product } from '../models/management/product';
 import path from 'path';
 import { createIndexesForDatabase } from '../functions/database';
+import { object } from 'joi';
 // import { productToStock } from 'src/functions/stocks';
 
 
@@ -243,10 +244,6 @@ export const DailySalesReport = (store_db_name: string) => {
             //         console.log(check.name, 'updated');
             //     });
             // })
-
-            checks.forEach(element => {
-                console.log(new Date(element.timestamp).toDateString());
-            });
 
             let cash = checks.filter(obj => obj.payment_method == 'Nakit').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
             let card = checks.filter(obj => obj.payment_method == 'Kart').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
@@ -536,20 +533,141 @@ export const getProducts = (store_id) => {
     })
 }
 
-
-export const MoveData = () => {
+export const TableTransport = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-        RemoteDB(db, 'quickly-cafe-130c').find({ selector: { db_name: 'stocks_cat' }, limit: 2500 }).then((res: any) => {
-            return res.docs;
-        }).then(stocks => {
-            // console.log(stocks);
-            RemoteDB(db, 'kosmos-db15').bulkDocs(stocks).then(res => {
-                console.log('Stocks Added');
+        RemoteDB(db, 'kosmos-db15').find({ selector: { db_name: 'endday' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(obj => {
+                delete obj._rev;
+                // delete obj._id;
+                // obj.status = 1;
+                return obj;
+            });
+        }).then(documents => {
+            RemoteDB(db, 'quickly-cafe-130c').bulkDocs(documents).then(res => {
+                console.log('Document Moved Successfuly');
             })
         })
     })
 }
+
+
+export const MoveData = () => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        RemoteDB(db, 'kent-besiktas-8e12').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(obj => {
+                delete obj._rev;
+                delete obj._id;
+                return obj;
+            });
+        }).then(documents => {
+            RemoteDB(db, 'quickly-cafe-130c').bulkDocs(documents).then(res => {
+                console.log('Document Moved Successfuly');
+            })
+        })
+    })
+}
+
+export const addProperty = () => {
+    // let position = { height: 100, width: 100, x: 100, y: 100, type: 0 };
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        RemoteDB(db, 'quickly-cafe-130c').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(object => {
+                // object.position = position;
+                return object;
+            });
+        }).then(stocks => {
+            RemoteDB(db, 'quickly-cafe-130c').bulkDocs(stocks).then(res => {
+                console.log('Property Added Successfuly');
+            })
+        })
+    })
+
+}
+
+export const kent = () => {
+
+    // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+    //     let db: Database = res.docs[0];
+    //     RemoteDB(db, 'quickly-cafe-130c').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((res: any) => {
+    //         let pTables = res.docs;
+    //         // console.log(pTables);
+    //         RemoteDB(db, 'kent-besiktas-8e12').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((sres: any) => {
+    //             let lTables = sres.docs;
+    //             lTables.forEach(obj => {
+    //                 try {
+    //                     let pTable = pTables.find(element => element.name == obj.name).position;
+    //                     obj.position = pTable;
+    //                 } catch (error) {
+
+    //                 }
+
+    //             });
+
+    //             return lTables;
+
+    //         }).then(tables => {
+    //             console.log(tables);
+    //             RemoteDB(db, 'kent-besiktas-8e12').bulkDocs(tables).then(res => {
+    //                 console.log('Property Added Successfuly');
+    //             }).catch(err => {
+    //                 console.log(err);
+    //             })
+    //         }).catch(err => {
+    //             console.log(err);
+    //         })
+
+    //     });
+    // })
+
+
+
+
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+
+
+        RemoteDB(db, 'kent-besiktas-8e12').find({ selector: { db_name: 'closed_checks', payment_method: 'Parçalı' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(object => {
+                object.payment_flow.forEach(obj => {
+                    obj.method = 'Nakit';
+                });
+                return object;
+            });
+        }).then(stocks => {
+            RemoteDB(db, 'kent-besiktas-8e12').bulkDocs(stocks).then(res => {
+                console.log('Property Added Successfuly');
+            }).catch(err => {
+                console.log(err);
+            })
+        })
+
+
+        RemoteDB(db, 'kent-besiktas-8e12').find({ selector: { db_name: 'closed_checks', payment_method: 'Kart' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(object => {
+                object.payment_method = 'Nakit';
+                return object;
+            });
+        }).then(stocks => {
+            if (stocks.length > 0) {
+                RemoteDB(db, 'kent-besiktas-8e12').bulkDocs(stocks).then(res => {
+                    console.log('Method Changed');
+                }).catch(err => {
+                    console.log(err);
+                })
+            }
+        });
+    })
+
+}
+
+
+
+
+
+
 
 
 export const importProducts = () => {

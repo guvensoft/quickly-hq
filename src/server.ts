@@ -43,11 +43,12 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 // TableWorker();
 
-////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı'); 
+////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı');
 // bambam-burger-pizza-a4cb
 
 // blackboard.Fixer('kosmos-db15');
 // blackboard.DailySalesReport('kosmos-db15');
+
 // blackboard.ReportsFixer('quickly-cafe-130c');
 
 // blackboard.getProducts('sdfsdfsd');
@@ -56,6 +57,14 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.thatDay()
 // blackboard.veryOldUpdate();
 // blackboard.MoveData()
+
+// blackboard.TableTransport();
+
+// setInterval(() => {
+//     blackboard.kent();
+//     blackboard.DailySalesReport('kent-besiktas-8e12');
+// }, 60000);
+
 // blackboard.importProducts()
 
 // blackboard.productToStock('339a35b5-b13c-4184-8b24-b4209d0784f9',10,'867f64c9-297f-4dfb-9030-bd3b5462bbb8').then(res => {

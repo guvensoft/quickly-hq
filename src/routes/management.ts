@@ -189,6 +189,11 @@ router.get("/stores",
     AuthenticateGuard,
     StoreController.queryStores);
 
+// Stores Documents
+router.get("/store/:id/query",
+    AuthenticateGuard,
+    StoreController.queryStoreDocuments);
+
 // Products
 router.get("/product/:id",
     AuthenticateGuard,
