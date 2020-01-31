@@ -5,6 +5,7 @@ export interface Category {
     type: CategoryType,
     timestamp: number,
     status: number,
+    order: number,
     _id: string,
     _rev: string
 }
@@ -16,6 +17,7 @@ export interface SubCategory {
     image: string,
     timestamp: number,
     status: number,
+    order: number,
     _id: string,
     _rev: string
 }

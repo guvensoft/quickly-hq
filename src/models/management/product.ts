@@ -15,9 +15,10 @@ export interface Product {
     tags: Array<any>,
     barcode: number,
     sku: string,
-    timestamp: number,
     type: ProductType,
     status: ProductStatus,
+    order: number,
+    timestamp: number,
     _id: string,
     _rev: string
 }

@@ -36,9 +36,3 @@ export const createStoreDatabase = (storeAuth: StoreAuth) => {
 export const createDatabaseUser = (username: string, password: string): DatabaseU => ({ _id: `org.couchdb.user:${username}`, name: username, password: password, type: 'user', roles: [] })
 
 export const createIndexesForDatabase = (Database: PouchDB.Database, indexObj: PouchDB.Find.CreateIndexOptions) =>  Database.createIndex(indexObj);
-
-// export const moveStoreDatabase = () => {
-//     return new Promise((resolve, reject) => {
-//         resolve(true);
-//     });
-// }

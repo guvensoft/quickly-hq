@@ -11,5 +11,6 @@ export interface Supplier {
     account_id: string,
     products: Array<string>,
     status: number,
+    order: number,
     timestamp: number
 }

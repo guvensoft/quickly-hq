@@ -9,7 +9,7 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
-import * as blackboard from './workers/tables';
+import * as blackboard from './blackboard';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 
@@ -34,47 +34,13 @@ app.all('/', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
+/* Memory Listener Interval */
 
 // setInterval(() => {
 //     console.clear();
 //     const used = process.memoryUsage().heapUsed / 1024 / 1024;
 //     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)
-
-// TableWorker();
-
-////// Eski Hesaplar Geri Geldiğinde Fixer('VeritabanıAdı');
-// bambam-burger-pizza-a4cb
-
-// blackboard.Fixer('kosmos-db15');
-// blackboard.DailySalesReport('kosmos-db15');
-
-// blackboard.ReportsFixer('quickly-cafe-130c');
-
-// blackboard.getProducts('sdfsdfsd');
-// blackboard.StockCleaner();
-// blackboard.BackupReportGenerator();
-// blackboard.thatDay()
-// blackboard.veryOldUpdate();
-// blackboard.MoveData()
-
-// blackboard.TableTransport();
-
-// setInterval(() => {
-//     blackboard.kent();
-//     blackboard.DailySalesReport('kent-besiktas-8e12');
-// }, 60000);
-
-// blackboard.importProducts()
-
-// blackboard.productToStock('339a35b5-b13c-4184-8b24-b4209d0784f9',10,'867f64c9-297f-4dfb-9030-bd3b5462bbb8').then(res => {
-//     console.log(res);
-// }).catch(err => {
-//     console.log(err);
-// })
-
-
-// blackboard.createProductIndexes();
 
 /* For Standalone No Reverse-Proxy Operations */
 
@@ -90,3 +56,25 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // httpsServer.listen(443, () => {
 //     console.log('HTTPS Server running on port 443');
 // });
+
+
+// blackboard.Fixer('kosmos-db15');
+// blackboard.DailySalesReport('kosmos-db15');
+
+// blackboard.ReportsFixer('quickly-cafe-130c');
+// blackboard.getProducts('sdfsdfsd');
+// blackboard.StockCleaner();
+// blackboard.BackupReportGenerator();
+// blackboard.thatDay()
+// blackboard.veryOldUpdate();
+// blackboard.MoveData()
+// blackboard.ReportsClearer('mansion-cafe-restaurant-4b24');
+// blackboard.createProductIndexes();
+
+// blackboard.reloadTable('kosmos-db15');
+
+
+// blackboard.importProducts();
+// blackboard.importDatabase();
+// blackboard.documentTransport('kent-besiktas-8e12', 'quickly-cafe-459c', { db_name: 'reports', type:'Table' });
+

@@ -4,6 +4,8 @@ export interface Producer {
     account: string,
     logo: string,
     timestamp: number,
+    status: number,
+    order: number,
     _id?: string
     _rev?: string
 }

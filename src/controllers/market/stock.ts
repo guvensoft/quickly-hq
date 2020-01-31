@@ -7,7 +7,7 @@ import { productToStock } from "../../functions/stocks";
 export const addStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const ProductID = req.params.product_id;
-    const quantity = req.params.quantity || 10;
+    const quantity = <number><unknown>req.params.quantity || 10;
     try {
         const StoresDB = await StoreDB(StoreID);
 

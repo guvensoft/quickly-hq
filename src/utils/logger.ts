@@ -1,19 +1,15 @@
 import { ManagementDB } from '../configrations/database';
 import { Request } from 'express';
 
-export class Log {
+export interface Log {
+    req_ip: string;
+    req_headers: any;
+    req_body: any;
+    log_type: LogType;
+    message: any;
     timestamp: number;
-    constructor(
-        public req_ip: string,
-        public req_headers: any,
-        public req_body: any,
-        public log_type: LogType,
-        public message: any,
-        public _id?: string,
-        public _rev?: string
-    ) {
-        this.timestamp = Date.now();
-    }
+    _id?: string,
+    _rev?: string
 }
 
 export enum LogType {
@@ -24,7 +20,7 @@ export enum LogType {
     UNVALID_SCHEMA_ERROR
 }
 
-export const createLog = (req: Request, type: LogType, reason: any) => {
-    let log = new Log(req.ip, req.headers, req.body, type, reason);
+export const createLog = (req: Request, type: LogType, message: any) => {
+    let log: Log = { req_ip: req.ip, req_headers: req.headers, req_body: req.body, log_type: type, message: message, timestamp: Date.now() };
     ManagementDB.Logs.post(log).catch(err => { console.log(err) });
 }

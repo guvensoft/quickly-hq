@@ -39,7 +39,7 @@ export const updateStore = (req: Request, res: Response) => {
     let storeID = req.params.id;
     let formData = req.body;
     ManagementDB.Stores.get(storeID).then(store => {
-        ManagementDB.Stores.put(Object.assign(store, formData)).then(db_res => {
+        ManagementDB.Stores.put({ store, ...formData }).then(() => {
             res.status(StoreMessages.STORE_UPDATED.code).json(StoreMessages.STORE_UPDATED.response);
         }).catch((err) => {
             res.status(StoreMessages.STORE_NOT_UPDATED.code).json(StoreMessages.STORE_NOT_UPDATED.response);
@@ -98,7 +98,7 @@ export const queryStoreDocuments = async (req: Request, res: Response) => {
 
     let qLimit = req.query.limit || DatabaseQueryLimit;
     let qSkip = req.query.skip || 0;
-    
+
     delete req.query.skip;
     delete req.query.limit;
 

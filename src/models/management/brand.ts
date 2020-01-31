@@ -4,7 +4,8 @@ export interface Brand {
     logo: string,
     producer_id: string,
     status: BrandStatus,
-    timestamp:number,
+    order: number,
+    timestamp: number,
 }
 
 export enum BrandStatus {
