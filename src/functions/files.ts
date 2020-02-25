@@ -22,18 +22,26 @@ export const readJsonFile = (file_path: string) => {
 
 export const writeJsonFile = (file_path: string, data: any) => {
     return new Promise<boolean>((resolve, reject) => {
-        exists(file_path, (exists) => {
-            if (exists) {
-                writeFile(file_path, data, (err) => {
-                    if (!err) {
-                        resolve(true);
-                    } else {
-                        reject('Dosya Yazılırken Hata Oluştu.');
-                    }
-                })
+        writeFile(file_path, data, (err) => {
+            if (!err) {
+                resolve(true);
             } else {
-                reject(false);
+                reject('Dosya Yazılırken Hata Oluştu.' + err);
             }
-        });
+        })
+        // exists(file_path, (exists) => {
+        //     if (exists) {
+        //         writeFile(file_path, data, (err) => {
+        //             if (!err) {
+        //                 resolve(true);
+        //             } else {
+        //                 reject('Dosya Yazılırken Hata Oluştu.' + err);
+        //             }
+        //         })
+        //     } else {
+                
+        //         reject('Yazılacak Dosya Bulunamadı');
+        //     }
+        // });
     });
 }

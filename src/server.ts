@@ -34,6 +34,9 @@ app.all('/', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
+// import './workers/tables';
+import './workers/activities';
+
 /* Memory Listener Interval */
 
 // setInterval(() => {
@@ -57,10 +60,10 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 //     console.log('HTTPS Server running on port 443');
 // });
 
+/* For Testing New Functions */
 
 // blackboard.Fixer('kosmos-db15');
 // blackboard.DailySalesReport('kosmos-db15');
-
 // blackboard.ReportsFixer('quickly-cafe-130c');
 // blackboard.getProducts('sdfsdfsd');
 // blackboard.StockCleaner();
@@ -70,11 +73,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.MoveData()
 // blackboard.ReportsClearer('mansion-cafe-restaurant-4b24');
 // blackboard.createProductIndexes();
-
 // blackboard.reloadTable('kosmos-db15');
-
-
+// blackboard.productFinder('');
+// blackboard.invoiceReader();
 // blackboard.importProducts();
 // blackboard.importDatabase();
 // blackboard.documentTransport('kent-besiktas-8e12', 'quickly-cafe-459c', { db_name: 'reports', type:'Table' });
-

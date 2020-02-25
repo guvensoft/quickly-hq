@@ -90,8 +90,7 @@ export const StoreDB = async (store_id: any) => {
         const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
         return RemoteDB(Database, Store.auth.database_name);
     } catch (error) {
-        console.log(error);
-        throw Error('Store DB Connection Error:');
+        throw Error('Store DB Connection Error: '+ error);
     }
 }
 

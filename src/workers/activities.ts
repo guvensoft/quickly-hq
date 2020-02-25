@@ -23,15 +23,15 @@ if (isMainThread) {
     Promise.all([storesPromise, databasePromises]).then(res => {
         const worker = new Worker(__filename, { workerData: { databases: Databases, stores: Stores } });
         worker.on('message', (updatedTable: Table) => {
-            SocialDB.Tables.get(updatedTable._id).then(res => {
-                SocialDB.Tables.put({ res, ...updatedTable }).catch(err => {
-                    //// Update Error
-                })
-            }).catch(err => {
-                SocialDB.Tables.post(updatedTable).catch(err => {
-                    //// Post Error
-                })
-            })
+            // SocialDB.Tables.get(updatedTable._id).then(res => {
+            //     SocialDB.Tables.put({ res, ...updatedTable }).catch(err => {
+            //         //// Update Error
+            //     })
+            // }).catch(err => {
+            //     SocialDB.Tables.post(updatedTable).catch(err => {
+            //         //// Post Error
+            //     })
+            // })
             console.log(updatedTable);
         });
         worker.on('error', (error) => {
@@ -39,31 +39,31 @@ if (isMainThread) {
         });
         worker.on('exit', (code) => {
             if (code !== 0)
-                throw new Error(`Table Worker stopped with exit code ${code}`);
+                throw new Error(`Logs Worker stopped with exit code ${code}`);
         });
     });
 
 } else {
 
     workerData.stores.forEach((store: Store) => {
-        console.log(`Table Listener Attached to ${store.name} at ${store.auth.database_name}`);
+        console.log(`Logs Listener Attached to ${store.name} at ${store.auth.database_name}`);
         RemoteDB(workerData.databases.find(db => db._id == store.auth.database_id), store.auth.database_name)
             .changes({ since: 'now', live: true, include_docs: true })
             .on('change', (changes: any) => {
-                if (changes.doc.db_name == 'tables') {
-                    let socialTable: Table = {
-                        _id: changes.doc._id,
-                        name: changes.doc.name,
-                        store_id: store._id,
-                        floor_id: changes.doc.floor_id,
-                        capacity: changes.doc.capacity,
-                        status: changes.doc.status,
-                    }
-                    parentPort.postMessage(socialTable);
+                if (changes.doc.db_name == 'logs') {
+                    // let socialTable: Table = {
+                    //     _id: changes.doc._id,
+                    //     name: changes.doc.name,
+                    //     store_id: store._id,
+                    //     floor_id: changes.doc.floor_id,
+                    //     capacity: changes.doc.capacity,
+                    //     status: changes.doc.status,
+                    // }
+                    parentPort.postMessage(store.name + ' ' + changes.doc.description + ' ' + new Date(changes.doc.timestamp).toTimeString());
                 }
             })
             .on('error', (error) => {
-                console.log(`Worker can't Access StoreDB of ${store.name} at ${store.auth.database_name}`);
+                console.log(`Logs Worker can't Access StoreDB of ${store.name} at ${store.auth.database_name}`);
             })
     });
 

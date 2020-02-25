@@ -6,14 +6,17 @@ import { backupPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/pos/endoftheday';
 import { Report } from './models/store/pos/report';
 import { Cashbox } from './models/store/pos/cashbox';
-import { ClosedCheck } from './models/store/pos/check';
+import { ClosedCheck, CheckProduct } from './models/store/pos/check';
 import { Log } from './models/store/pos/log';
-import { readJsonFile } from './functions/files';
-import { writeFile, readFile } from 'fs';
+import { readJsonFile, writeJsonFile } from './functions/files';
+import { writeFile, readFile, readFileSync } from 'fs';
 import { Product } from './models/management/product';
 import path from 'path';
 import { createIndexesForDatabase } from './functions/database';
-import { object } from 'joi';
+import { object, string } from 'joi';
+
+import { Parser } from 'xml2js';
+
 // import { productToStock } from 'src/functions/stocks';
 
 export const TableWorker = () => {
@@ -840,7 +843,66 @@ export const ReportsClearer = async (db_name) => {
 
 }
 
+export const productFinder = (product_name: string) => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        let remote = RemoteDB(db, 'kosmos-db15');
 
+        remote.find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
+
+            let products: Array<CheckProduct> = res.docs;
+
+            let regex = new RegExp(product_name, 'i');
+
+            let results = products.filter(obj => obj.name.match(regex));
+
+            console.log(results);
+        });
+    });
+}
+
+
+
+export const invoiceReader = () => {
+    const xmlParser = new Parser();
+    const invoicePath = path.join(__dirname, '../', '/backup/kosmos/fatura.xml');
+    readFile(invoicePath, (err, buffer) => {
+        if (!err) {
+            let data = buffer.toString('utf8');
+            xmlParser.parseStringPromise(data).then(res => {
+
+                res['Invoice']['cac:InvoiceLine'].forEach(row => {
+
+
+                    let quantity = row["cbc:InvoicedQuantity"][0]["_"];
+                    let total_price = row["cbc:LineExtensionAmount"][0]["_"];
+                    let currency = row["cbc:LineExtensionAmount"][0]["$"];
+                    let discountAmount = row["cac:AllowanceCharge"][0]["cbc:Amount"][0]["_"];
+                    let discountValue = row["cac:AllowanceCharge"][0]["cbc:MultiplierFactorNumeric"];
+                    let withoutDiscount = row["cac:AllowanceCharge"][0]["cbc:BaseAmount"][0]["_"];
+                    let taxAmount = row["cac:TaxTotal"][0]["cbc:TaxAmount"][0]["_"];
+                    let taxPercent = row["cac:TaxTotal"][0]["cbc:Percent"];
+                    let itemName = row["cac:Item"][0]["cbc:Description"];
+                    let itemId = row["cac:Item"][0]["cbc:Name"];
+                    let itemPrice = row["cac:Price"][0]["cbc:PriceAmount"][0]["_"];
+
+                    console.log(quantity + ' Adet     ' + itemName + ' | ' + total_price);
+                });
+
+                // writeJsonFile(__dirname + '/test.json', invoiceJson).then(res => {
+                //     console.log(res);
+                // }).catch(err => {
+                //     console.log(err);
+                // })
+          
+            }).catch(err => {
+                console.log(err);
+            })
+        } else {
+            console.log(err);
+        }
+    });
+}
 
 // export const productToStockApi = async (product_id: string, quantity: number, store_id: string) => {
 //     try {
