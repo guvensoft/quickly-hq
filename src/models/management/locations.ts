@@ -5,7 +5,7 @@ export interface Cordinates {
 
 export interface Address {
     country: string,
-    city: string,
+    state: string,
     province: string,
     district: string,
     street: string,

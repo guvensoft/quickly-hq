@@ -101,7 +101,7 @@ export const DatabaseSchema = joi.object().keys({
 
 export const AdressSchema = joi.object().keys({
     country: joi.string(),
-    city: joi.string(),
+    state: joi.string(),
     province: joi.string(),
     district: joi.string(),
     street: joi.string(),

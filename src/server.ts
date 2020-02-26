@@ -34,8 +34,7 @@ app.all('/', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
-// import './workers/tables';
-import './workers/activities';
+
 
 /* Memory Listener Interval */
 
@@ -44,6 +43,7 @@ import './workers/activities';
 //     const used = process.memoryUsage().heapUsed / 1024 / 1024;
 //     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)
+
 
 /* For Standalone No Reverse-Proxy Operations */
 
@@ -60,10 +60,12 @@ import './workers/activities';
 //     console.log('HTTPS Server running on port 443');
 // });
 
+
+
 /* For Testing New Functions */
 
 // blackboard.Fixer('kosmos-db15');
-// blackboard.DailySalesReport('kosmos-db15');
+// blackboard.DailySalesReport('yuri-burger-beer-ecbb');
 // blackboard.ReportsFixer('quickly-cafe-130c');
 // blackboard.getProducts('sdfsdfsd');
 // blackboard.StockCleaner();
@@ -79,3 +81,8 @@ import './workers/activities';
 // blackboard.importProducts();
 // blackboard.importDatabase();
 // blackboard.documentTransport('kent-besiktas-8e12', 'quickly-cafe-459c', { db_name: 'reports', type:'Table' });
+
+/* Worker Threads */
+
+// import './workers/tables';
+// import './workers/activities';

@@ -55,7 +55,7 @@ export const StoresDB = {
 
 export const AdressDB = {
     Countries: new PouchDB<User>(databasePath + 'address/countries', FileSystemConfigration),
-    Cities: new PouchDB<User>(databasePath + 'address/cities', FileSystemConfigration),
+    States: new PouchDB<User>(databasePath + 'address/cities', FileSystemConfigration),
     Provinces: new PouchDB<Group>(databasePath + 'address/provinces', FileSystemConfigration),
     Districts: new PouchDB<Database>(databasePath + 'address/districts', FileSystemConfigration),
     Streets: new PouchDB<Database>(databasePath + 'address/streets', FileSystemConfigration),

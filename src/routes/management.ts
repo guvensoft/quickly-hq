@@ -337,7 +337,7 @@ router.get("/sub_categories",
 
 
 // Address
-router.get("/address/:country?/:city?/:province?/:district?",
+router.get("/address/:country?/:state?/:province?/:district?",
     AddressController.getAddress);
 
 // Utils
