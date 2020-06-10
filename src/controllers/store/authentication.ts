@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { StoresDB, ManagementDB } from "../../configrations/database";
+import { ManagementDB, StoresDB } from "../../configrations/database";
 import { createSession } from "../../functions/session";
 import { Owner } from "../../models/management/owner";
 import { createLog, LogType } from '../../utils/logger';

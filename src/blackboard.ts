@@ -2,12 +2,12 @@ import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB } from './configrati
 import { Database } from './models/management/database';
 import { Store } from './models/social/stores';
 import { Stock, StockTransfer } from './models/store/pos/stocks';
-import { backupPath } from './configrations/paths';
+import { backupPath, documentsPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/pos/endoftheday';
 import { Report } from './models/store/pos/report';
 import { Cashbox } from './models/store/pos/cashbox';
 import { ClosedCheck, CheckProduct } from './models/store/pos/check';
-import { Log } from './models/store/pos/log';
+import { Log, logType } from './models/store/pos/log';
 import { readJsonFile, writeJsonFile } from './functions/files';
 import { writeFile, readFile, readFileSync } from 'fs';
 import { Product } from './models/management/product';
@@ -329,12 +329,13 @@ export const ReportsFixer = async (db_name) => {
 
 export const BackupReportGenerator = () => {
     readJsonFile(backupPath + 'db.dat').then((res: Array<any>) => {
-        let enddays: Array<EndDay> = res.filter(obj => obj.db_name == 'endday').sort((a, b) => b.timestamp - a.timestamp).filter(obj => new Date(obj.timestamp).getDay() == 0);
+        let enddays: Array<EndDay> = res.filter(obj => obj.db_name == 'endday').sort((a, b) => b.timestamp - a.timestamp).filter(obj => new Date(obj.timestamp).getDay() == 4);
         let categories = res.filter(obj => obj.db_name == 'categories');
         let sub_categories = res.filter(obj => obj.db_name == 'sub_categories');
 
+        let balanced = 0;
+        let checks_balanced = 0;
         enddays.forEach(day => {
-            // if (new Date(day.timestamp).getDay() == 0) {
             readJsonFile(backupPath + 'backup/' + day.data_file).then((data: Array<BackupData>) => {
 
                 let reports: Array<Report> = data.find(obj => obj.database == 'reports').docs;
@@ -344,11 +345,24 @@ export const BackupReportGenerator = () => {
 
                 console.log('---------------------------------');
                 console.log(new Date(day.timestamp).toLocaleDateString('tr-TR'));
-                console.log('Raporlar', reports.length);
-                console.log('Kasa', cashbox.length);
-                console.log('Hesaplar', closed_checks.length);
-                console.log('Kayıtlar', logs.length);
+                // console.log('Raporlar', reports.length);
+                // console.log('Kasa', cashbox.length);
+                // console.log('Hesaplar', closed_checks.length);
+                // console.log('Kayıtlar', logs.length);
                 console.log('---------------------------------');
+
+                let requests = logs.filter(obj => obj.description.match('ödeme'));
+
+                // console.log('İstek', requests.length);
+
+                balanced += requests.length;
+
+                // checks_balanced += closed_checks.length;
+
+                console.log('Request', balanced / enddays.length);
+                // console.log('Checks', checks_balanced / enddays.length);
+
+
 
                 // closed_checks.forEach(check => {
                 //     console.log(check.total_price, check.payment_method);
@@ -360,7 +374,6 @@ export const BackupReportGenerator = () => {
             }).catch(err => {
                 console.log(err);
             })
-            // }
         })
     })
 
@@ -894,7 +907,7 @@ export const invoiceReader = () => {
                 // }).catch(err => {
                 //     console.log(err);
                 // })
-          
+
             }).catch(err => {
                 console.log(err);
             })
@@ -918,3 +931,38 @@ export const invoiceReader = () => {
 //         throw Error(error);
 //     }
 // }
+
+export const documentbackup = (from: string, to: string, selector: any) => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        RemoteDB(db, from).find({ selector: selector, limit: 2500 }).then((res: any) => {
+            return res.docs.map(obj => {
+                delete obj._rev;
+                return obj;
+            });
+        }).then(documents => {
+            writeJsonFile(documentsPath, 'harbi.json').then(res => {
+                console.log(res);
+            })
+        })
+    })
+}
+
+
+export const lastChanges = () => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        CouchDB(db).db.list().then((db_list: Array<string>) => {
+            db_list = db_list.filter(obj => obj.charAt(0) !== '_');
+            db_list.forEach(db_name => {
+                RemoteDB(db, db_name).get('lastseen').then(res => {
+                    console.log(res);
+                }).catch(err => {
+
+                })
+            });
+        }).catch(err => {
+            console.log('TEST');
+        });
+    })
+};

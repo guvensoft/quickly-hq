@@ -29,6 +29,7 @@ app.use(queryParser());
 app.use('/management', require('./routes/management'));
 app.use('/store', require('./routes/store'));
 app.use('/market', require('./routes/market'));
+app.use('/menu', require('./routes/menu'));
 
 app.all('/', (req, res) => res.status(404).end());
 
@@ -80,7 +81,16 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.invoiceReader();
 // blackboard.importProducts();
 // blackboard.importDatabase();
-// blackboard.documentTransport('kent-besiktas-8e12', 'quickly-cafe-459c', { db_name: 'reports', type:'Table' });
+// blackboard.documentTransport('quickly-cafe-459c', 'maxi-doner-pinar', { db_name: 'products' });
+// blackboard.documentTransport('kosmos-db15', 'quickly-cafe-459c', { db_name: 'tables' });
+
+
+// blackboard.lastChanges();
+
+// blackboard.documentbackup('quickly-cafe-459c')
+
+
+
 
 /* Worker Threads */
 

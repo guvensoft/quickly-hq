@@ -43,7 +43,7 @@
     "@types/express-rate-limit": "^3.3.3",
     "@types/joi": "^14.3.4",
     "@types/morgan": "^1.7.37",
-    "@types/node": "^10.17.14",
+    "@types/node": "^10.17.16",
     "@types/pouchdb": "^6.4.0",
     "@types/xml2js": "^0.4.5",
     "express-swagger-generator": "^1.1.17",

@@ -1013,3 +1013,62 @@ export const CashboxEntryMessages = {
         code: 404
     },
 }
+
+export const MenuMessages = {
+    MENU_CREATED: {
+        response: {
+            ok: true,
+            message: "Menü oluşturuldu.",
+        },
+        code: 201
+    },
+    MENU_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Menü oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    MENU_UPDATED: {
+        response: {
+            ok: true,
+            message: "Menü Düzenlendi.",
+        },
+        code: 200
+    },
+    MENU_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Menü Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    MENU_DELETED: {
+        response: {
+            ok: true,
+            message: "Menü Silindi.",
+        },
+        code: 200
+    },
+    MENU_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Menü Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    MENU_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Menü Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    MENU_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Menü Bulunamadı",
+        },
+        code: 404
+    },
+}

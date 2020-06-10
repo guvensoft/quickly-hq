@@ -50,7 +50,7 @@ export const ManagementDB = {
 export const StoresDB = {
     Infos: new PouchDB<Store>(databasePath + 'store/info', FileSystemConfigration),
     Settings: new PouchDB<StoreSettings>(databasePath + 'store/settings', FileSystemConfigration),
-    Sessions: new PouchDB<Session>(databasePath + 'store/sessions', InMemoryConfigration)
+    Sessions: new PouchDB<Session>(databasePath + 'store/sessions', InMemoryConfigration),
 }
 
 export const AdressDB = {
