@@ -2,9 +2,9 @@ import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB } from './configrati
 import { Database } from './models/management/database';
 import { Store } from './models/social/stores';
 import { Stock, StockTransfer } from './models/store/pos/stocks';
-import { backupPath, documentsPath } from './configrations/paths';
+import { backupPath, documentsPath, reisPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/pos/endoftheday';
-import { Report } from './models/store/pos/report';
+import { Report, createReport } from './models/store/pos/report';
 import { Cashbox } from './models/store/pos/cashbox';
 import { ClosedCheck, CheckProduct } from './models/store/pos/check';
 import { Log, logType } from './models/store/pos/log';
@@ -302,20 +302,28 @@ export const DailySalesReport = (store_db_name: string) => {
 export const ReportsFixer = async (db_name) => {
     try {
         const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } });
-        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'tables' }, limit: 2500 });
-        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'Table' }, limit: 2500 });
-        let reportsWillUpdate = reports.docs;
-        reportsWillUpdate.map((report: any) => {
-            try {
-                report.description = products.docs.find(obj => obj._id == report.connection_id).name;
-            } catch (error) {
-                RemoteDB(db.docs[0], db_name).remove(report).then(res => {
-                    console.log('UNUSED REPORT DELETED', report)
-                }).catch(err => {
-                    console.log('Remote Connection Error');
-                })
-            }
-        });
+        const products: any = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'products' }, limit: 2500 });
+        const reports = await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'reports', type: 'products' }, limit: 2500 });
+        let reportsWillUpdate: Array<any> = reports.docs;
+        if (reportsWillUpdate.length > 0) {
+            reportsWillUpdate.map((report: any) => {
+                try {
+                    report.description = products.docs.find(obj => obj._id == report.connection_id).name;
+                } catch (error) {
+                    RemoteDB(db.docs[0], db_name).remove(report).then(res => {
+                        console.log('UNUSED REPORT DELETED', report)
+                    }).catch(err => {
+                        console.log('Remote Connection Error');
+                    })
+                }
+            });
+        } else {
+            products.docs.forEach(product => {
+                let newReport = createReport('Product', product);
+                reportsWillUpdate.push(newReport);
+            });
+        }
+
         RemoteDB(db.docs[0], db_name).bulkDocs(reportsWillUpdate).then(response => {
             console.log(response);
         }).catch(err => {
@@ -622,13 +630,13 @@ export const addProperty = () => {
     // let position = { height: 100, width: 100, x: 100, y: 100, type: 0 };
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-        RemoteDB(db, 'quickly-cafe-130c').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((res: any) => {
+        RemoteDB(db, 'reis-doner-bagcilar-parseller').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
             return res.docs.map(object => {
-                // object.position = position;
+                object.notes = 'position';
                 return object;
             });
         }).then(stocks => {
-            RemoteDB(db, 'quickly-cafe-130c').bulkDocs(stocks).then(res => {
+            RemoteDB(db, 'reis-doner-bagcilar-parseller').bulkDocs(stocks).then(res => {
                 console.log('Property Added Successfuly');
             })
         })
@@ -966,3 +974,88 @@ export const lastChanges = () => {
         });
     })
 };
+
+
+export const reisImport = () => {
+
+
+
+    readJsonFile(reisPath + 'product.json').then((res: Array<any>) => {
+
+        // let products = res;
+
+        // products.map(obj => {
+
+        //     delete obj.id;
+        //     delete obj.rev;
+        //     obj.specifies = [];
+        //     obj.description = '';
+        //     obj.status = 1;
+        //     obj.price = parseFloat(obj.price);
+        //     obj.tax_value = parseInt(obj.tax_value);
+        //     obj.db_name = "products";
+        //     obj.db_seq = 0;
+
+        //     return obj;
+        // })
+
+
+        // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        //     let db: Database = res.docs[0];
+        //     RemoteDB(db, 'reis-doner-bagcilar-parseller').bulkDocs(products).then(res => {
+        //         console.log('Ürünler Yüklendi');
+        //     }).catch(err => {
+        //         console.log(err);
+        //     })
+        // }).catch(err => {
+        //     console.log(err);
+        // })
+
+
+        // {
+        //     "_id": "01c17ab9-98e2-44fd-b995-626aeba62d9c",
+        //     "_rev": "1-a7fa337b3e313cd0d3487bd52240e563",
+        //     "cat_id": "9592dcb5-cc05-425b-9720-071d20312c63",
+        //     "db_seq": 0,
+        //     "subcat_id": "ec2322e4-71bc-43c2-844a-9acf479ac823",
+        //     "status": 1,
+        //     "barcode": null,
+        //     "db_name": "products",
+        //     "type": "1",
+        //     "price": 25,
+        //     "name": "Bulleit Rye 3cl.",
+        //     "description": null,
+        //     "tax_value": 18,
+        //     "specifies": []
+        //   }
+
+        // let customers = res;
+
+        // customers.map(obj => {
+        //     delete obj['id?'];
+        //     delete obj['rev?'];
+        //     obj.phone_number = parseInt(obj.phone_number)
+        //     obj.timestamp = Date.now();
+        //     obj.type = "1";
+        //     obj.db_name = 'customers';
+        //     obj.db_seq = 0;
+        //     return obj;
+        // })
+
+        // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        //     let db: Database = res.docs[0];
+        //     RemoteDB(db, 'reis-doner-bagcilar-parseller').bulkDocs(customers).then(res => {
+        //         console.log('Müşterileri Yüklendi');
+        //     }).catch(err => {
+        //         console.log(err);
+        //     })
+        // }).catch(err => {
+        //     console.log(err);
+        // })
+
+
+    })
+
+
+
+}

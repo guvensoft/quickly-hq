@@ -20,6 +20,8 @@ export interface Report {
     year: number;
     description: string;
     timestamp: number;
+    db_name?: string;
+    db_seq?: number;
     _id?: string;
     _rev?: string;
 }
@@ -63,5 +65,7 @@ export const createReport = (reportType: reportType, reportObj: Product | Table 
         year: date.getFullYear(),
         description: reportObj.name,
         timestamp: Date.now(),
+        db_name: 'reports',
+        db_seq: 0
     }
 }

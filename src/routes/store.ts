@@ -7,6 +7,7 @@ import * as ListController from '../controllers/store/general';
 import * as DocumentController from '../controllers/store/document';
 import * as StoreAuthController from '../controllers/store/authentication';
 import * as StoreReportsController from '../controllers/store/reports';
+import * as StoreMenuController from '../controllers/store/menus';
 
 import * as ProductsController from '../controllers/management/product';
 
@@ -43,6 +44,12 @@ router.get("/info",
     ListController.storesInfo
 );
 
+router.get("/menus",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreMenuController.queryMenus
+);
 
 // Store Client Reports
 router.get("/reports/products",

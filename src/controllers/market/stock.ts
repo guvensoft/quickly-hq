@@ -34,5 +34,6 @@ export const addStock = async (req: Request, res: Response) => {
         }
     } catch (error) {
         res.status(500).json({ ok: false, message: '' });
+        createLog(req, LogType.CRUD_ERROR, error);
     }
 };
