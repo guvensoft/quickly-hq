@@ -9,7 +9,7 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
-// import * as blackboard from './blackboard';
+import * as blackboard from './blackboard';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 
@@ -33,7 +33,7 @@ app.use('/menu', require('./routes/menu'));
 
 app.all('/', (req, res) => res.status(404).end());
 
-app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
+app.listen(3001, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
 /* For Standalone No Reverse-Proxy Operations */
 
@@ -61,10 +61,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 // setInterval(() => {
 //     console.clear();
-//     const used = process.memoryUsage().heapUsed / 1024 / 1024;
+//     const used = process.memoryUsage().heapUsed / 1024 / 1024;   
 //     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)
-
 
 /* For Testing New Functions */
 
@@ -80,11 +79,17 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.ReportsClearer('mansion-cafe-restaurant-4b24');
 // blackboard.createProductIndexes();
 // blackboard.reloadTable('kosmos-db15');
+
+// blackboard.fixTables('kosmos-besiktas');
+
+// blackboard.Fixer('yuri-burger-beer-ecbb')
+
+// blackboard.addProperty();
+
 // blackboard.productFinder('');
 // blackboard.invoiceReader();
 // blackboard.importProducts();
 // blackboard.importDatabase();
-// blackboard.documentTransport('quickly-cafe-459c', 'maxi-doner-pinar', { db_name: 'products' });
 // blackboard.documentTransport('kosmos-db15', 'quickly-cafe-459c', { db_name: 'tables' });
 
 // blackboard.lastChanges();
@@ -92,5 +97,8 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.reisImport();
 // blackboard.addProperty();
 
+// blackboard.documentTransport('kosmos-db15', 'kosmos-besiktas', { db_name: 'recipes' }, 'fetch');
 
+// blackboard.allRevisions('kosmos-besiktas','13d65307-7ead-49ce-87f8-9176c251ceb7');
 
+// blackboard.databaseLogs('kosmos-besiktas','C-1');

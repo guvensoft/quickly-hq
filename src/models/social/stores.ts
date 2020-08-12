@@ -1,192 +1,192 @@
-import { Address } from '../management/locations';
+// import { Address } from '../management/locations';
 
-export class Store {
-    constructor(
-        public name: string,
-        public type: StoreType,
-        public category: StoreCategory | Array<StoreCategory>,
-        public cuisine: StoreCuisine | Array<StoreCuisine>,
-        public address: Address,
-        public email: string | Array<string>,
-        public phone_number: string | Array<string>,
-        public motto: string,
-        public description: string,
-        public logo: string,
-        public auth: StoreAuth,
-        public accounts: Array<string>,
-        public settings: StoreSettings,
-        public status: StoreStatus,
-        public timestamp: number,
-        public _id?: string,
-        public _rev?: string
-    ) { }
-}
+// export class Store {
+//     constructor(
+//         public name: string,
+//         public type: StoreType,
+//         public category: StoreCategory | Array<StoreCategory>,
+//         public cuisine: StoreCuisine | Array<StoreCuisine>,
+//         public address: Address,
+//         public email: string | Array<string>,
+//         public phone_number: string | Array<string>,
+//         public motto: string,
+//         public description: string,
+//         public logo: string,
+//         public auth: StoreAuth,
+//         public accounts: Array<string>,
+//         public settings: StoreSettings,
+//         public status: StoreStatus,
+//         public timestamp: number,
+//         public _id?: string,
+//         public _rev?: string
+//     ) { }
+// }
 
-export interface StoreAuth {
-    database_id: string,
-    database_name: string,
-    database_user: string,
-    database_password: string,
-}
+// export interface StoreAuth {
+//     database_id: string,
+//     database_name: string,
+//     database_user: string,
+//     database_password: string,
+// }
 
-export interface StoreSettings {
-    order: boolean,
-    preorder: boolean,
-    reservation: boolean,
-    accesibilty: StoreAccesibilty,
-    allowed_tables: boolean,
-    allowed_products: boolean,
-    allowed_payments: Array<string>
-}
+// export interface StoreSettings {
+//     order: boolean,
+//     preorder: boolean,
+//     reservation: boolean,
+//     accesibilty: StoreAccesibilty,
+//     allowed_tables: boolean,
+//     allowed_products: boolean,
+//     allowed_payments: Array<string>
+// }
 
-export interface StoreAccesibilty {
-    days: Array<StoreDaysStatus>,
-    wifi: Array<StoreWifiSettings>,
-    others: Array<string>
-}
+// export interface StoreAccesibilty {
+//     days: Array<StoreDaysStatus>,
+//     wifi: Array<StoreWifiSettings>,
+//     others: Array<string>
+// }
 
-export interface StoreDaysStatus {
-    is_open: boolean;
-    opening: string
-    closing: string;
-}
+// export interface StoreDaysStatus {
+//     is_open: boolean;
+//     opening: string
+//     closing: string;
+// }
 
-export interface StoreWifiSettings {
-    ssid: string;
-    password: string;
-}
+// export interface StoreWifiSettings {
+//     ssid: string;
+//     password: string;
+// }
 
-export enum StoreStatus {
-    ACTIVE,
-    PASSIVE,
-    SUSPENDED,
-    DELETED,
-}
+// export enum StoreStatus {
+//     ACTIVE,
+//     PASSIVE,
+//     SUSPENDED,
+//     DELETED,
+// }
 
-export enum StoreType {
-    RESTAURANT,
-    SHOP,
-    MARKET
-}
+// export enum StoreType {
+//     RESTAURANT,
+//     SHOP,
+//     MARKET
+// }
 
-export enum StoreCategory {
-    PUB,
-    BISTRO,
-    COFFEESHOP,
-    APPERTIZERS,
-    PIZZA,
-    SEAFOOD,
-    SOUP,
-    SALAD,
-    PASTA,
-    DESERT,
-    STEAK,
-    VEGETARIAN,
-    FASTFOOD,
-    CHICKEN,
-    SUSHI,
-    SPICYFOOD,
-    NOODLES,
-    FISHDISHED,
-    FRUIT,
-    COCKTAIL,
-    BREAKFAST,
-    NIGHTCLUB,
-    MUSICHALL,
-    BAKERY
-}
+// export enum StoreCategory {
+//     PUB,
+//     BISTRO,
+//     COFFEESHOP,
+//     APPERTIZERS,
+//     PIZZA,
+//     SEAFOOD,
+//     SOUP,
+//     SALAD,
+//     PASTA,
+//     DESERT,
+//     STEAK,
+//     VEGETARIAN,
+//     FASTFOOD,
+//     CHICKEN,
+//     SUSHI,
+//     SPICYFOOD,
+//     NOODLES,
+//     FISHDISHED,
+//     FRUIT,
+//     COCKTAIL,
+//     BREAKFAST,
+//     NIGHTCLUB,
+//     MUSICHALL,
+//     BAKERY
+// }
 
-export enum StoreCuisine {
-    Ainu,
-    Albanian,
-    Argentina,
-    Andhra,
-    AngloIndian,
-    Arab,
-    Armenian,
-    Assyrian,
-    Awadhi,
-    Azerbaijani,
-    Balochi,
-    Belarusian,
-    Bengali,
-    Berber,
-    Buddhist,
-    Bulgarian,
-    Cajun,
-    Chechen,
-    Chinese,
-    ChineseIslamic,
-    Circassian,
-    CrimeanTatar,
-    Danish,
-    Estonian,
-    French,
-    Filipino,
-    Georgian,
-    Goan,
-    GoanCatholic,
-    Greek,
-    Hyderabad,
-    Indian,
-    IndianChinese,
-    IndianSingaporean,
-    Indonesian,
-    Inuit,
-    ItalianAmerican,
-    Italian,
-    Japanese,
-    Jewish,
-    Karnataka,
-    Kazakh,
-    Keralite,
-    Korean,
-    Kurdish,
-    Laotian,
-    Latvian,
-    Lithuanian,
-    LouisianaCreole,
-    Maharashtrian,
-    Mangalorean,
-    Malay,
-    MalaysianChinese,
-    MalaysianIndian,
-    Mediterranean,
-    Mexican,
-    Mordovian,
-    Mughal,
-    NativeAmerican,
-    Nepalese,
-    NewMexican,
-    Odia,
-    Parsi,
-    Pashtun,
-    Polish,
-    PennsylvaniaDutch,
-    Pakistani,
-    Peranakan,
-    Persian,
-    Peruvian,
-    Portuguese,
-    Punjabi,
-    Rajasthani,
-    Romanian,
-    Russian,
-    Sami,
-    Serbian,
-    Sindhi,
-    Slovak,
-    Slovenian,
-    Somali,
-    SouthIndian,
-    SriLankan,
-    Tatar,
-    Thai,
-    Turkish,
-    Tamil,
-    Udupi,
-    Ukrainian,
-    Yamal,
-    Zanzibari
-}
+// export enum StoreCuisine {
+//     Ainu,
+//     Albanian,
+//     Argentina,
+//     Andhra,
+//     AngloIndian,
+//     Arab,
+//     Armenian,
+//     Assyrian,
+//     Awadhi,
+//     Azerbaijani,
+//     Balochi,
+//     Belarusian,
+//     Bengali,
+//     Berber,
+//     Buddhist,
+//     Bulgarian,
+//     Cajun,
+//     Chechen,
+//     Chinese,
+//     ChineseIslamic,
+//     Circassian,
+//     CrimeanTatar,
+//     Danish,
+//     Estonian,
+//     French,
+//     Filipino,
+//     Georgian,
+//     Goan,
+//     GoanCatholic,
+//     Greek,
+//     Hyderabad,
+//     Indian,
+//     IndianChinese,
+//     IndianSingaporean,
+//     Indonesian,
+//     Inuit,
+//     ItalianAmerican,
+//     Italian,
+//     Japanese,
+//     Jewish,
+//     Karnataka,
+//     Kazakh,
+//     Keralite,
+//     Korean,
+//     Kurdish,
+//     Laotian,
+//     Latvian,
+//     Lithuanian,
+//     LouisianaCreole,
+//     Maharashtrian,
+//     Mangalorean,
+//     Malay,
+//     MalaysianChinese,
+//     MalaysianIndian,
+//     Mediterranean,
+//     Mexican,
+//     Mordovian,
+//     Mughal,
+//     NativeAmerican,
+//     Nepalese,
+//     NewMexican,
+//     Odia,
+//     Parsi,
+//     Pashtun,
+//     Polish,
+//     PennsylvaniaDutch,
+//     Pakistani,
+//     Peranakan,
+//     Persian,
+//     Peruvian,
+//     Portuguese,
+//     Punjabi,
+//     Rajasthani,
+//     Romanian,
+//     Russian,
+//     Sami,
+//     Serbian,
+//     Sindhi,
+//     Slovak,
+//     Slovenian,
+//     Somali,
+//     SouthIndian,
+//     SriLankan,
+//     Tatar,
+//     Thai,
+//     Turkish,
+//     Tamil,
+//     Udupi,
+//     Ukrainian,
+//     Yamal,
+//     Zanzibari
+// }
 

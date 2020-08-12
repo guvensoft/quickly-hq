@@ -77,6 +77,12 @@ router.get("/reports/sales",
     StoreReportsController.getSalesReports
 );
 
+router.get("/reports/day",
+    StoreAuthenticateGuard,
+    StoreReportsController.getDailyReports
+);
+
+
 
 // Store Documents Controller
 router.get("/db/:db_name/:id",

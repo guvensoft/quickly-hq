@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ManagementDB, StoreDB, DatabaseQueryLimit } from '../../configrations/database';
-import { Store } from '../../models/social/stores';
+import { Store } from '../../models/management/store';
 import { StoreMessages } from '../../utils/messages';
 
 export const listStores = (req: Request, res: Response) => {
@@ -52,7 +52,7 @@ export const storesInfo = (req: Request, res: Response) => {
                         StoreInfoObject.cashbox.outcome = 0;
                     })
                     const checksInfo = StoreDatabase.find({ selector: { db_name: 'checks' }, limit: 1000 }).then((db_res: any) => {
-                        StoreInfoObject.checks.total = db_res.docs.map(obj => obj.total_price + obj.discount ).reduce((a, b) => a + b, 0);
+                        StoreInfoObject.checks.total = db_res.docs.map(obj => obj.total_price + obj.discount).reduce((a, b) => a + b, 0);
                     }).catch(err => {
                         StoreInfoObject.checks.total = 0;
                     })

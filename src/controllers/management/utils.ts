@@ -109,7 +109,10 @@ export const getErrorLogs = (req: Request, res: Response) => {
     });
 }
 
-
+export const getMemoryUsage = (req: Request, res: Response) => {
+    const used = process.memoryUsage().heapUsed / 1024 / 1024;
+    res.json({ ok: true, type: 'Memory', usage: `${Math.round(used * 100) / 100} MB` });
+}
 
 export const getAccessLogs = (req: Request, res: Response) => {
     let logs = [];

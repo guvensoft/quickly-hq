@@ -13,7 +13,7 @@ import { Session } from '../models/management/session';
 import { Database } from '../models/management/database';
 import { Owner } from '../models/management/owner';
 import { Group, User } from '../models/management/users';
-import { Store, StoreSettings } from '../models/social/stores';
+import { Store, StoreSettings } from '../models/management/store';
 import { Supplier } from '../models/management/supplier';
 import { Producer } from '../models/management/producer';
 import { Product } from '../models/management/product';
@@ -44,7 +44,7 @@ export const ManagementDB = {
     Categories: new PouchDB<Category>(databasePath + 'management/categories', FileSystemConfigration),
     SubCategories: new PouchDB<SubCategory>(databasePath + 'management/sub_categories', FileSystemConfigration),
     Logs: new PouchDB<Log>(databasePath + 'management/logs', FileSystemConfigration),
-    Sessions: new PouchDB<Session>(databasePath + 'management/sessions', InMemoryConfigration)
+    Sessions: new PouchDB<Session>(databasePath + 'management/sessions', FileSystemConfigration)
 }
 
 export const StoresDB = {
@@ -90,7 +90,7 @@ export const StoreDB = async (store_id: any) => {
         const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
         return RemoteDB(Database, Store.auth.database_name);
     } catch (error) {
-        throw Error('Store DB Connection Error: '+ error);
+        throw Error('Store DB Connection Error: ' + error);
     }
 }
 

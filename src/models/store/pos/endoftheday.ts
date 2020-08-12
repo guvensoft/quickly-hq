@@ -7,14 +7,16 @@ export interface EndDay {
     coupon_total: number,
     free_total: number,
     canceled_total: number,
+    discount_total: number,
     check_count: number,
     incomes: number,
     outcomes: number,
+    customers: { male: number, female: number },
     data_file: string,
-    _id?:string,
-    _rev?:string
+    _id?: string,
+    _rev?: string
 }
 export interface BackupData {
-    database:string,
-    docs:Array<any>
+    database: string,
+    docs: Array<any>
 }

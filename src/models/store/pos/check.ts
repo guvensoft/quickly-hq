@@ -28,6 +28,7 @@ export interface ClosedCheck {
     payment_method: string;
     payment_flow?: Array<PaymentStatus>;
     description?: string;
+    occupation?: Occupation;
     _id?: string;
     _rev?: string;
 }
@@ -40,6 +41,8 @@ export interface PaymentStatus {
     timestamp: number;
     payed_products: Array<CheckProduct>
 }
+
+export interface Occupation { male: number, female: number }
 
 export interface CheckProduct {
     id: string;
@@ -69,7 +72,7 @@ export enum CheckStatus {
     PROCESSING,
 }
 
-export function CheckNo(){
+export function CheckNo() {
     let CheckNo = Math.floor(Math.random() * Math.floor(500));
     return CheckNo;
 }

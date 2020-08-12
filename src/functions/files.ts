@@ -1,6 +1,6 @@
 import { exists, readFile, writeFile } from 'fs';
 
-export const readJsonFile = (file_path: string) => {
+export const readJsonFile = (file_path: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         exists(file_path, (exists) => {
             if (exists) {
@@ -39,7 +39,7 @@ export const writeJsonFile = (file_path: string, data: any) => {
         //             }
         //         })
         //     } else {
-                
+
         //         reject('Yazılacak Dosya Bulunamadı');
         //     }
         // });

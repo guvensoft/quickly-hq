@@ -1014,6 +1014,65 @@ export const CashboxEntryMessages = {
     },
 }
 
+export const CustomerMessages = {
+    CUSTOMER_CREATED: {
+        response: {
+            ok: true,
+            message: "Müşteri oluşturuldu.",
+        },
+        code: 201
+    },
+    CUSTOMER_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Müşteri oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    CUSTOMER_UPDATED: {
+        response: {
+            ok: true,
+            message: "Müşteri Düzenlendi.",
+        },
+        code: 200
+    },
+    CUSTOMER_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Müşteri Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    CUSTOMER_DELETED: {
+        response: {
+            ok: true,
+            message: "Müşteri Silindi.",
+        },
+        code: 200
+    },
+    CUSTOMER_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Müşteri Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    CUSTOMER_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Müşteri Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    CUSTOMER_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Müşteri Bulunamadı",
+        },
+        code: 404
+    },
+}
+
 export const MenuMessages = {
     MENU_CREATED: {
         response: {

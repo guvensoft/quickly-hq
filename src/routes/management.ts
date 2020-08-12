@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import * as AccountController from '../controllers/management/account';
 import * as AuthController from '../controllers/management/authentication';
+import * as SessionController from '../controllers/management/session';
 import * as DatabaseController from '../controllers/management/database';
 import * as GroupController from '../controllers/management/group';
 import * as OwnerController from '../controllers/management/owner';
@@ -334,6 +335,30 @@ router.delete("/sub_category/:id",
 router.get("/sub_categories",
     AuthenticateGuard,
     CategoryController.querySubCategories);
+
+
+// Sessions
+router.get("/session/:id",
+    AuthenticateGuard,
+    SessionController.getSession);
+
+// router.post("/session",
+//     AuthenticateGuard,
+//     SchemaGuard(ManagementSchema.ProductSchemaSafe),
+//     ProductController.createProduct);
+
+// router.put("/session/:id",
+//     AuthenticateGuard,
+//     SchemaGuard(ManagementSchema.ProductSchema),
+//     SessionController.updateSession);
+
+router.delete("/session/:id",
+    AuthenticateGuard,
+    SessionController.deleteSession);
+
+router.get("/sessions",
+    AuthenticateGuard,
+    SessionController.querySessions);
 
 
 // Address
