@@ -33,7 +33,7 @@ app.use('/menu', require('./routes/menu'));
 
 app.all('/', (req, res) => res.status(404).end());
 
-app.listen(3001, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
+app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
 /* For Standalone No Reverse-Proxy Operations */
 
