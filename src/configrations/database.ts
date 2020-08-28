@@ -50,7 +50,7 @@ export const ManagementDB = {
 export const StoresDB = {
     Infos: new PouchDB<Store>(databasePath + 'store/info', FileSystemConfigration),
     Settings: new PouchDB<StoreSettings>(databasePath + 'store/settings', FileSystemConfigration),
-    Sessions: new PouchDB<Session>(databasePath + 'store/sessions', InMemoryConfigration),
+    Sessions: new PouchDB<Session>(databasePath + 'store/sessions', FileSystemConfigration),
 }
 
 export const AdressDB = {
@@ -81,7 +81,7 @@ export const CouchDB = (database: Database) => {
 }
 
 export const RemoteDB = (database: Database, collection: string) => {
-    return new PouchDB(`http://${database.username}:${database.password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
+    return new PouchDB<any>(`http://${database.username}:${database.password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
 }
 
 export const StoreDB = async (store_id: any) => {
@@ -95,5 +95,5 @@ export const StoreDB = async (store_id: any) => {
 }
 
 export const RemoteCollection = (database: Database, collection: string, username: string, password: string) => {
-    return new PouchDB(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
+    return new PouchDB<any>(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
 }

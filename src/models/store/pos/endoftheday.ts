@@ -1,3 +1,8 @@
+import { Report } from "./report";
+import { ClosedCheck } from "./check";
+import { Log } from "./log";
+import { Cashbox } from "./cashbox";
+
 export interface EndDay {
     timestamp: number,
     owner: string,
@@ -17,6 +22,6 @@ export interface EndDay {
     _rev?: string
 }
 export interface BackupData {
-    database: string,
-    docs: Array<any>
+    database: 'closed_checks' | 'logs' | 'cashbox' | 'reports',
+    docs: Array<any>;
 }

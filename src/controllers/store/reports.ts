@@ -1,18 +1,30 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { StoreDocumentMessages } from '../../utils/messages';
-import { StoreReport, StoreSalesReport } from "../../functions/store/reports";
+import { StoreReport, StoreSalesReport, ProductsReport, UsersReport, TablesReport } from "../../functions/store/reports";
 
 ////// /reports/products/ [GET]
 export const getProductReports = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const ReportDate = req.query.date;
-    if (ReportDate) {
-        try {
-            let dayReports = await StoreReport(StoreID, ReportDate);
-            res.json(dayReports);
-        } catch (error) {
-            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    const startDate = req.params.start;
+    const endDate = req.params.end;
+    if (startDate) {
+        if (endDate) {
+            try {
+                let durationReports = await StoreReport(StoreID, startDate, endDate);
+                let productReports = ProductsReport(durationReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(productReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
+        } else {
+            try {
+                let durationReports = await StoreReport(StoreID, startDate);
+                let productReports = ProductsReport(durationReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(productReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
         }
     } else {
         try {
@@ -28,13 +40,25 @@ export const getProductReports = async (req: Request, res: Response) => {
 ////// /reports/tables/ [GET]
 export const getTableReports = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const ReportDate = req.query.date;
-    if (ReportDate) {
-        try {
-            let dayReports = await StoreReport(StoreID, ReportDate);
-            res.json(dayReports);
-        } catch (error) {
-            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    const startDate = req.params.start;
+    const endDate = req.params.end;
+    if (startDate) {
+        if (endDate) {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate, endDate);
+                let tablesResult = TablesReport(dayReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(tablesResult);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
+        } else {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate);
+                let tablesResult = TablesReport(dayReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(tablesResult);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
         }
     } else {
         try {
@@ -50,13 +74,25 @@ export const getTableReports = async (req: Request, res: Response) => {
 ////// /reports/users/ [GET]
 export const getUserReports = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const ReportDate = req.query.date;
-    if (ReportDate) {
-        try {
-            let dayReports = await StoreReport(StoreID, ReportDate);
-            res.json(dayReports);
-        } catch (error) {
-            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    const startDate = req.params.start;
+    const endDate = req.params.end;
+    if (startDate) {
+        if (endDate) {
+            try {
+                let durationReports = await StoreReport(StoreID, startDate, endDate);
+                let usersReports = UsersReport(durationReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(usersReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
+        } else {
+            try {
+                let durationReports = await StoreReport(StoreID, startDate);
+                let usersReports = UsersReport(durationReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(usersReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
         }
     } else {
         try {
@@ -73,16 +109,26 @@ export const getUserReports = async (req: Request, res: Response) => {
 ////// /reports/sales/ [GET]
 export const getSalesReports = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const ReportDate = req.query.date;
-    if (ReportDate) {
-        try {
-            let dayReports = await StoreReport(StoreID, ReportDate);
-            let dayChecks = dayReports.find(obj => obj.database == 'closed_checks').docs;
-            let salesReport = StoreSalesReport(dayChecks);
-            res.json(salesReport);
-        } catch (error) {
-            console.log(error);
-            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    const startDate = req.params.start;
+    const endDate = req.params.end;
+    if (startDate) {
+        if (endDate) {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate, endDate);
+                let salesResult = StoreSalesReport(dayReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(salesResult);
+            } catch (error) {
+                console.log(error);
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
+        } else {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate);
+                let salesResult = StoreSalesReport(dayReports.find(obj => obj.database == 'closed_checks').docs);
+                res.json(salesResult);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
         }
     } else {
         try {
@@ -100,13 +146,23 @@ export const getSalesReports = async (req: Request, res: Response) => {
 ////// /reports/activity/ [GET]
 export const getActivityReports = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const ReportDate = req.query.date;
-    if (ReportDate) {
-        try {
-            let dayReports = await StoreReport(StoreID, ReportDate);
-            res.json(dayReports);
-        } catch (error) {
-            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    const startDate = req.params.start;
+    const endDate = req.params.end;
+    if (startDate) {
+        if (endDate) {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate, endDate);
+                res.json(dayReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
+        } else {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate);
+                res.json(dayReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
         }
     } else {
         try {
@@ -120,17 +176,26 @@ export const getActivityReports = async (req: Request, res: Response) => {
 }
 
 
-
 ////// /reports/day/ [GET]
 export const getDailyReports = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const ReportDate = req.query.date;
-    if (ReportDate) {
-        try {
-            let dayReports = await StoreReport(StoreID, ReportDate);
-            res.json(dayReports);
-        } catch (error) {
-            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+    const startDate = req.params.start;
+    const endDate = req.params.end;
+    if (startDate) {
+        if (endDate) {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate, endDate);
+                res.json(dayReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
+        } else {
+            try {
+                let dayReports = await StoreReport(StoreID, startDate);
+                res.json(dayReports);
+            } catch (error) {
+                res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+            }
         }
     } else {
         try {

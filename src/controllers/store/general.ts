@@ -2,6 +2,12 @@ import { Request, Response } from "express";
 import { ManagementDB, StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { Store } from '../../models/management/store';
 import { StoreMessages } from '../../utils/messages';
+import { storeTablesInfo, storeCashboxInfo, storeChecksInfo, storePaymentsInfo } from "../../functions/store/info";
+import { Table } from "../../models/store/pos/table";
+import { Cashbox } from "../..//models/store/pos/cashbox";
+import { Check } from "../..//models/store/pos/check";
+import { ClosedCheck } from "../..//models/store/pos/check";
+import { StoreInfo } from "../..//models/store/info";
 
 export const listStores = (req: Request, res: Response) => {
     ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
@@ -15,6 +21,21 @@ export const listStores = (req: Request, res: Response) => {
     }).catch(err => {
         res.status(StoreMessages.STORE_NOT_EXIST.code).json(StoreMessages.STORE_NOT_EXIST.response);
     })
+}
+
+export const storeInfo = async (req: Request, res: Response) => {
+    const StoreID: any = req.headers.store;
+    try {
+        const StoreDatabase = await StoreDB(StoreID);
+        let tables: Array<Table> = (await StoreDatabase.find({ selector: { db_name: 'tables' }, limit: DatabaseQueryLimit })).docs;
+        let cashboxes: Array<Cashbox> = (await StoreDatabase.find({ selector: { db_name: 'cashbox' }, limit: DatabaseQueryLimit })).docs;
+        let checks: Array<Check> = (await StoreDatabase.find({ selector: { db_name: 'checks' }, limit: DatabaseQueryLimit })).docs;
+        let closed_checks: Array<ClosedCheck> = (await StoreDatabase.find({ selector: { db_name: 'closed_checks' }, limit: 1000 })).docs;
+        let StoreInfoObject: StoreInfo = { store_id: StoreID, tables: storeTablesInfo(tables), cashbox: storeCashboxInfo(cashboxes), checks: storeChecksInfo(checks), payments: storePaymentsInfo(closed_checks) };
+        res.status(200).json(StoreInfoObject);
+    } catch (error) {
+        res.status(500).json({ ok: false, message: 'İşletme Bilgileri Getirilirken Hata Oluştu' });
+    }
 }
 
 export const storesInfo = (req: Request, res: Response) => {

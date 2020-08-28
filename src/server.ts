@@ -65,6 +65,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 //     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)
 
+
 /* For Testing New Functions */
 
 // blackboard.Fixer('kosmos-db15');
@@ -79,26 +80,30 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.ReportsClearer('mansion-cafe-restaurant-4b24');
 // blackboard.createProductIndexes();
 // blackboard.reloadTable('kosmos-db15');
-
 // blackboard.fixTables('kosmos-besiktas');
-
 // blackboard.Fixer('yuri-burger-beer-ecbb')
-
 // blackboard.addProperty();
-
 // blackboard.productFinder('');
 // blackboard.invoiceReader();
 // blackboard.importProducts();
 // blackboard.importDatabase();
 // blackboard.documentTransport('kosmos-db15', 'quickly-cafe-459c', { db_name: 'tables' });
-
 // blackboard.lastChanges();
 // blackboard.documentbackup('quickly-cafe-459c')
 // blackboard.reisImport();
 // blackboard.addProperty();
-
 // blackboard.documentTransport('kosmos-db15', 'kosmos-besiktas', { db_name: 'recipes' }, 'fetch');
-
 // blackboard.allRevisions('kosmos-besiktas','13d65307-7ead-49ce-87f8-9176c251ceb7');
-
 // blackboard.databaseLogs('kosmos-besiktas','C-1');
+// blackboard.thatDay();
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'stocks' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'stocks_cat' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'tables' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'sub_categories' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'categories' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'products' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'floors' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'reports', type: 'User' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'reports', type: 'Table' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'reports', type: 'Product' });
+// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'users_group' });

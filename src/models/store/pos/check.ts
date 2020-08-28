@@ -11,6 +11,7 @@ export interface Check {
     check_no: number;
     payment_flow?: Array<PaymentStatus>;
     discountPercent?: number;
+    occupation?: Occupation;
     _id?: string;
     _rev?: string
 }

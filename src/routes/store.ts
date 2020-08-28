@@ -52,35 +52,40 @@ router.get("/menus",
 );
 
 // Store Client Reports
-router.get("/reports/products",
+router.get("/reports/products/:start?/:end?",
     StoreAuthenticateGuard,
     StoreReportsController.getProductReports
 );
 
-router.get("/reports/users",
+router.get("/reports/users/:start?/:end?",
     StoreAuthenticateGuard,
     StoreReportsController.getUserReports
 );
 
-router.get("/reports/tables",
+router.get("/reports/tables/:start?/:end?",
     StoreAuthenticateGuard,
     StoreReportsController.getTableReports
 );
 
-router.get("/reports/activities",
+router.get("/reports/activities/:start?/:end?",
     StoreAuthenticateGuard,
     StoreReportsController.getActivityReports
 );
 
-router.get("/reports/sales",
+router.get("/reports/sales/:start?/:end?",
     StoreAuthenticateGuard,
     StoreReportsController.getSalesReports
 );
 
-router.get("/reports/day",
+router.get("/reports/day/:start?/:end?",
     StoreAuthenticateGuard,
     StoreReportsController.getDailyReports
 );
+
+// router.get("/reports/:start?/:end?",
+//     StoreAuthenticateGuard,
+//     StoreReportsController.getDurationReports
+// );
 
 
 

@@ -10,10 +10,12 @@ export let Login = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Owners.find({ selector: { username: formData.username } }).then((owners: any) => {
         if (owners.docs.length > 0) {
-            const Owner: Owner = owners.docs[0];
+            let Owner: Owner = owners.docs[0];
             bcrypt.compare(formData.password, Owner.password, (err, same) => {
                 if (!err && same) {
                     let session = createSession(Owner._id, req.ip);
+                    delete Owner.password;
+                    delete Owner.username;
                     StoresDB.Sessions.find({ selector: { user_id: session.user_id } }).then(query => {
                         if (query.docs.length > 0) {
                             let tokenWillUpdate = query.docs[0];

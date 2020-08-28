@@ -7,7 +7,7 @@ export const getDocument = async (req: Request, res: Response) => {
     const Document = req.params.id;
     try {
         const Database = await StoreDB(StoreID);
-        const ResponseData = await Database.get(Document)
+        const ResponseData = await Database.get(Document);
         res.json(ResponseData);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
@@ -19,7 +19,7 @@ export const createDocument = async (req: Request, res: Response) => {
     const Document = req.body;
     try {
         const Database = await StoreDB(StoreID);
-        const ResponseData = await Database.post(Document)
+        const ResponseData = await Database.post(Document);
         res.json(ResponseData);
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_CREATED.code).json(StoreDocumentMessages.DOCUMENT_NOT_CREATED.code);
@@ -43,7 +43,7 @@ export const deleteDocument = async (req: Request, res: Response) => {
     const Document = req.params.id;
     try {
         const Database = await StoreDB(StoreID);
-        const DocumentWillRemove = await Database.get(Document)
+        const DocumentWillRemove = await Database.get(Document);
         await Database.remove(DocumentWillRemove);
         res.status(StoreDocumentMessages.DOCUMENT_DELETED.code).json(StoreDocumentMessages.DOCUMENT_DELETED.code);
     } catch (error) {
