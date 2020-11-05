@@ -5,8 +5,8 @@ import { ClosedCheck, CheckStatus, CheckType, CheckProduct } from '../../models/
 
 interface SalesReport { cash: number; card: number; coupon: number; free: number; canceled: number; discount: number; checks: number; customers: { male: number, female: number } }
 interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }
-interface UserSalesReport { owner_id: string; group_id: string; price: number; name: string; count: number; }
-interface TableSalesReport { table_id: string; floor_id: string; price: number; name: string; count: number; customers: { male: number, female: number } }
+interface UserSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }
+interface TableSalesReport { table_id: string; price: number; discount: number; count: number, customers: { male: number, female: number } };
 
 export const StoreReport = async (store_id: string | string[], start_date: string, end_date?: string) => {
     if (start_date) {
@@ -110,9 +110,9 @@ export const UserProductSalesReport = (user_id: string, checks_to_count: Array<C
 }
 
 
-export const UsersReport = (checksToCount: Array<ClosedCheck>): Array<ProductSalesReport> => {
+export const UsersReport = (checksToCount: Array<ClosedCheck>): Array<UserSalesReport> => {
     let dayProducts = [];
-    let productSalesReport: Array<ProductSalesReport> = [];
+    let productSalesReport: Array<UserSalesReport> = [];
     try {
         checksToCount.forEach(obj => {
             let productsPayed;
@@ -132,7 +132,7 @@ export const UsersReport = (checksToCount: Array<ClosedCheck>): Array<ProductSal
                     let index = productSalesReport.findIndex(obj => obj.name === product.name && obj.owner_id === product.owner);
                     productSalesReport[index].count++;
                 } else {
-                    let countObj: ProductSalesReport = { product_id: product.id, owner_id: product.owner, category_id: product.cat_id, price: product.price, name: product.name, count: 1 };
+                    let countObj: UserSalesReport = { product_id: product.id, owner_id: product.owner, category_id: product.cat_id, price: product.price, name: product.name, count: 1 };
                     productSalesReport.push(countObj);
                 }
             } catch (error) {
@@ -183,23 +183,36 @@ export const ProductsReport = (checksToCount: Array<ClosedCheck>): Array<Product
 }
 
 
-export const TablesReport = (checksToCount: Array<ClosedCheck>): Array<any> => {
+export const TablesReport = (checksToCount: Array<ClosedCheck>): Array<TableSalesReport> => {
     let tablesReport = [];
     try {
         checksToCount.forEach(check => {
-            const contains = tablesReport.some(obj => obj.table_id === check.table_id);
+            const contains = tablesReport.some(obj => obj.table_id == check.table_id);
             if (contains) {
                 let index = tablesReport.findIndex(obj => obj.table_id === check.table_id);
+
                 tablesReport[index].count++;
                 tablesReport[index].price = tablesReport[index].price + check.total_price;
-                tablesReport[index].customers.male = tablesReport[index].customer.male + check.occupation.male;
-                tablesReport[index].customers.female = tablesReport[index].customer.female + check.occupation.female;
                 tablesReport[index].discount = tablesReport[index].discount + check.discount;
+
+                if (check.hasOwnProperty('occupation')) {
+                    tablesReport[index].customers.male += check.occupation.male;
+                    tablesReport[index].customers.female += check.occupation.female;
+                } else {
+                    tablesReport[index].customers.male += 1;
+                    tablesReport[index].customers.female += 1;
+                }
             } else {
-                let newReportScheme = { table_id: check.table_id, price: check.total_price, discount: check.discount, customers: { male: check.occupation.male, female: check.occupation.female } }
+                let newReportScheme: TableSalesReport;
+                if (check.hasOwnProperty('occupation')) {
+                    newReportScheme = { table_id: check.table_id, price: check.total_price, discount: check.discount, count: 1, customers: { male: check.occupation.male, female: check.occupation.female } }
+                } else {
+                    newReportScheme = { table_id: check.table_id, price: check.total_price, discount: check.discount, count: 1, customers: { male: 1, female: 1 } }
+                }
                 tablesReport.push(newReportScheme);
             }
         })
+        tablesReport = tablesReport.sort((a, b) => b.count - a.count);
         return tablesReport;
     } catch (error) {
         console.log(error);

@@ -3,7 +3,7 @@ import { StoreDB, RemoteDB, DatabaseQueryLimit, ManagementDB } from '../../confi
 import { MenuMessages } from "../../utils/messages";
 import { Database } from "../../models/management/database";
 import { writeFile } from 'fs';
-import { reisPath, cdnMenuPath } from '../../configrations/paths';
+import { cdnMenuPath } from '../../configrations/paths';
 import { createLog, LogType } from "../../utils/logger";
 
 export const requestStore = async (req: Request, res: Response) => {
@@ -14,7 +14,6 @@ export const requestStore = async (req: Request, res: Response) => {
 export const getOrder = async () => {
 
 }
-
 
 
 export const uploadPicture = async (req: Request, res: Response) => {
@@ -35,7 +34,6 @@ export const uploadPicture = async (req: Request, res: Response) => {
             createLog(req, LogType.INNER_LIBRARY_ERROR, err.message);
         }
     });
-
 }
 
 export const saveMenu = async (req: Request, res: Response) => {

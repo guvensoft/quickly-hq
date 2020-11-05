@@ -1,8 +1,9 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { ManagementDB, StoresDB } from "../../configrations/database";
-import { createSession } from "../../functions/session";
+import { createSession, isSessionExpired } from "../../functions/session";
 import { Owner } from "../../models/management/owner";
+import { Session } from "../../models/management/session";
 import { createLog, LogType } from '../../utils/logger';
 import { SessionMessages } from "../../utils/messages";
 
@@ -72,7 +73,7 @@ export const Verify = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
     StoresDB.Sessions.get(AuthToken).then((session: any) => {
         if (session) {
-            if (session.expire_date < Date.now()) {
+            if (isSessionExpired(session)) {
                 StoresDB.Sessions.remove(session).then(() => {
                     res.status(SessionMessages.SESSION_EXPIRED.code).json(SessionMessages.SESSION_EXPIRED.response);
                 }).catch(err => {
@@ -82,6 +83,39 @@ export const Verify = (req: Request, res: Response) => {
             } else {
                 delete session._id, session._rev, session.timestamp;
                 res.status(SessionMessages.SESSION_UPDATED.code).json({ ...SessionMessages.SESSION_UPDATED.response, ...{ data: session } });
+            }
+        } else {
+            res.status(SessionMessages.SESSION_NOT_EXIST.code).json(SessionMessages.SESSION_NOT_EXIST.response);
+        }
+    }).catch(err => {
+        createLog(req, LogType.DATABASE_ERROR, err);
+        res.status(SessionMessages.SESSION_NOT_EXIST.code).json(SessionMessages.SESSION_NOT_EXIST.response);
+    })
+}
+
+
+export const Refresh = (req: Request, res: Response) => {
+    let AuthToken = req.headers.authorization;
+    StoresDB.Sessions.get(AuthToken).then((session: any) => {
+        if (session) {
+            if (isSessionExpired(session)) {
+                StoresDB.Sessions.remove(session).then(() => {
+                    res.status(SessionMessages.SESSION_EXPIRED.code).json(SessionMessages.SESSION_EXPIRED.response);
+                }).catch(err => {
+                    createLog(req, LogType.DATABASE_ERROR, err);
+                    res.status(SessionMessages.SESSION_NOT_DELETED.code).json(SessionMessages.SESSION_NOT_DELETED.response);
+                })
+            } else {
+                session.timestamp = Date.now() + 604800000;
+                StoresDB.Sessions.put(session).then(isUpdated => {
+                    if (isUpdated.ok) {
+                        res.status(SessionMessages.SESSION_UPDATED.code).json({ ...SessionMessages.SESSION_UPDATED.response, ...{ token: isUpdated.id } });
+                    }
+                }).catch(err => {
+                    createLog(req, LogType.AUTH_ERROR, err);
+                    res.status(SessionMessages.SESSION_NOT_UPDATED.code).json(SessionMessages.SESSION_NOT_UPDATED.response);
+                })
+
             }
         } else {
             res.status(SessionMessages.SESSION_NOT_EXIST.code).json(SessionMessages.SESSION_NOT_EXIST.response);

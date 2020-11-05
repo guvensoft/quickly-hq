@@ -1,4 +1,4 @@
-import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit } from './configrations/database';
+import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit, RemoteCollection } from './configrations/database';
 import { Database } from './models/management/database';
 import { Store } from './models/management/store';
 import { Stock, StockTransfer } from './models/store/pos/stocks';
@@ -8,15 +8,19 @@ import { Report, createReport } from './models/store/pos/report';
 import { Cashbox } from './models/store/pos/cashbox';
 import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/pos/check';
 import { Log, logType } from './models/store/pos/log';
-import { readJsonFile, writeJsonFile } from './functions/files';
+import { readJsonFile, writeJsonFile, readDirectory } from './functions/files';
 import { writeFile, readFile, readFileSync } from 'fs';
 import { Product } from './models/management/product';
 import path from 'path';
-import { createIndexesForDatabase } from './functions/database';
+import { createIndexesForDatabase, purgeDatabase, createStoreDatabase } from './functions/database';
 import { object, string } from 'joi';
 
 import { Parser } from 'xml2js';
 import { Table, TableStatus } from './models/store/pos/table';
+
+
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // import { productToStock } from 'src/functions/stocks';
 
@@ -693,7 +697,7 @@ export const MoveData = (from: string, to: string, selector?: any) => {
 }
 
 export const addProperty = () => {
-    // let position = { height: 75, width: 75, x: 100, y: 100, type: 0 };
+    let position = { height: 75, width: 75, x: 100, y: 100, type: 0 };
 
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
@@ -706,24 +710,22 @@ export const addProperty = () => {
         //     console.log('Property Added Successfuly');
         // })
 
-        // RemoteDB(db, 'kosmos-besiktas').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((res: any) => {
-        //     console.log(res.docs.length, tables.length);
-        //     return res.docs.map(object => {
-        //         try {
-        //             let position = tables.find(obj => obj.name == object.name).position;
-        //             object.position = position;
-        //         } catch (error) {
-        //             console.log(object.name);
-        //         }
-        //         console.log(object.name, object.position);
-        //         return object;
-        //     });
-        // }).then(stocks => {
-        //     console.log(stocks);
-        //     RemoteDB(db, 'kosmos-besiktas').bulkDocs(stocks).then(res => {
-        //         console.log('Property Added Successfuly');
-        //     })
-        // })
+        RemoteDB(db, 'kosmos-besiktas').find({ selector: { db_name: 'tables' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(object => {
+                try {
+                    object.position = position;
+                } catch (error) {
+                    console.log(object.name);
+                }
+                console.log(object.name, object.position);
+                return object;
+            });
+        }).then(stocks => {
+            console.log(stocks);
+            RemoteDB(db, 'kosmos-besiktas').bulkDocs(stocks).then(res => {
+                console.log('Property Added Successfuly');
+            })
+        })
     })
 
 }
@@ -1139,5 +1141,107 @@ export const reisImport = () => {
     })
 
 
+}
 
+export const importFromBackup = async (store_id: string) => {
+    // let Store = await ManagementDB.Stores.get(store_id);
+    let backupFile: Array<BackupData> = await readJsonFile(backupPath + `${store_id}/db.dat`);
+    let bulkResponse = await (await StoreDB(store_id)).bulkDocs(backupFile);
+    console.log(bulkResponse);
+};
+
+
+export const purgeTest = (store_id: string) => {
+    ManagementDB.Stores.get(store_id).then(store => {
+        purgeDatabase(store.auth).then(res => {
+            console.log(res);
+        }).catch(err => {
+            console.log(err);
+        })
+    })
+}
+
+export const recrateDatabase = (store_id: string) => {
+    ManagementDB.Stores.get(store_id).then(store => {
+        createStoreDatabase(store.auth).then(res => {
+            console.log(res);
+        }).catch(err => {
+            console.log(err);
+        })
+    });
+}
+
+export const addNotes = () => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        let db: Database = res.docs[0];
+        RemoteDB(db, 'kosmos-besiktas').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
+            return res.docs.map(object => {
+                try {
+                    object.notes = '';
+                } catch (error) {
+                    console.log(object.name);
+                }
+                // console.log(object.name, object.position);
+                return object;
+            });
+        }).then(stocks => {
+            console.log(stocks);
+            RemoteDB(db, 'kosmos-besiktas').bulkDocs(stocks).then(res => {
+                console.log('Property Added Successfuly');
+            })
+        })
+    })
+}
+
+
+export const makePdf = async (db_name: string) => {
+    try {
+        const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } });
+        const enddays: Array<EndDay> = await (await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'endday' }, limit: 2500 })).docs;
+        const doc = new jsPDF({ orientation: "portrait" }); // landscape
+        let bodyLink = [];
+        const transformPrice = (value: number): string => {
+            if (!value) value = 0;
+            return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
+        }
+        enddays.sort((a, b) => a.timestamp - b.timestamp).forEach((end, index) => {
+            let data = [new Date(end.timestamp).toLocaleDateString('tr-TR'), transformPrice(end.total_income), transformPrice(end.cash_total), transformPrice(end.card_total), transformPrice(end.coupon_total), transformPrice(end.free_total), transformPrice(end.canceled_total), transformPrice(end.discount_total)];
+            bodyLink.push(data);
+        });
+        autoTable(doc, {
+            styles: {
+                // cellPadding: 5,
+                // fontSize: 10,
+                font: "helvetica", // helvetica, times, courier
+                lineColor: 200,
+                // lineWidth: 0.1,
+                fontStyle: 'bold', // normal, bold, italic, bolditalic
+                overflow: 'ellipsize', // visible, hidden, ellipsize or linebreak
+                // fillColor: 255,
+                // textColor: 20,
+                halign: 'right', // left, center, right
+                valign: 'middle', // top, middle, bottom
+                // fillStyle: 'F', // 'S', 'F' or 'DF' (stroke, fill or fill then stroke)
+                // rowHeight: 20,
+                // columnWidth: 'auto' // 'auto', 'wrap' or a number
+            },
+            head: [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']],
+            body: bodyLink,
+            theme: 'plain',
+            headStyles: { halign: "center", fillColor: [43, 62, 80], textColor:255 },
+            columnStyles: {
+                0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'bold' },
+                1: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'bold' },
+                2: { fillColor: [28, 40, 48], textColor: [98, 173, 101], fontStyle: 'bold' },
+                3: { fillColor: [28, 40, 48], textColor: [232, 167, 84], fontStyle: 'bold' },
+                4: { fillColor: [28, 40, 48], textColor: [87, 184, 205], fontStyle: 'bold' },
+                5: { fillColor: [28, 40, 48], textColor: [181, 91, 82], fontStyle: 'bold' },
+                6: { fillColor: [28, 40, 48], textColor: [186, 109, 46], fontStyle: 'bold' },
+                7: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'bold' },
+            },
+        })
+        doc.save('table.pdf');
+    } catch (err) {
+        console.log(err);
+    }
 }

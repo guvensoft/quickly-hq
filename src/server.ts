@@ -52,17 +52,16 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 
 /* Worker Threads */
-
 // import './workers/tables';
 // import './workers/activities';
-
 
 /* Memory Listener Interval */
 
 // setInterval(() => {
 //     console.clear();
 //     const used = process.memoryUsage().heapUsed / 1024 / 1024;   
-//     console.log(`Memory ${Math.round(used * 100) / 100} MB`);
+//     const other = process.cpuUsage().system;
+//     console.log(`CPU: ${other} Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)
 
 
@@ -81,7 +80,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.createProductIndexes();
 // blackboard.reloadTable('kosmos-db15');
 // blackboard.fixTables('kosmos-besiktas');
-// blackboard.Fixer('yuri-burger-beer-ecbb')
+// blackboard.Fixer('kosmos-besiktas');
 // blackboard.addProperty();
 // blackboard.productFinder('');
 // blackboard.invoiceReader();
@@ -92,18 +91,12 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.documentbackup('quickly-cafe-459c')
 // blackboard.reisImport();
 // blackboard.addProperty();
-// blackboard.documentTransport('kosmos-db15', 'kosmos-besiktas', { db_name: 'recipes' }, 'fetch');
 // blackboard.allRevisions('kosmos-besiktas','13d65307-7ead-49ce-87f8-9176c251ceb7');
 // blackboard.databaseLogs('kosmos-besiktas','C-1');
 // blackboard.thatDay();
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'stocks' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'stocks_cat' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'tables' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'sub_categories' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'categories' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'products' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'floors' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'reports', type: 'User' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'reports', type: 'Table' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'reports', type: 'Product' });
-// blackboard.MoveData('yuri-burger-beer-ecbb', 'yuri-burger-and-beer', { db_name: 'users_group' });
+// blackboard.documentTransport('kosmos-db15', 'kosmos-besiktas', { db_name: 'endday' }, 'fetch');
+// blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77');
+// blackboard.recrateDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
+// blackboard.importFromBackup('d622f9dd-036b-4775-bbee-911d301c5b77');
+// blackboard.makePdf('kosmos-besiktas')
+// blackboard.dayDetail('643ed17a-0594-4ff7-bd90-193dac1e71c8','1603048585197')

@@ -8,9 +8,9 @@ import * as DocumentController from '../controllers/store/document';
 import * as StoreAuthController from '../controllers/store/authentication';
 import * as StoreReportsController from '../controllers/store/reports';
 import * as StoreMenuController from '../controllers/store/menus';
+import * as StoreEndofdayController from '../controllers/store/endofday';
 
 import * as ProductsController from '../controllers/management/product';
-
 import { AuthSchemaSafe } from '../schemas/management'
 
 const router = Router();
@@ -32,6 +32,10 @@ router.post("/verify",
     StoreAuthController.Verify
 );
 
+router.post("/refresh",
+    StoreAuthenticateGuard,
+    StoreAuthController.Refresh
+);
 
 // Store General Controllers
 router.get("/list",
@@ -88,7 +92,6 @@ router.get("/reports/day/:start?/:end?",
 // );
 
 
-
 // Store Documents Controller
 router.get("/db/:db_name/:id",
     StoreAuthenticateGuard,
@@ -123,5 +126,14 @@ router.get("/db/:db_name",
     AccountGuard,
     DocumentController.queryDocuments
 );
+
+/// Store Endday
+router.get("/endday",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreEndofdayController.endDayProcess
+);
+
 
 module.exports = router;
