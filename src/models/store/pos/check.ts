@@ -4,10 +4,10 @@ export interface Check {
     discount: number;
     owner: string;
     note: string;
-    status: number;
+    status: CheckStatus;
     products: Array<CheckProduct>;
     timestamp: number;
-    type: number;
+    type: CheckType;
     check_no: number;
     payment_flow?: Array<PaymentStatus>;
     discountPercent?: number;
@@ -22,10 +22,10 @@ export interface ClosedCheck {
     discount: number;
     owner: string;
     note: string;
-    status: number;
+    status: CheckStatus;
     products: Array<CheckProduct>;
     timestamp: number;
-    type: number;
+    type: CheckType;
     payment_method: string;
     payment_flow?: Array<PaymentStatus>;
     description?: string;
@@ -43,7 +43,7 @@ export interface PaymentStatus {
     payed_products: Array<CheckProduct>
 }
 
-export interface Occupation { male: number, female: number }
+export interface Occupation { male: number, female: number };
 
 export interface CheckProduct {
     id: string;
@@ -63,7 +63,10 @@ export enum CheckType {
     NORMAL,
     FAST,
     CANCELED,
-    PROCESSING
+    PROCESSING,
+    ORDER,
+    PREORDER,
+    SELF
 }
 
 export enum CheckStatus {

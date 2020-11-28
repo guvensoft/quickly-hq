@@ -4,6 +4,8 @@ import PouchDBLevelDB from 'pouchdb-adapter-leveldb';
 import PouchDBInMemory from 'pouchdb-adapter-memory';
 import PouchDB from 'pouchdb-core';
 import PouchDBFind from 'pouchdb-find';
+import ExpressPouch from 'express-pouchdb';
+
 
 import { Log } from '../utils/logger';
 import { databasePath } from './paths';
@@ -25,8 +27,8 @@ PouchDB.plugin(PouchDBInMemory);
 PouchDB.plugin(PouchDBLevelDB);
 PouchDB.plugin(PouchDBHttp);
 
-const FileSystemConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'leveldb' };
-const InMemoryConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'memory' };
+export const FileSystemConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'leveldb' };
+export const InMemoryConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'memory' };
 
 export const DatabaseQueryLimit = 1000;
 
@@ -96,4 +98,19 @@ export const StoreDB = async (store_id: any) => {
 
 export const RemoteCollection = (database: Database, collection: string, username: string, password: string) => {
     return new PouchDB<any>(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
+}
+
+export const TempDB = async (name: string) => {
+    try {
+        const OrderDatabase = PouchDB.defaults({ adapter: 'memory', skip_setup: false, auto_compaction: true, name: name, size: 10 });
+
+        // const Database = 
+        // const isCreated = await Database.info();
+        // if (isCreated.db_name == name) {
+        await new OrderDatabase(name).info();
+        return ExpressPouch(OrderDatabase, { inMemoryConfig: true, mode: 'fullCouchDB', overrideMode: { exclude: ['routes/authentication', 'routes/authorization', 'routes/session'] } });
+        // }
+    } catch (error) {
+        console.log(error);
+    }
 }

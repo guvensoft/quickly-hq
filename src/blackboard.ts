@@ -215,6 +215,7 @@ export const Fixer = (db_name: string) => {
             let databasesWillFix = ['closed_checks', 'checks', 'logs', 'cashbox'];
             databasesWillFix.forEach(selectedDatabase => {
                 RemoteDB(db, db_name).find({ selector: { db_name: selectedDatabase }, limit: 2500 }).then((res: any) => {
+                console.log(selectedDatabase);
                     // // res.docs.forEach(element => {
                     // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
                     // // });
@@ -248,11 +249,11 @@ export const Fixer = (db_name: string) => {
                     //     });
                     // })
 
-                    oldChecks.forEach((check, index) => {
-                        RemoteDB(db, db_name).remove(check).then(res => {
-                            console.log(check._id, 'Silindi');
-                        });
-                    })
+                    // oldChecks.forEach((check, index) => {
+                    //     RemoteDB(db, db_name).remove(check).then(res => {
+                    //         console.log(check._id, 'Silindi');
+                    //     });
+                    // })
 
 
                 })
@@ -522,7 +523,7 @@ export const allRevisions = (db_name: string, doc_id: string) => {
             console.log(res);
             res._revs_info.filter(rev => rev.status == "available").forEach(obj => {
                 RemoteDB(db, db_name).get(doc_id, { rev: obj.rev }).then((res: any) => {
-                    console.log(res.products.length);
+                    console.log(res);
                 });
             })
         }).catch(err => {

@@ -13,7 +13,8 @@ import * as blackboard from './blackboard';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 
-const app = express();
+export const app = express();
+export const order = express();
 
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 
@@ -23,7 +24,7 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '10240kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:8100', credentials: true }));
 app.use(queryParser());
 
 app.use('/management', require('./routes/management'));
@@ -80,7 +81,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.createProductIndexes();
 // blackboard.reloadTable('kosmos-db15');
 // blackboard.fixTables('kosmos-besiktas');
-// blackboard.Fixer('kosmos-besiktas');
+// blackboard.Fixer('okkali-marmara-forum');
 // blackboard.addProperty();
 // blackboard.productFinder('');
 // blackboard.invoiceReader();
@@ -91,12 +92,14 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.documentbackup('quickly-cafe-459c')
 // blackboard.reisImport();
 // blackboard.addProperty();
-// blackboard.allRevisions('kosmos-besiktas','13d65307-7ead-49ce-87f8-9176c251ceb7');
+// blackboard.allRevisions('okkali-marmara-forum','83644083-a915-48fd-8961-e4045d440d33');
 // blackboard.databaseLogs('kosmos-besiktas','C-1');
 // blackboard.thatDay();
-// blackboard.documentTransport('kosmos-db15', 'kosmos-besiktas', { db_name: 'endday' }, 'fetch');
+// blackboard.documentTransport('okkali-marmara-forum', 'kosmos-besiktas', { db_name: 'endday' }, 'fetch');
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77');
 // blackboard.recrateDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
 // blackboard.importFromBackup('d622f9dd-036b-4775-bbee-911d301c5b77');
 // blackboard.makePdf('kosmos-besiktas')
 // blackboard.dayDetail('643ed17a-0594-4ff7-bd90-193dac1e71c8','1603048585197')
+
+// blackboard.makePdf('okkali-marmara-forum');
