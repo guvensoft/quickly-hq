@@ -6,7 +6,6 @@ import PouchDB from 'pouchdb-core';
 import PouchDBFind from 'pouchdb-find';
 import ExpressPouch from 'express-pouchdb';
 
-
 import { Log } from '../utils/logger';
 import { databasePath } from './paths';
 
@@ -27,10 +26,10 @@ PouchDB.plugin(PouchDBInMemory);
 PouchDB.plugin(PouchDBLevelDB);
 PouchDB.plugin(PouchDBHttp);
 
+export const DatabaseQueryLimit = 1000;
+
 export const FileSystemConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'leveldb' };
 export const InMemoryConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'memory' };
-
-export const DatabaseQueryLimit = 1000;
 
 export const ManagementDB = {
     Users: new PouchDB<User>(databasePath + 'management/users', FileSystemConfigration),
@@ -64,19 +63,20 @@ export const AdressDB = {
 }
 
 export const SocialDB = {
-    Locations: new PouchDB(`./db/social/locations`, FileSystemConfigration),
-    Collections: new PouchDB(`./db/social/collections`, FileSystemConfigration),
-    Categories: new PouchDB(`./db/social/categories`, FileSystemConfigration),
-    Cuisines: new PouchDB(`./db/social/cuisines`, FileSystemConfigration),
-    Stores: new PouchDB(`./db/social/stores`, FileSystemConfigration),
-    Tables: new PouchDB(`./db/social/tables`, FileSystemConfigration),
-    Products: new PouchDB(`./db/social/products`, FileSystemConfigration),
-    Floors: new PouchDB(`./db/social/floors`, FileSystemConfigration),
-    Users: new PouchDB(`./db/social/users`, FileSystemConfigration),
-    Settings: new PouchDB(`./db/social/settings`, FileSystemConfigration),
-    Comments: new PouchDB(`./db/social/comments`, FileSystemConfigration),
-    Sessions: new PouchDB(`./db/social/sessions`, FileSystemConfigration),
+    Locations: new PouchDB(databasePath + 'social/locations', FileSystemConfigration),
+    Collections: new PouchDB(databasePath + 'social/collections', FileSystemConfigration),
+    Categories: new PouchDB(databasePath + 'social/categories', FileSystemConfigration),
+    Cuisines: new PouchDB(databasePath + 'social/cuisines', FileSystemConfigration),
+    Stores: new PouchDB(databasePath + 'social/stores', FileSystemConfigration),
+    Tables: new PouchDB(databasePath + 'social/tables', FileSystemConfigration),
+    Products: new PouchDB(databasePath + 'social/products', FileSystemConfigration),
+    Floors: new PouchDB(databasePath + 'social/floors', FileSystemConfigration),
+    Users: new PouchDB(databasePath + 'social/users', FileSystemConfigration),
+    Settings: new PouchDB(databasePath + 'social/settings', FileSystemConfigration),
+    Comments: new PouchDB(databasePath + 'social/comments', FileSystemConfigration),
+    Sessions: new PouchDB(databasePath + 'social/sessions', FileSystemConfigration),
 }
+
 
 export const CouchDB = (database: Database) => {
     return Nano(`http://${database.username}:${database.password}@${database.host}:${database.port}`);
@@ -100,16 +100,28 @@ export const RemoteCollection = (database: Database, collection: string, usernam
     return new PouchDB<any>(`http://${username}:${password}@${database.host}:${database.port}/${collection}`, { adapter: 'http' });
 }
 
-export const TempDB = async (name: string) => {
-    try {
-        const OrderDatabase = PouchDB.defaults({ adapter: 'memory', skip_setup: false, auto_compaction: true, name: name, size: 10 });
+export const OrderDatabase = PouchDB.defaults({ size: 10, ...InMemoryConfigration });
+export const OrderMiddleware = ExpressPouch(OrderDatabase, { inMemoryConfig: true, overrideMode: { exclude: ['routes/authentication', 'routes/authorization', 'routes/session', 'routes/all-dbs',] } }); // mode: 'minimumForPouchDB', overrideMode: { exclude: ['routes/authentication', 'routes/authorization', 'routes/session'] } 
 
-        // const Database = 
-        // const isCreated = await Database.info();
-        // if (isCreated.db_name == name) {
-        await new OrderDatabase(name).info();
-        return ExpressPouch(OrderDatabase, { inMemoryConfig: true, mode: 'fullCouchDB', overrideMode: { exclude: ['routes/authentication', 'routes/authorization', 'routes/session'] } });
-        // }
+export const OrderDB = async (store_id: string | string[], name: string) => {
+    try {
+        const Database = new OrderDatabase(name);
+        const StoreDatabase = await StoreDB(store_id);
+        Database.changes({ since: 'now', live: true, include_docs: true, selector: { db_name: 'orders' } })
+            .on('change', (changes) => {
+                if (!changes.deleted) {
+                    delete changes.doc._rev;
+                    StoreDatabase.put({ check: name, ...changes.doc }).then(sendedOrders => {
+                        console.log(sendedOrders.ok);
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                }
+            })
+            .on('error', (err) => {
+                console.log(err);
+            })
+        return Database;
     } catch (error) {
         console.log(error);
     }

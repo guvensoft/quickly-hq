@@ -9,12 +9,13 @@ import path from 'path';
 import cors from 'cors';
 import queryParser from 'express-query-int';
 
+import { OrderMiddleware } from './configrations/database'
+
 import * as blackboard from './blackboard';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 
 export const app = express();
-export const order = express();
 
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 
@@ -31,6 +32,7 @@ app.use('/management', require('./routes/management'));
 app.use('/store', require('./routes/store'));
 app.use('/market', require('./routes/market'));
 app.use('/menu', require('./routes/menu'));
+app.use('/order', OrderMiddleware);
 
 app.all('/', (req, res) => res.status(404).end());
 
@@ -60,7 +62,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 // setInterval(() => {
 //     console.clear();
-//     const used = process.memoryUsage().heapUsed / 1024 / 1024;   
+//     const used = process.memoryUsage().heapUsed / 1024 / 1024;
 //     const other = process.cpuUsage().system;
 //     console.log(`CPU: ${other} Memory ${Math.round(used * 100) / 100} MB`);
 // }, 1000)

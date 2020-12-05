@@ -2,9 +2,10 @@
 /dist
 /db
 /address
-/.vscode
+/.vscode/
 /backup
 /products
 /documents
 /reis
 package-lock.json
+log.txt

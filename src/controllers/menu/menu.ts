@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { StoreDB, RemoteDB, ManagementDB, TempDB } from '../../configrations/database';
+import { RemoteDB, ManagementDB, OrderDB, StoreDB } from '../../configrations/database';
 import { MenuMessages } from "../../utils/messages";
 import { Database } from "../../models/management/database";
 import { writeFile } from 'fs';
@@ -7,16 +7,13 @@ import { cdnMenuPath } from '../../configrations/paths';
 import { createLog, LogType } from "../../utils/logger";
 import { Store } from "../../models/management/store";
 import { Menu } from "../../models/store/menu";
-import { app } from '../../server';
-import { v4 as uuidv4 } from 'uuid';
-
+import axios from 'axios';
 
 export const requestStore = async (req: Request, res: Response) => {
 
 }
 
 export const getOrder = async () => {
-
 }
 
 export const uploadPicture = async (req: Request, res: Response) => {
@@ -123,22 +120,35 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
 
 export const menuComment = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    res.json({ ok: true, message: 'Yorum Gönderildi' });
+    const FormData = req.body;
+    try {
+        console.log(FormData)
+        const sendComment = await (await StoreDB(StoreID)).post({ db_name: 'comments', ...FormData });
+        if (sendComment.ok) {
+            res.json({ ok: true, message: 'Yorum Gönderildi' });
+        }
+    } catch (error) {
+        res.json({ ok: false, message: 'Yorum İletilemedi Lütfen Tekrar Deneyiniz.' });
+    }
 }
 
 
 export const checkRequest = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const CheckID = req.params.check;
-
     try {
-        const Check = await (await StoreDB(StoreID)).get(CheckID);
-        let token = uuidv4();
-        const orderDatabase = await TempDB(token);
-        app.use(`/order/`, orderDatabase);
-        res.status(200).json({ token: token, ...Check });
+        axios.get('http://localhost:3000/order/' + CheckID).then(ax_res => {
+            res.status(200).json({ ok: true, token: CheckID });
+        }).catch(async err => {
+            const inMemoryOrderDB = await OrderDB(StoreID, CheckID);
+            if (inMemoryOrderDB.name == CheckID) {
+                res.status(200).json({ ok: true, token: CheckID });
+            } else {
+                res.status(200).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' });
+            }
+        })
     } catch (error) {
         console.log(error);
-        res.status(404).json({ ok: false, message: 'Adisyon Bulunamadı' })
+        res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
     }
 }
