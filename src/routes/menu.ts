@@ -15,7 +15,7 @@ router.post("/check/:check",
     StoreGuard,
     MenuController.checkRequest);
 
-router.get("slug/:slug",
+router.get("/slug/:slug",
     MenuController.requestMenuFromSlug);
 
 router.get("/:store",
