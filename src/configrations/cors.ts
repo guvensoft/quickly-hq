@@ -1,6 +1,7 @@
 import { CorsOptions } from 'cors';
 
 const whitelist = [
+    'http://mn.quickly.com.tr',
     'https://qr.quickly.com.tr',
     'https://manage.quickly.com.tr'
 ];

@@ -26,15 +26,14 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '10240kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
-
-app.use(cors({ origin: '*', credentials: false }));
+app.use(cors()); // { origin: '*', credentials: false }
 app.use(queryParser());
 
 app.use('/management', require('./routes/management'));
 app.use('/store', require('./routes/store'));
 app.use('/market', require('./routes/market'));
 app.use('/menu', require('./routes/menu'));
-app.use('/order', OrderMiddleware);
+app.use('/order', cors(corsOptions), OrderMiddleware);
 
 app.all('/', (req, res) => res.status(404).end());
 
