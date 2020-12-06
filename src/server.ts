@@ -10,6 +10,7 @@ import cors from 'cors';
 import queryParser from 'express-query-int';
 
 import { OrderMiddleware } from './configrations/database'
+import { corsOptions } from './configrations/cors';
 
 import * as blackboard from './blackboard';
 
@@ -25,7 +26,8 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '10240kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
-app.use(cors()); // { origin: 'http://localhost:8100', credentials: true }
+
+app.use(cors(corsOptions));
 app.use(queryParser());
 
 app.use('/management', require('./routes/management'));
