@@ -1,4 +1,5 @@
 import { CorsOptions } from 'cors';
+import { response } from 'express';
 
 const whitelist = [
     'http://mn.quickly.com.tr',
@@ -11,8 +12,10 @@ export const corsOptions: CorsOptions = {
         if (whitelist.indexOf(origin) !== -1) {
             callback(null, true)
         } else {
-            callback(new Error('Not allowed by CORS'))
+            callback(null, false)
+            response.send("Eyes on you..!");
         }
     },
     credentials: true,
+
 }
