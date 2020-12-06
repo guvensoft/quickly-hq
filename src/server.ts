@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '10240kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
 
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ origin: '*', credentials: false }));
 app.use(queryParser());
 
 app.use('/management', require('./routes/management'));
