@@ -126,9 +126,9 @@ export const OrderDB = async (store_id: string | string[], name: string) => {
         //         console.log(err);
         //     })
 
-        Database.sync(StoreDatabase,{ since: 'now', live: true, selector: [{ db_name: 'orders', check:name }, { db_name: 'receipt', check:name }] })
+        Database.sync(StoreDatabase, { since: 'now', live: true, selector: { field: [{ db_name: 'orders', check: name }, { db_name: 'receipt', check: name }] } })
 
-        
+
         return Database;
     } catch (error) {
         console.log(error);
