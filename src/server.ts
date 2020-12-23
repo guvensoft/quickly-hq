@@ -13,6 +13,7 @@ import { OrderMiddleware } from './configrations/database'
 import { corsOptions } from './configrations/cors';
 
 import * as blackboard from './blackboard';
+import { processPurchase } from './configrations/payments';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 
@@ -27,13 +28,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '10240kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
 app.use(queryParser());
-// app.use(); // { origin: '*', credentials: false }
+// app.use(); // { origin: '*', credentials: true }
 
-app.use('/management',cors(), require('./routes/management'));
-app.use('/store',cors(), require('./routes/store'));
-app.use('/market',cors(), require('./routes/market'));
-app.use('/menu',cors(), require('./routes/menu'));
+app.use('/management', cors(), require('./routes/management'));
+app.use('/store', cors(), require('./routes/store'));
+app.use('/market', cors(), require('./routes/market'));
+app.use('/menu', cors(), require('./routes/menu'));
 app.use('/order', cors(corsOptions), OrderMiddleware);
+// app.use('/order', cors({ origin: 'http://localhost:8100', credentials: true }), OrderMiddleware);
 
 app.all('/', (req, res) => res.status(404).end());
 
@@ -72,7 +74,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 /* For Testing New Functions */
 
 // blackboard.Fixer('kosmos-db15');
-// blackboard.DailySalesReport('yuri-burger-beer-ecbb');
+// blackboard.DailySalesReport('kent-besiktas-8e12');
 // blackboard.ReportsFixer('reis-doner-bagcilar-parseller');
 // blackboard.getProducts('sdfsdfsd');
 // blackboard.StockCleaner();
@@ -84,7 +86,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.createProductIndexes();
 // blackboard.reloadTable('kosmos-db15');
 // blackboard.fixTables('kosmos-besiktas');
-// blackboard.Fixer('okkali-marmara-forum');
+// blackboard.Fixer('kent-besiktas-8e12');
 // blackboard.addProperty();
 // blackboard.productFinder('');
 // blackboard.invoiceReader();
@@ -104,5 +106,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.importFromBackup('d622f9dd-036b-4775-bbee-911d301c5b77');
 // blackboard.makePdf('kosmos-besiktas')
 // blackboard.dayDetail('643ed17a-0594-4ff7-bd90-193dac1e71c8','1603048585197')
-
 // blackboard.makePdf('okkali-marmara-forum');
+// blackboard.menuChanger();
+
+// blackboard.DailySalesReport('okkali-marmara-forum');
+
+// processPurchase()

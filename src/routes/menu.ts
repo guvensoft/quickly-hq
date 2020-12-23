@@ -11,7 +11,7 @@ router.post("/comment/new",
     ReCaptchaCheck,
     MenuController.menuComment);
 
-router.post("/check/:check",
+router.post("/check/:token",
     StoreGuard,
     MenuController.checkRequest);
 

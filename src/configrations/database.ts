@@ -1,9 +1,11 @@
 import Nano from 'nano';
+import PouchDB from 'pouchdb-core';
+import PouchDBFind from 'pouchdb-find';
 import PouchDBHttp from 'pouchdb-adapter-http';
 import PouchDBLevelDB from 'pouchdb-adapter-leveldb';
 import PouchDBInMemory from 'pouchdb-adapter-memory';
-import PouchDB from 'pouchdb-core';
-import PouchDBFind from 'pouchdb-find';
+import PouchDBReplication from 'pouchdb-replication';
+
 import ExpressPouch from 'express-pouchdb';
 
 import { Log } from '../utils/logger';
@@ -25,6 +27,7 @@ PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBInMemory);
 PouchDB.plugin(PouchDBLevelDB);
 PouchDB.plugin(PouchDBHttp);
+PouchDB.plugin(PouchDBReplication);
 
 export const DatabaseQueryLimit = 1000;
 
@@ -107,20 +110,25 @@ export const OrderDB = async (store_id: string | string[], name: string) => {
     try {
         const Database = new OrderDatabase(name);
         const StoreDatabase = await StoreDB(store_id);
-        Database.changes({ since: 'now', live: true, include_docs: true, selector: { db_name: 'orders' } })
-            .on('change', (changes) => {
-                if (!changes.deleted) {
-                    delete changes.doc._rev;
-                    StoreDatabase.put({ check: name, ...changes.doc }).then(sendedOrders => {
-                        console.log(sendedOrders.ok);
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                }
-            })
-            .on('error', (err) => {
-                console.log(err);
-            })
+
+        // Database.changes({ since: 'now', live: true, include_docs: true, selector: { db_name: 'orders' } })
+        //     .on('change', (changes) => {
+        //         if (!changes.deleted) {
+        //             delete changes.doc._rev;
+        //             StoreDatabase.put({ check: name, ...changes.doc }).then(sendedOrders => {
+        //                 console.log(sendedOrders.ok);
+        //             }).catch(err => {
+        //                 console.log(err);
+        //             });
+        //         }
+        //     })
+        //     .on('error', (err) => {
+        //         console.log(err);
+        //     })
+
+        Database.sync(StoreDatabase,{ since: 'now', live: true, selector: [{ db_name: 'orders', check:name }, { db_name: 'receipt', check:name }] })
+
+        
         return Database;
     } catch (error) {
         console.log(error);

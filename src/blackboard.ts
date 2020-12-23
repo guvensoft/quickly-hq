@@ -21,6 +21,7 @@ import { Table, TableStatus } from './models/store/pos/table';
 
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { Menu, MenuStatus } from './models/store/menu';
 
 // import { productToStock } from 'src/functions/stocks';
 
@@ -215,7 +216,7 @@ export const Fixer = (db_name: string) => {
             let databasesWillFix = ['closed_checks', 'checks', 'logs', 'cashbox'];
             databasesWillFix.forEach(selectedDatabase => {
                 RemoteDB(db, db_name).find({ selector: { db_name: selectedDatabase }, limit: 2500 }).then((res: any) => {
-                console.log(selectedDatabase);
+                    console.log(selectedDatabase);
                     // // res.docs.forEach(element => {
                     // //     console.log(element.table_id, new Date(element.timestamp).toUTCString());
                     // // });
@@ -1229,7 +1230,7 @@ export const makePdf = async (db_name: string) => {
             head: [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']],
             body: bodyLink,
             theme: 'plain',
-            headStyles: { halign: "center", fillColor: [43, 62, 80], textColor:255 },
+            headStyles: { halign: "center", fillColor: [43, 62, 80], textColor: 255 },
             columnStyles: {
                 0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'bold' },
                 1: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'bold' },
@@ -1245,4 +1246,40 @@ export const makePdf = async (db_name: string) => {
     } catch (err) {
         console.log(err);
     }
+}
+
+
+export const menuChanger = () => {
+    ManagementDB.Databases.find({ selector: {} }).then(dbs => {
+        let CouchRadore: Database = dbs.docs[0];
+
+        RemoteDB(CouchRadore, 'quickly-menu-app').find({ selector: {} }).then(menus => {
+            menus.docs.forEach(menu => {
+                delete menu._id;
+                delete menu._rev;
+                delete menu.documentType;
+                delete menu.advertising;
+                delete menu.cigaretteSelling;
+                delete menu.brandColor;
+
+
+                let newMenu: Menu = {
+                    slug: menu.slug,
+                    categories: menu.categories,
+                    promotions: menu.promotions,
+                    social_links: menu.socialLinks.map(obj => {
+                        obj.name = obj.displayName;
+                        delete obj.displayName;
+                        return obj;
+                    }),
+                    status: MenuStatus.ACTIVE,
+                    store_id: menu.store_id,
+                    theme: { background: 'dark', brand: '', buttons: 'primary', fonts: '', greetings: 'success', segment: 'dark' },
+                }
+                console.log(newMenu);
+            })
+        })
+    })
+
+
 }

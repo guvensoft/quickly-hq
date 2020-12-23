@@ -6,14 +6,11 @@ import { writeFile } from 'fs';
 import { cdnMenuPath } from '../../configrations/paths';
 import { createLog, LogType } from "../../utils/logger";
 import { Store } from "../../models/management/store";
-import { Menu } from "../../models/store/menu";
+import { Menu, OrderType } from "../../models/store/menu";
 import axios from 'axios';
 
 export const requestStore = async (req: Request, res: Response) => {
 
-}
-
-export const getOrder = async () => {
 }
 
 export const uploadPicture = async (req: Request, res: Response) => {
@@ -110,6 +107,9 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
         delete Store.cuisine;
         delete Store.accounts;
 
+        delete Menu._id;
+        delete Menu._rev;
+
         res.json({ store: Store, menu: Menu });
     } catch (error) {
         console.log(error);
@@ -122,7 +122,6 @@ export const menuComment = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const FormData = req.body;
     try {
-        console.log(FormData)
         const sendComment = await (await StoreDB(StoreID)).post({ db_name: 'comments', ...FormData });
         if (sendComment.ok) {
             res.json({ ok: true, message: 'Yorum Gönderildi' });
@@ -135,18 +134,32 @@ export const menuComment = async (req: Request, res: Response) => {
 
 export const checkRequest = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const CheckID = req.params.check;
+    const Token = req.params.token;
     try {
-        axios.get('http://localhost:3000/order/' + CheckID).then(ax_res => {
-            res.status(200).json({ ok: true, token: CheckID });
-        }).catch(async err => {
-            const inMemoryOrderDB = await OrderDB(StoreID, CheckID);
-            if (inMemoryOrderDB.name == CheckID) {
-                res.status(200).json({ ok: true, token: CheckID });
-            } else {
-                res.status(200).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' });
-            }
-        })
+        const orderRequestType = await (await StoreDB(StoreID)).get(Token);
+        switch (orderRequestType.db_name) {
+            case 'checks':
+                let Check = orderRequestType;
+                axios.get('http://localhost:3000/order/' + Token).then(ax_res => {
+                    res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
+                }).catch(async err => {
+                    const inMemoryOrderDB = await OrderDB(StoreID, Token);
+                    if (inMemoryOrderDB.name == Token) {
+                        res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE, check: Check });
+                    } else {
+                        res.status(200).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' });
+                    }
+                });
+                break;
+            case 'customers':
+                let Customer = orderRequestType;
+                delete Customer._rev; delete Customer.db_name; delete Customer.db_seq; delete Customer.type, delete Customer._id;
+                res.status(200).json({ ok: true, token: Token, type: OrderType.OUTSIDE, user: Customer });
+                break;
+            default:
+                res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                break;
+        }
     } catch (error) {
         console.log(error);
         res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
