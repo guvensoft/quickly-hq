@@ -8,6 +8,7 @@ import { createLog, LogType } from "../../utils/logger";
 import { Store } from "../../models/management/store";
 import { Menu, OrderType } from "../../models/store/menu";
 import axios from 'axios';
+import { processPurchase } from "../../configrations/payments";
 
 export const requestStore = async (req: Request, res: Response) => {
 
@@ -155,6 +156,33 @@ export const checkRequest = async (req: Request, res: Response) => {
                 let Customer = orderRequestType;
                 delete Customer._rev; delete Customer.db_name; delete Customer.db_seq; delete Customer.type, delete Customer._id;
                 res.status(200).json({ ok: true, token: Token, type: OrderType.OUTSIDE, user: Customer });
+                break;
+            default:
+                res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                break;
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+    }
+}
+
+
+export const payReceipt = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    const Token = req.params.token;
+    const Receipt = req.body.receipt;
+    const CreditCard = req.body.card;
+    try {
+        const orderRequestType = await (await StoreDB(StoreID)).get(Token);
+        switch (orderRequestType.db_name) {
+            case 'checks':
+                let Check = orderRequestType;
+                res.status(200).json({ ok: true, card: CreditCard, receipt: Receipt });
+                break;
+            case 'customers':
+                let Customer = orderRequestType;
+                res.status(200).json({ ok: true, card: CreditCard, receipt: Receipt });
                 break;
             default:
                 res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })

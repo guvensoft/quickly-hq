@@ -1,11 +1,9 @@
-export class PaymentMethod {
-    constructor(
-        public name: string,
-        public type: PaymentType,
-        public description: string,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface PaymentMethod {
+    name: string,
+    type: PaymentType,
+    description: string,
+    _id?: string,
+    _rev?: string
 }
 
 export enum PaymentType {

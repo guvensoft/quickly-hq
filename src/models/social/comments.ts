@@ -1,24 +1,19 @@
-export class Comment {
-    constructor(
-        public user_id: string,
-        public connection_id: string,
-        public comment: string,
-        public feedback: CommentFeedback,
-        public timestamp: number,
-        public type: CommentType,
-        public _id?: string,
-        public _rev?: string
-    ) { }
+export interface Comment {
+    user_id: string,
+    connection_id: string,
+    comment: string,
+    feedback: CommentFeedback,
+    timestamp: number,
+    type: CommentType,
+    _id?: string,
+    _rev?: string
 }
 
-export class Review {
-    constructor(
-        public ambience: number,
-        public quality: number,
-        public service: number,
-        public speed: number,
-    ) { }
-
+export interface Review {
+    ambience: number,
+    quality: number,
+    service: number,
+    speed: number,
 }
 
 export interface CommentFeedback {

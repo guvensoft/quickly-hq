@@ -15,6 +15,10 @@ router.post("/check/:token",
     StoreGuard,
     MenuController.checkRequest);
 
+router.post("/payment/:token",
+    StoreGuard,
+    MenuController.payReceipt);
+
 router.get("/slug/:slug",
     MenuController.requestMenuFromSlug);
 

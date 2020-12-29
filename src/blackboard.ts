@@ -1,7 +1,7 @@
 import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit, RemoteCollection } from './configrations/database';
 import { Database } from './models/management/database';
 import { Store } from './models/management/store';
-import { Stock, StockTransfer } from './models/store/pos/stocks';
+import { Stock } from './models/store/pos/stocks';
 import { backupPath, documentsPath, reisPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/pos/endoftheday';
 import { Report, createReport } from './models/store/pos/report';
