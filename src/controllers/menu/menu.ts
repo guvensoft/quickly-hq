@@ -178,6 +178,21 @@ export const payReceipt = async (req: Request, res: Response) => {
         switch (orderRequestType.db_name) {
             case 'checks':
                 let Check = orderRequestType;
+
+
+
+              // this.userItems.map(obj => {
+              //   obj._deleted = true;
+              //   return obj;
+              // })
+              // this.db.Database.bulkDocs(this.userItems).then(order_res => {
+              //   this.userItems = [];
+              //   this.checkItems = this.checkItems.filter(obj => obj.user_name !== this.username);
+              // }).catch(err => {
+              //   this.presentToast('Lütfen tekrar deneyiniz!');
+              // })
+
+              
                 res.status(200).json({ ok: true, card: CreditCard, receipt: Receipt });
                 break;
             case 'customers':

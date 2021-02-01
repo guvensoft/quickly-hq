@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { CategoryMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report";
-import { Category, SubCategory } from "../../models/store/pos/product";
+import { Report } from "../../models/store/report";
+import { Category, SubCategory } from "../../models/store/product";
 
 ////// /categories/new [POST]
 export const createCategory = async (req: Request, res: Response) => {

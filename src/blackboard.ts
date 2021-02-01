@@ -1,13 +1,13 @@
 import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit, RemoteCollection } from './configrations/database';
 import { Database } from './models/management/database';
 import { Store } from './models/management/store';
-import { Stock } from './models/store/pos/stocks';
+import { Stock } from './models/store/stocks';
 import { backupPath, documentsPath, reisPath } from './configrations/paths';
-import { BackupData, EndDay } from './models/store/pos/endoftheday';
-import { Report, createReport } from './models/store/pos/report';
-import { Cashbox } from './models/store/pos/cashbox';
-import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/pos/check';
-import { Log, logType } from './models/store/pos/log';
+import { BackupData, EndDay } from './models/store/endoftheday';
+import { Report, createReport } from './models/store/report';
+import { Cashbox } from './models/store/cashbox';
+import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/check';
+import { Log, logType } from './models/store/log';
 import { readJsonFile, writeJsonFile, readDirectory } from './functions/files';
 import { writeFile, readFile, readFileSync } from 'fs';
 import { Product } from './models/management/product';
@@ -16,7 +16,7 @@ import { createIndexesForDatabase, purgeDatabase, createStoreDatabase } from './
 import { object, string } from 'joi';
 
 import { Parser } from 'xml2js';
-import { Table, TableStatus } from './models/store/pos/table';
+import { Table, TableStatus } from './models/store/table';
 
 
 import jsPDF from 'jspdf'

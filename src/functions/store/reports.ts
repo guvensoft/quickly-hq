@@ -1,7 +1,7 @@
 import { readJsonFile, readDirectory } from '../files';
 import { backupPath } from '../../configrations/paths';
-import { BackupData } from '../../models/store/pos/endoftheday';
-import { ClosedCheck, CheckStatus, CheckType, CheckProduct } from '../../models/store/pos/check';
+import { BackupData } from '../../models/store/endoftheday';
+import { ClosedCheck, CheckStatus, CheckType, CheckProduct } from '../../models/store/check';
 
 interface SalesReport { cash: number; card: number; coupon: number; free: number; canceled: number; discount: number; checks: number; customers: { male: number, female: number } }
 interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }

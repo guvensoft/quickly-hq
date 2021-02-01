@@ -1,6 +1,6 @@
-import { Table, TableStatus } from "../../models/store/pos/table";
-import { Cashbox } from "../../models/store/pos/cashbox";
-import { Check, ClosedCheck, CheckType } from "../../models/store/pos/check";
+import { Table, TableStatus } from "../../models/store/table";
+import { Cashbox } from "../../models/store/cashbox";
+import { Check, ClosedCheck, CheckType } from "../../models/store/check";
 import { StoreTablesInfo, StoreChecksInfo, StoreCashboxesInfo, StorePaymentsInfo } from "../../models/store/info";
 
 export const storePaymentsInfo = (closed_checks: Array<ClosedCheck>) => {

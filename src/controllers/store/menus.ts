@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { MenuMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report";
+import { Report } from "../../models/store/report";
 
 
 ////// /menus/new [POST]

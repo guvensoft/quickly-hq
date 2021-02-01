@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { CustomerMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report";
-import { Customer } from "../../models/store/pos/customer";
+import { Report } from "../../models/store/report";
+import { Customer } from "../../models/store/customer";
 
 ////// /customers/new [POST]
 export const createCustomer = async (req: Request, res: Response) => {

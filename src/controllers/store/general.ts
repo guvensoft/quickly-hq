@@ -3,10 +3,10 @@ import { ManagementDB, StoreDB, DatabaseQueryLimit } from '../../configrations/d
 import { Store } from '../../models/management/store';
 import { StoreMessages } from '../../utils/messages';
 import { storeTablesInfo, storeCashboxInfo, storeChecksInfo, storePaymentsInfo } from "../../functions/store/info";
-import { Table } from "../../models/store/pos/table";
-import { Cashbox } from "../..//models/store/pos/cashbox";
-import { Check } from "../..//models/store/pos/check";
-import { ClosedCheck } from "../..//models/store/pos/check";
+import { Table } from "../../models/store/table";
+import { Cashbox } from "../../models/store/cashbox";
+import { Check } from "../../models/store/check";
+import { ClosedCheck } from "../../models/store/check";
 import { StoreInfo } from "../..//models/store/info";
 
 export const listStores = (req: Request, res: Response) => {

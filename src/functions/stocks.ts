@@ -1,6 +1,6 @@
 import { ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
-import { Report } from '../models/store/pos/report';
+import { Report } from '../models/store/report';
 import { Product } from '../models/management/product';
 
 export const dailyStockExpense = () => {

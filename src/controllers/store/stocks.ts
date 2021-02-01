@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { StockMessages } from '../../utils/messages';
-import { Report } from "../../models/store/pos/report";
+import { Report } from "../../models/store/report";
 
 ////// /stocks/new [POST]
 export const createStock = async (req: Request, res: Response) => {
