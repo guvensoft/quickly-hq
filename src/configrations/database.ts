@@ -106,11 +106,10 @@ export const RemoteCollection = (database: Database, collection: string, usernam
 export const OrderDatabase = PouchDB.defaults({ size: 10, ...InMemoryConfigration });
 export const OrderMiddleware = ExpressPouch(OrderDatabase, { inMemoryConfig: true, overrideMode: { exclude: ['routes/authentication', 'routes/authorization', 'routes/session', 'routes/all-dbs',] } }); // mode: 'minimumForPouchDB', overrideMode: { exclude: ['routes/authentication', 'routes/authorization', 'routes/session'] } 
 
-export const OrderDB = async (store_id: string | string[], name: string) => {
+export const OrderDB = async (store_id: string | string[], name: string, sync: boolean) => {
     try {
         const Database = new OrderDatabase(name);
         const StoreDatabase = await StoreDB(store_id);
-
         // Database.changes({ since: 'now', live: true, include_docs: true, selector: { db_name: 'orders' } })
         //     .on('change', (changes) => {
         //         if (!changes.deleted) {
@@ -125,14 +124,14 @@ export const OrderDB = async (store_id: string | string[], name: string) => {
         //     .on('error', (err) => {
         //         console.log(err);
         //     })
-
-        Database.sync(StoreDatabase, { since: 'now', live: true, selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipt', check: name }] } })
-            .on('change', (changes) => {
-                console.log(changes)
-            }).on('error', (err) => {
-                console.log(err);
-            })
-
+        if (sync) {
+            Database.sync(StoreDatabase, { since: 'now', live: true, selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipt', check: name }] } })
+                .on('change', (changes) => {
+                    // console.log(changes)
+                }).on('error', (err) => {
+                    console.log(err);
+                })
+        }
         return Database;
 
     } catch (error) {

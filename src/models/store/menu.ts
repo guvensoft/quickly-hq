@@ -56,7 +56,7 @@ export interface MenuItem {
     image: string;
     is_hidden: boolean;
     product_id: string;
-    options?: Array<{ name: string, price: string }>;
+    options?: Array<{ name: string, price: number }>;
 }
 
 export interface MenuStore {
@@ -112,7 +112,8 @@ export enum OrderStatus {
     WAITING,
     PREPARING,
     APPROVED,
-    CANCELED
+    CANCELED,
+    PAYED
 }
 
 export interface Receipt {

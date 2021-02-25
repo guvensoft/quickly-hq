@@ -3,10 +3,27 @@ export interface StoreInfo {
     tables: StoreTablesInfo,
     checks: StoreChecksInfo,
     cashbox: StoreCashboxesInfo,
-    payments: StorePaymentsInfo,
+    sales: StoreSalesInfo,
+    orders?: StoreOrdersInfo,
+    receipts?: StoreReceiptsInfo
 }
 
-export interface StorePaymentsInfo {
+export interface StoreReceiptsInfo {
+    requested:number,
+    waiting:number,
+    ready:number,
+    approved:number,
+    canceled:number
+}
+
+export interface StoreOrdersInfo {
+    waiting:number,
+    preparing:number,
+    approved:number,
+    canceled:number,
+}
+
+export interface StoreSalesInfo {
     cash: number;
     card: number;
     coupon: number;
@@ -38,4 +55,22 @@ export interface StoreTablesInfo {
 export interface StoreCashboxesInfo {
     income: number;
     outcome: number;
+}
+
+export interface StoreStocksInfo {
+    total:number,
+    warning:number,
+    empty:number,
+}
+
+export interface StoreSupplyInfo {
+    waiting:number,
+    ontheway:number,
+    taken:number,
+}
+
+export interface StoreLogsInfo {
+    notifications:number,
+    warnings:number,
+    checkpoints:number,
 }

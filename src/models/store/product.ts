@@ -33,6 +33,7 @@ export interface Product {
     status: number,
     tax_value: number,
     barcode: number,
+    notes: string,
     subcat_id?: string,
     specifies?: Array<ProductSpecs>,
     _id?: string,
@@ -64,14 +65,12 @@ export interface Ingredient {
     stock_id: string,
     amount: number
 }
-
 export enum ProductType {
     PASSIVE,
     AUTOMATIC,
     MANUEL
 }
-
-export enum ProductStatus{
+export enum ProductStatus {
     PASSIVE,
     ACTIVE,
     LOCKED,

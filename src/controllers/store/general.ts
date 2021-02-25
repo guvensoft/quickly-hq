@@ -31,7 +31,13 @@ export const storeInfo = async (req: Request, res: Response) => {
         let cashboxes: Array<Cashbox> = (await StoreDatabase.find({ selector: { db_name: 'cashbox' }, limit: DatabaseQueryLimit })).docs;
         let checks: Array<Check> = (await StoreDatabase.find({ selector: { db_name: 'checks' }, limit: DatabaseQueryLimit })).docs;
         let closed_checks: Array<ClosedCheck> = (await StoreDatabase.find({ selector: { db_name: 'closed_checks' }, limit: 1000 })).docs;
-        let StoreInfoObject: StoreInfo = { store_id: StoreID, tables: storeTablesInfo(tables), cashbox: storeCashboxInfo(cashboxes), checks: storeChecksInfo(checks), payments: storePaymentsInfo(closed_checks) };
+        let StoreInfoObject: StoreInfo = {
+            store_id: StoreID,
+            tables: storeTablesInfo(tables),
+            cashbox: storeCashboxInfo(cashboxes),
+            checks: storeChecksInfo(checks), 
+            sales: storePaymentsInfo(closed_checks)
+        };
         res.status(200).json(StoreInfoObject);
     } catch (error) {
         res.status(500).json({ ok: false, message: 'İşletme Bilgileri Getirilirken Hata Oluştu' });
@@ -122,4 +128,38 @@ export const storesInfo = (req: Request, res: Response) => {
     }).catch(err => {
         res.status(StoreMessages.STORE_NOT_EXIST.code).json(StoreMessages.STORE_NOT_EXIST.response);
     })
+}
+
+// req: Request, res: Response
+export const storesInfo2 = async () => {
+    const OwnerID: string = 'bbe63bd6-b3bd-4011-ad7e-88180d3d0b0f' // req.app.locals.user;
+    const OwnerStores = await (await ManagementDB.Owners.get(OwnerID)).stores;
+    const Stores = await ManagementDB.Stores.allDocs({ include_docs: true, keys: OwnerStores })
+
+
+    // ManagementDB.Stores.bulkGet({})
+
+
+    ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
+        const Stores: Array<Store> = db_res.docs;
+        ManagementDB.Owners.get(OwnerID).then(Owner => {
+            let Response: Array<StoreInfo> = [];
+
+            let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
+
+            OwnerStores.forEach((store, index) => {
+
+                StoreDB(store._id).then(StoreDatabase => {
+
+
+
+
+                })
+
+
+
+            })
+        })
+    })
+
 }

@@ -13,9 +13,9 @@ import { OrderMiddleware } from './configrations/database'
 import { corsOptions } from './configrations/cors';
 
 import * as blackboard from './blackboard';
-import { processPurchase } from './configrations/payments';
 
 //// 19286545426 - 0(212)-367-60-60:3678
+//// MOM 23957103044
 
 export const app = express();
 
@@ -34,8 +34,8 @@ app.use('/management', cors(), require('./routes/management'));
 app.use('/store', cors(), require('./routes/store'));
 app.use('/market', cors(), require('./routes/market'));
 app.use('/menu', cors(), require('./routes/menu'));
-// app.use('/order', cors(corsOptions), OrderMiddleware);
-app.use('/order', cors({ origin: 'http://localhost:8100', credentials: true }), OrderMiddleware);
+app.use('/order', cors(corsOptions), OrderMiddleware);
+// app.use('/order', cors({ origin: 'http://localhost:8100', credentials: true }), OrderMiddleware);
 
 app.all('/', (req, res) => res.status(404).end());
 
@@ -63,20 +63,20 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 /* Memory Listener Interval */
 
-setInterval(() => {
-    console.clear();
-    const heap = process.memoryUsage().heapUsed / 1024 / 1024;
-    const total_heap = process.memoryUsage().heapTotal / 1024 / 1024;
-    const sysCPU = process.cpuUsage().system / 1024 / 1024;
-    const usrCPU = process.cpuUsage().user / 1024 / 1024;
-    console.log('---------------------------------------')
-    console.log(`System CPU:                     % ${Math.round(sysCPU * 100) / 100}`);
-    console.log(`User   CPU:                     % ${Math.round(usrCPU * 100) / 100}`);
-    console.log('---------------------------------------')
-    console.log(`Memory:                       ${(Math.round(heap * 100) / 100).toFixed(2)} MB`);
-    console.log(`Allocated Heap:               ${(Math.round(total_heap * 100) / 100).toFixed(2)} MB`);
-    console.log('---------------------------------------')
-}, 1000)
+// setInterval(() => {
+//     console.clear();
+//     const heap = process.memoryUsage().heapUsed / 1024 / 1024;
+//     const total_heap = process.memoryUsage().heapTotal / 1024 / 1024;
+//     const sysCPU = process.cpuUsage().system / 1024 / 1024;
+//     const usrCPU = process.cpuUsage().user / 1024 / 1024;
+//     console.log('---------------------------------------')
+//     console.log(`System CPU:                     % ${Math.round(sysCPU * 100) / 100}`);
+//     console.log(`User   CPU:                     % ${Math.round(usrCPU * 100) / 100}`);
+//     console.log('---------------------------------------')
+//     console.log(`Memory:                       ${(Math.round(heap * 100) / 100).toFixed(2)} MB`);
+//     console.log(`Allocated Heap:               ${(Math.round(total_heap * 100) / 100).toFixed(2)} MB`);
+//     console.log('---------------------------------------')
+// }, 1000)
 
 
 /* For Testing New Functions */
@@ -118,5 +118,8 @@ setInterval(() => {
 // blackboard.menuChanger();
 
 // blackboard.DailySalesReport('okkali-marmara-forum');
-
 // processPurchase()
+// blackboard.addNotes();
+// blackboard.menuToTerminal('9bc2c532-634e-433e-ba97-224fdf4fa0d5');
+// blackboard.storesInfo2();
+// blackboard.documentTransport('okkali-marmara-forum', 'kallavi-marmaraforum', { db_name: 'settings', key:'Printers' }, 'fetch');

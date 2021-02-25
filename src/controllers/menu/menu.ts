@@ -6,9 +6,12 @@ import { writeFile } from 'fs';
 import { cdnMenuPath } from '../../configrations/paths';
 import { createLog, LogType } from "../../utils/logger";
 import { Store } from "../../models/management/store";
-import { Menu, OrderType } from "../../models/store/menu";
-import axios from 'axios';
+import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus } from "../../models/store/menu";
 import { processPurchase } from "../../configrations/payments";
+import { Check } from "../../models/store/check";
+
+import axios from 'axios';
+
 
 export const requestStore = async (req: Request, res: Response) => {
 
@@ -121,9 +124,9 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
 
 export const menuComment = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const FormData = req.body;
+    const FormData = req.body.comment;
     try {
-        const sendComment = await (await StoreDB(StoreID)).post({ db_name: 'comments', ...FormData });
+        const sendComment = await (await StoreDB(StoreID)).post({ db_name: 'comments', ...FormData, timestamp: Date.now() });
         if (sendComment.ok) {
             res.json({ ok: true, message: 'Yorum Gönderildi' });
         }
@@ -144,7 +147,7 @@ export const checkRequest = async (req: Request, res: Response) => {
                 axios.get('http://localhost:3000/order/' + Token).then(ax_res => {
                     res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
                 }).catch(async err => {
-                    const inMemoryOrderDB = await OrderDB(StoreID, Token);
+                    const inMemoryOrderDB = await OrderDB(StoreID, Token, true);
                     if (inMemoryOrderDB.name == Token) {
                         res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE, check: Check });
                     } else {
@@ -170,34 +173,65 @@ export const checkRequest = async (req: Request, res: Response) => {
 
 export const payReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const Token = req.params.token;
-    const Receipt = req.body.receipt;
-    const CreditCard = req.body.card;
+    const Token: string = req.params.token;
+
+    const Database = await OrderDB(StoreID, Token, false);
+    const StoreDatabase = await StoreDB(StoreID);
+
+    const CreditCard: { number: string, expiry: string, cvc: string, 'first-name': string, 'last-name': string } = req.body.card;
     try {
-        const orderRequestType = await (await StoreDB(StoreID)).get(Token);
+        const orderRequestType = await StoreDatabase.get(Token);
         switch (orderRequestType.db_name) {
             case 'checks':
-                let Check = orderRequestType;
 
+                let Check: Check = orderRequestType;
+                let Receipt: Receipt = req.body.receipt;
+                let User: User = Receipt.user;
 
+                let userItems = Receipt.orders.filter(order => order.status == OrderStatus.APPROVED);
 
-              // this.userItems.map(obj => {
-              //   obj._deleted = true;
-              //   return obj;
-              // })
-              // this.db.Database.bulkDocs(this.userItems).then(order_res => {
-              //   this.userItems = [];
-              //   this.checkItems = this.checkItems.filter(obj => obj.user_name !== this.username);
-              // }).catch(err => {
-              //   this.presentToast('Lütfen tekrar deneyiniz!');
-              // })
+                userItems.map(obj => {
+                    obj.status = OrderStatus.PAYED;
+                    return obj;
+                })
 
-              
-                res.status(200).json({ ok: true, card: CreditCard, receipt: Receipt });
+                Receipt.status = ReceiptStatus.APPROVED;
+
+                Database.bulkDocs(userItems).then(order_res => {
+                    Database.put(Receipt).then(isOK => {
+                        res.status(200).json({ ok: true, receipt: Receipt });
+                    }).catch(err => {
+                        console.log('Receipt Update Error on Payment Process', err);
+                        res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                    })
+                }).catch(err => {
+                    console.log('Orders Update Error on Payment Process', err);
+                    res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+
+                })
+
+                // TODO Delete items from Check to Payed
+
+                // processPurchase(CreditCard.number, CreditCard.expiry.slice(2), CreditCard.expiry.slice(0, 2), CreditCard.cvc, Receipt.total.toString()).then(async success => {
+                //     console.log(success.OrderId, Receipt.user.id);
+                //     try {
+                //         let Database = await OrderDB(StoreID, Token, false);
+                //         console.log(Database.info())
+                //         res.status(200).json({ ok: true, receipt: Receipt });
+
+                //     } catch (error) {
+                //         res.status(200).json({ ok: false, error: error });
+
+                //     }
+                // }).catch(err => {
+                //     console.log(err)
+                //     res.status(200).json({ ok: false, error: err });
+                // })
+                
                 break;
             case 'customers':
                 let Customer = orderRequestType;
-                res.status(200).json({ ok: true, card: CreditCard, receipt: Receipt });
+                res.status(200).json({ ok: true, receipt: Receipt });
                 break;
             default:
                 res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })

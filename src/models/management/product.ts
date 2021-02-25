@@ -19,8 +19,8 @@ export interface Product {
     status: ProductStatus,
     order: number,
     timestamp: number,
-    _id: string,
-    _rev: string
+    _id?: string,
+    _rev?: string
 }
 
 export interface ProductPackage {

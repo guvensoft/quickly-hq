@@ -1,3 +1,5 @@
+import path from 'path';
+import { writeFile, readFile, readFileSync } from 'fs';
 import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit, RemoteCollection } from './configrations/database';
 import { Database } from './models/management/database';
 import { Store } from './models/management/store';
@@ -9,21 +11,16 @@ import { Cashbox } from './models/store/cashbox';
 import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/check';
 import { Log, logType } from './models/store/log';
 import { readJsonFile, writeJsonFile, readDirectory } from './functions/files';
-import { writeFile, readFile, readFileSync } from 'fs';
-import { Product } from './models/management/product';
-import path from 'path';
 import { createIndexesForDatabase, purgeDatabase, createStoreDatabase } from './functions/database';
-import { object, string } from 'joi';
 
 import { Parser } from 'xml2js';
 import { Table, TableStatus } from './models/store/table';
 
-
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { Menu, MenuStatus } from './models/store/menu';
-
-// import { productToStock } from 'src/functions/stocks';
+import { Category, Product, ProductSpecs, SubCategory } from './models/store/product';
+import { productToStock } from './functions/stocks';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -140,8 +137,6 @@ export const fixTables = async (db_name: string) => {
     //     console.log(err);
     // })
 }
-
-
 
 export const Logs = () => {
 
@@ -262,7 +257,6 @@ export const Fixer = (db_name: string) => {
         })
     })
 }
-
 
 export const DailySalesReport = (store_db_name: string) => {
 
@@ -551,7 +545,6 @@ export const databaseLogs = (db_name: string, search: string) => {
     })
 }
 
-
 export const veryOldUpdate = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
@@ -610,7 +603,6 @@ export const veryOldUpdate = () => {
         })
     })
 }
-
 
 export const getProducts = (store_id) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
@@ -866,7 +858,6 @@ export const importProducts = () => {
 
 }
 
-
 export const importDatabase = () => {
     let databasePath = path.join(__dirname, '../..', '/backup/goches/db.json');
     readJsonFile(databasePath).then((res: Array<any>) => {
@@ -907,7 +898,6 @@ export const importDatabase = () => {
     });
 }
 
-
 export const createProductIndexes = () => {
     console.log('Indexing Started For Products Database');
     createIndexesForDatabase(ManagementDB.Products, { index: { fields: ['producer_id', 'brand_id'] } }).then(res => {
@@ -918,7 +908,6 @@ export const createProductIndexes = () => {
         console.error(err);
     })
 }
-
 
 export const ReportsClearer = async (db_name) => {
     try {
@@ -970,8 +959,6 @@ export const productFinder = (product_name: string) => {
     });
 }
 
-
-
 export const invoiceReader = () => {
     const xmlParser = new Parser();
     const invoicePath = path.join(__dirname, '../', '/backup/kosmos/fatura.xml');
@@ -1013,20 +1000,20 @@ export const invoiceReader = () => {
     });
 }
 
-// export const productToStockApi = async (product_id: string, quantity: number, store_id: string) => {
-//     try {
-//         const product = await ManagementDB.Products.get(product_id);
-//         const StoresDB = await StoreDB(store_id);
-//         const isAlreadyAdded = await StoresDB.find({ selector: { db_name: 'stocks', product: product_id } });
-//         if (isAlreadyAdded.docs.length > 0) {
-//             throw Error('Stock Already Added');
-//         } else {
-//             return StoresDB.post({ db_name: 'stocks', ...productToStock(product, quantity) });
-//         }
-//     } catch (error) {
-//         throw Error(error);
-//     }
-// }
+export const productToStockApi = async (product_id: string, quantity: number, store_id: string) => {
+    try {
+        const product = await ManagementDB.Products.get(product_id);
+        const StoresDB = await StoreDB(store_id);
+        const isAlreadyAdded = await StoresDB.find({ selector: { db_name: 'stocks', product: product_id } });
+        if (isAlreadyAdded.docs.length > 0) {
+            throw Error('Stock Already Added');
+        } else {
+            return StoresDB.post({ db_name: 'stocks', ...productToStock(product, quantity) });
+        }
+    } catch (error) {
+        throw Error(error);
+    }
+}
 
 export const documentbackup = (from: string, to: string, selector: any) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
@@ -1043,7 +1030,6 @@ export const documentbackup = (from: string, to: string, selector: any) => {
         })
     })
 }
-
 
 export const lastChanges = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
@@ -1062,7 +1048,6 @@ export const lastChanges = () => {
         });
     })
 };
-
 
 export const reisImport = () => {
 
@@ -1152,7 +1137,6 @@ export const importFromBackup = async (store_id: string) => {
     console.log(bulkResponse);
 };
 
-
 export const purgeTest = (store_id: string) => {
     ManagementDB.Stores.get(store_id).then(store => {
         purgeDatabase(store.auth).then(res => {
@@ -1176,10 +1160,10 @@ export const recrateDatabase = (store_id: string) => {
 export const addNotes = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-        RemoteDB(db, 'kosmos-besiktas').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
+        RemoteDB(db, 'kallavi-besiktas').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
             return res.docs.map(object => {
                 try {
-                    object.notes = '';
+                    object.notes = 'Tam Yağlı,Yarım Yağlı,Laktozsuz,Sade,Az Şekerli,Orta Şekerli,Şekerli,Bol Şekerli,Limon Dilimli,Buzlu,Tuzsuz,Sütlü';
                 } catch (error) {
                     console.log(object.name);
                 }
@@ -1188,13 +1172,12 @@ export const addNotes = () => {
             });
         }).then(stocks => {
             console.log(stocks);
-            RemoteDB(db, 'kosmos-besiktas').bulkDocs(stocks).then(res => {
+            RemoteDB(db, 'kallavi-besiktas').bulkDocs(stocks).then(res => {
                 console.log('Property Added Successfuly');
             })
         })
     })
 }
-
 
 export const makePdf = async (db_name: string) => {
     try {
@@ -1248,7 +1231,6 @@ export const makePdf = async (db_name: string) => {
     }
 }
 
-
 export const menuChanger = () => {
     ManagementDB.Databases.find({ selector: {} }).then(dbs => {
         let CouchRadore: Database = dbs.docs[0];
@@ -1281,5 +1263,117 @@ export const menuChanger = () => {
         })
     })
 
+
+}
+
+export const menuToTerminal = async (store_id: string) => {
+    try {
+        const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
+        const StoreDatabase = await StoreDB(store_id);
+        const Menu: Menu = await (await RemoteDB(Database, 'quickly-menu-app').find({ selector: { store_id: store_id } })).docs[0];
+
+        Menu.categories.forEach((category, index) => {
+
+            let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
+            StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
+                console.log('+ Kategori Eklendi', newCategory.name);
+                if (category.items_group) {
+
+                    category.items_group.forEach(sub_cat => {
+                        let newSubCategory: SubCategory = { name: sub_cat.name, description: '', status: 0, cat_id: cat_res.id }
+                        StoreDatabase.post({ db_name: 'sub_categories', ...newSubCategory }).then(sub_cat_res => {
+
+
+                        }).catch(err => {
+
+
+                        });
+                    });
+                } else {
+                    category.items.forEach(item => {
+                        if (item.price) {
+                            let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
+                            StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                console.log('+ Ürün Eklendi', newCategory.name);
+                                newProduct._id = product_res.id;
+                                newProduct._rev = product_res.rev;
+                                let newReport = createReport('Product', newProduct);
+                                StoreDatabase.post(newReport).then(res => {
+                                    console.log('+ Rapor Eklendi', newReport.description);
+                                }).catch(err => {
+                                    console.log('Rapor Hatası', newReport.description)
+                                })
+                            }).catch(err => {
+                                console.log('Ürün Hatası', item.name)
+                            })
+                        } else {
+                            let specs: Array<ProductSpecs> = [];
+                            item.options.forEach(opts => {
+                                let spec: ProductSpecs = {
+                                    spec_name: opts.name,
+                                    spec_price: opts.price
+                                }
+                                specs.push(spec);
+                            })
+                            let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, tax_value: 8, }
+                            StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                console.log('+ Ürün Eklendi', newCategory.name);
+                                newProduct._id = product_res.id;
+                                newProduct._rev = product_res.rev;
+                                let newReport = createReport('Product', newProduct);
+                                StoreDatabase.post(newReport).then(res => {
+                                    console.log('+ Rapor Eklendi', newReport.description);
+                                }).catch(err => {
+                                    console.log('Rapor Hatası', newReport.description)
+                                })
+                            }).catch(err => {
+                                console.log('Ürün Hatası', item.name)
+                            })
+                        }
+                    })
+                }
+            }).catch(err => {
+                console.log('Kategori Hatası', category.name)
+            })
+        })
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+export const storesInfo2 = async () => {
+    const OwnerID: string = 'bbe63bd6-b3bd-4011-ad7e-88180d3d0b0f' // req.app.locals.user;
+    const OwnerStores = await (await ManagementDB.Owners.get(OwnerID)).stores;
+    const Stores = await (await ManagementDB.Stores.allDocs({include_docs:true,keys:OwnerStores})).rows.map(obj => obj.doc);
+
+
+
+
+    // ManagementDB.Stores.bulkGet({})
+
+
+    // ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
+    //     const Stores: Array<Store> = db_res.docs;
+    //     ManagementDB.Owners.get(OwnerID).then(Owner => {
+    //         let Response: Array<StoreInfo> = [];
+
+    //         let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
+
+    //         OwnerStores.forEach((store, index) => {
+
+    //             StoreDB(store._id).then(StoreDatabase => {
+
+    //                 StoreDatabase.
+
+
+
+    //             })
+
+
+
+    //         })
+    //     })
+    // })
 
 }

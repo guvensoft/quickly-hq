@@ -1,10 +1,13 @@
 import { Table, TableStatus } from "../../models/store/table";
 import { Cashbox } from "../../models/store/cashbox";
 import { Check, ClosedCheck, CheckType } from "../../models/store/check";
-import { StoreTablesInfo, StoreChecksInfo, StoreCashboxesInfo, StorePaymentsInfo } from "../../models/store/info";
+import { StoreTablesInfo, StoreChecksInfo, StoreCashboxesInfo, StoreSalesInfo, StoreOrdersInfo, StoreReceiptsInfo } from "../../models/store/info";
+import { Log } from "../../models/store/log";
+import { Order, OrderStatus, ReceiptStatus } from "../../models/store/menu";
+import { Receipt } from "../../models/store/menu";
 
 export const storePaymentsInfo = (closed_checks: Array<ClosedCheck>) => {
-    let paymentsInfo: StorePaymentsInfo = { cash: 0, card: 0, coupon: 0, free: 0, canceled: 0, discount: 0, count: closed_checks.length, customers: { male: 0, female: 0 } };
+    let paymentsInfo: StoreSalesInfo = { cash: 0, card: 0, coupon: 0, free: 0, canceled: 0, discount: 0, count: closed_checks.length, customers: { male: 0, female: 0 } };
     paymentsInfo.cash = closed_checks.filter(obj => obj.payment_method == 'Nakit').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
     paymentsInfo.card = closed_checks.filter(obj => obj.payment_method == 'Kart').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
     paymentsInfo.coupon = closed_checks.filter(obj => obj.payment_method == 'Kupon').map(obj => obj.total_price).reduce((a, b) => a + b, 0);
@@ -64,4 +67,31 @@ export const storeCashboxInfo = (cashboxes: Array<Cashbox>) => {
     } catch (error) {
         return cashboxesInfo;
     }
+}
+
+export const storeLogsInfo = (logs: Array<Log>) => {
+
+
+}
+
+export const storeOrdersInfo = (orders: Array<Order>) => {
+    let ordersInfo: StoreOrdersInfo = {
+        waiting: orders.filter(obj => obj.status == OrderStatus.WAITING).length,
+        preparing: orders.filter(obj => obj.status == OrderStatus.PREPARING).length,
+        approved: orders.filter(obj => obj.status == OrderStatus.APPROVED).length,
+        canceled: orders.filter(obj => obj.status == OrderStatus.CANCELED).length
+    }
+    return ordersInfo;
+}
+
+
+export const storeReceiptsInfo = (receipts: Array<Receipt>) => {
+    let receiptsInfo: StoreReceiptsInfo = {
+        waiting: receipts.filter(obj => obj.status == ReceiptStatus.WAITING).length,
+        ready: receipts.filter(obj => obj.status == ReceiptStatus.READY).length,
+        requested: receipts.filter(obj => obj.status == ReceiptStatus.REQUESTED).length,
+        approved: receipts.filter(obj => obj.status == ReceiptStatus.APPROVED).length,
+        canceled: receipts.filter(obj => obj.status == ReceiptStatus.CANCELED).length
+    }
+    return receiptsInfo;
 }
