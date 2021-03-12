@@ -8,6 +8,7 @@
     "start": "run-s build serve",
     "build": "tsc",
     "serve": "run-p watch-ts watch-node",
+    "debug": "nodemon --inspect dist/server.js",
     "pkg": "pkg . --target=latest-linux-x64",
     "watch-node": "nodemon dist/server.js",
     "watch-ts": "tsc -w"

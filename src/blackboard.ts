@@ -21,6 +21,7 @@ import autoTable from 'jspdf-autotable'
 import { Menu, MenuStatus } from './models/store/menu';
 import { Category, Product, ProductSpecs, SubCategory } from './models/store/product';
 import { productToStock } from './functions/stocks';
+import { endDayProcess } from './controllers/store/endofday';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -639,9 +640,9 @@ export const documentTransport = (from: string, to: string, selector: any, type:
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
         if (type == 'update') {
-            RemoteDB(db, to).find({ selector: selector, limit: 2500 }).then(res => {
+            RemoteDB(db, to).find({ selector: selector, limit: 5000 }).then(res => {
                 let docs = res.docs;
-                RemoteDB(db, from).find({ selector: selector, limit: 2500 }).then((res2: any) => {
+                RemoteDB(db, from).find({ selector: selector, limit: 5000 }).then((res2: any) => {
                     return res2.docs.map(obj => {
                         let originalDoc = docs.find(doc => doc._id == obj._id);
                         if (originalDoc) {
@@ -650,7 +651,7 @@ export const documentTransport = (from: string, to: string, selector: any, type:
                         return obj;
                     });
                 }).then(documents => {
-                    RemoteDB(db, to).bulkDocs(documents).then(res3 => {
+                    RemoteDB(db, to).bulkDocs(documents,{}).then(res3 => {
                         console.log('Document Moved Successfuly');
                     }).catch(err => {
                         console.log(err);
@@ -659,7 +660,7 @@ export const documentTransport = (from: string, to: string, selector: any, type:
 
             })
         } else if (type == 'fetch') {
-            RemoteDB(db, from).find({ selector: selector, limit: 2500 }).then((res: any) => {
+            RemoteDB(db, from).find({ selector: selector, limit: 5000 }).then((res: any) => {
                 return res.docs.map(obj => {
                     delete obj._rev;
                     return obj;
@@ -1137,6 +1138,18 @@ export const importFromBackup = async (store_id: string) => {
     console.log(bulkResponse);
 };
 
+
+export const clearDatabase = async (store_id: string) => {
+    try {
+        const Store: Store = await ManagementDB.Stores.get(store_id);
+        const StoreDocuments = (await (await StoreDB(store_id)).allDocs({ include_docs: true })).rows.map(obj => obj.doc);
+        const purgeProcess = await purgeDatabase(Store.auth);
+        await (await StoreDB(store_id)).bulkDocs(StoreDocuments, {});
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 export const purgeTest = (store_id: string) => {
     ManagementDB.Stores.get(store_id).then(store => {
         purgeDatabase(store.auth).then(res => {
@@ -1345,7 +1358,7 @@ export const menuToTerminal = async (store_id: string) => {
 export const storesInfo2 = async () => {
     const OwnerID: string = 'bbe63bd6-b3bd-4011-ad7e-88180d3d0b0f' // req.app.locals.user;
     const OwnerStores = await (await ManagementDB.Owners.get(OwnerID)).stores;
-    const Stores = await (await ManagementDB.Stores.allDocs({include_docs:true,keys:OwnerStores})).rows.map(obj => obj.doc);
+    const Stores = await (await ManagementDB.Stores.allDocs({ include_docs: true, keys: OwnerStores })).rows.map(obj => obj.doc);
 
 
 

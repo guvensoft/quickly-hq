@@ -35,7 +35,7 @@ export const productToStock = (product: Product, quantity: number, warning?: num
         left_total: product.portion * quantity,
         first_total: product.portion * quantity,
         warning_value: (warning ? warning : 25),
-        warning_limit: (this.total * this.quantity) * this.warning_value / 100,
+        warning_limit: (product.portion * quantity) * (warning ? warning : 25) / 100,
         category: product.category,
         sub_category: product.sub_category,
         producer: product.producer_id,

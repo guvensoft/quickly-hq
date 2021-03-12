@@ -19,18 +19,38 @@ export const createStoreDatabase = (storeAuth: StoreAuth) => {
                         RemoteCheck.info().then(databaseInfo => {
                             resolve(databaseInfo);
                         }).catch((err) => {
+                            console.log('New Database Connection Error:',err.reason)
                             reject(err)
                         });
                     }).catch(err => {
+                        console.log('Database User Not Inserted!:',err.reason)
                         reject(err)
                     });
                 }).catch(err => {
+                    console.log('New Database Not Created!:',err.reason)
                     reject(err)
                 });
             }).catch(err => {
-                reject(err)
+                console.log('User Exist! - Old User will be owner again..!')
+                DB.create(storeAuth.database_name).then(() => {
+                    DB.use(storeAuth.database_name).insert(newUser.secObject(), "_security").then(() => {
+                        RemoteCheck.info().then(databaseInfo => {
+                            resolve(databaseInfo);
+                        }).catch((err) => {
+                            console.log('New Database Connection Error:',err.reason)
+                            reject(err)
+                        });
+                    }).catch(err => {
+                        console.log('Database User Not Inserted!:',err.reason)
+                        reject(err)
+                    });
+                }).catch(err => {
+                    console.log('New Database Not Created!:',err.reason)
+                    reject(err)
+                });
             });
         }).catch(err => {
+            console.log('Store Not Found!:')
             reject(err)
         });
     })
@@ -46,16 +66,20 @@ export const purgeDatabase = (storeAuth: StoreAuth) => {
                     createStoreDatabase(storeAuth).then(isOk => {
                         resolve(isOk);
                     }).catch(err => {
+                        console.log('New Database Not Created!:', err.reason)
                         reject(err)
                     })
                 } else {
+                    console.log('Database Not Destroyed!:', isDeleted)
                     reject(isDeleted);
                 }
             }).catch(err => {
-                reject(err)
+                console.log('Database Destroy Process Fault!:', err.reason)
+                reject(err);
             })
         })
     });
 }
+
 
 

@@ -108,18 +108,25 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.allRevisions('okkali-marmara-forum','83644083-a915-48fd-8961-e4045d440d33');
 // blackboard.databaseLogs('kosmos-besiktas','C-1');
 // blackboard.thatDay();
-// blackboard.documentTransport('okkali-marmara-forum', 'kosmos-besiktas', { db_name: 'endday' }, 'fetch');
-// blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77');
-// blackboard.recrateDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
+// blackboard.purgeTest('d1265d7d-142a-46d3-8383-261ee97cb577');
+// blackboard.recrateDatabase('d1265d7d-142a-46d3-8383-261ee97cb577')
 // blackboard.importFromBackup('d622f9dd-036b-4775-bbee-911d301c5b77');
 // blackboard.makePdf('kosmos-besiktas')
 // blackboard.dayDetail('643ed17a-0594-4ff7-bd90-193dac1e71c8','1603048585197')
-// blackboard.makePdf('okkali-marmara-forum');
+// blackboard.makePdf('kallavi-marmaraforum');
 // blackboard.menuChanger();
 
-// blackboard.DailySalesReport('okkali-marmara-forum');
+// blackboard.DailySalesReport('kallavi-besiktas');
 // processPurchase()
 // blackboard.addNotes();
-// blackboard.menuToTerminal('9bc2c532-634e-433e-ba97-224fdf4fa0d5');
+// blackboard.menuToTerminal('d8412bb0-5546-4b78-922e-b7a774daa217');
 // blackboard.storesInfo2();
 // blackboard.documentTransport('okkali-marmara-forum', 'kallavi-marmaraforum', { db_name: 'settings', key:'Printers' }, 'fetch');
+
+// blackboard.Fixer('kallavi-besiktas');
+
+
+// blackboard.clearDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
+// blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77')
+
+// blackboard.documentTransport('kosmos-backup', 'kosmos-besiktas', {db_name:"endday"}, 'fetch');   

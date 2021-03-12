@@ -125,7 +125,7 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
         //         console.log(err);
         //     })
         if (sync) {
-            Database.sync(StoreDatabase, { since: 'now', live: true, selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipt', check: name }] } })
+            Database.sync(StoreDatabase, { since: 'now', live: true, selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipts', check: name }] } })
                 .on('change', (changes) => {
                     // console.log(changes)
                 }).on('error', (err) => {
