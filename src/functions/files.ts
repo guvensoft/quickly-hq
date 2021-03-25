@@ -22,7 +22,8 @@ export const readJsonFile = (file_path: string): Promise<any> => {
 
 export const writeJsonFile = (file_path: string, data: any) => {
     return new Promise<boolean>((resolve, reject) => {
-        writeFile(file_path, data, (err) => {
+        const Data = JSON.stringify(data);
+        writeFile(file_path, Data, (err) => {
             if (!err) {
                 resolve(true);
             } else {

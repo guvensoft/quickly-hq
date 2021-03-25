@@ -75,7 +75,7 @@ export const StoreSalesReport = (checks: Array<ClosedCheck>) => {
 
 export const UserProductSalesReport = (user_id: string, checks_to_count: Array<ClosedCheck>) => {
     let dayProducts = [];
-    let userProductsSaleReport = [];
+    let productsSaleReport = [];
     try {
         checks_to_count.forEach(obj => {
             let productsPayed;
@@ -89,32 +89,67 @@ export const UserProductSalesReport = (user_id: string, checks_to_count: Array<C
         dayProducts.forEach(product => {
             try {
                 if (product.owner == user_id) {
-                    let contains = userProductsSaleReport.some(obj => obj.name == product.name);
+                    let contains = productsSaleReport.some(obj => obj.name == product.name);
                     if (contains) {
-                        let index = userProductsSaleReport.findIndex(obj => obj.name == product.name);
-                        userProductsSaleReport[index].count++;
+                        let index = productsSaleReport.findIndex(obj => obj.name == product.name);
+                        productsSaleReport[index].count++;
                     } else {
                         let countObj = { product_id: product.id, category_id: product.cat_id, name: product.name, count: 1 };
-                        userProductsSaleReport.push(countObj);
+                        productsSaleReport.push(countObj);
                     }
                 }
             } catch (error) {
                 console.log(product, error);
             }
         });
-        userProductsSaleReport.sort((a, b) => b.count - a.count);
-        return userProductsSaleReport;
+        productsSaleReport.sort((a, b) => b.count - a.count);
+        return productsSaleReport;
     } catch (error) {
         console.log(error);
     }
 }
 
+export const ProductSalesReport = (product_id: string, checks_to_count: Array<ClosedCheck>) => {
+    let dayProducts = [];
+    let productsSaleReport = [];
+    try {
+        checks_to_count.forEach(obj => {
+            let productsPayed;
+            if (obj.payment_flow) {
+                productsPayed = obj.payment_flow.map(payment => payment.payed_products);
+                dayProducts = dayProducts.concat(obj.products, productsPayed);
+            } else {
+                dayProducts = dayProducts.concat(obj.products);
+            }
+        });
+        dayProducts.forEach(product => {
+            try {
+                if (product._id == product_id) {
+                    let contains = productsSaleReport.some(obj => obj.name == product.name);
+                    if (contains) {
+                        let index = productsSaleReport.findIndex(obj => obj.name == product.name);
+                        productsSaleReport[index].count++;
+                    } else {
+                        let countObj = { product_id: product.id, category_id: product.cat_id, name: product.name, count: 1 };
+                        productsSaleReport.push(countObj);
+                    }
+                }
+            } catch (error) {
+                console.log(product, error);
+            }
+        });
+        productsSaleReport.sort((a, b) => b.count - a.count);
+        return productsSaleReport;
+    } catch (error) {
+        console.log(error);
+    }
+}
 
-export const UsersReport = (checksToCount: Array<ClosedCheck>): Array<UserSalesReport> => {
+export const UsersReport = (checks_to_count: Array<ClosedCheck>): Array<UserSalesReport> => {
     let dayProducts = [];
     let productSalesReport: Array<UserSalesReport> = [];
     try {
-        checksToCount.forEach(obj => {
+        checks_to_count.forEach(obj => {
             let productsPayed;
             if (obj.payment_flow) {
                 productsPayed = obj.payment_flow.map(payment => payment.payed_products);
@@ -146,11 +181,11 @@ export const UsersReport = (checksToCount: Array<ClosedCheck>): Array<UserSalesR
     }
 }
 
-export const ProductsReport = (checksToCount: Array<ClosedCheck>): Array<ProductSalesReport> => {
+export const ProductsReport = (checks_to_count: Array<ClosedCheck>): Array<ProductSalesReport> => {
     let dayProducts = [];
     let productSalesReport: Array<ProductSalesReport> = [];
     try {
-        checksToCount.forEach(obj => {
+        checks_to_count.forEach(obj => {
             let productsPayed;
             if (obj.payment_flow) {
                 productsPayed = obj.payment_flow.map(payment => payment.payed_products);
@@ -182,11 +217,10 @@ export const ProductsReport = (checksToCount: Array<ClosedCheck>): Array<Product
     }
 }
 
-
-export const TablesReport = (checksToCount: Array<ClosedCheck>): Array<TableSalesReport> => {
+export const TablesReport = (checks_to_count: Array<ClosedCheck>): Array<TableSalesReport> => {
     let tablesReport = [];
     try {
-        checksToCount.forEach(check => {
+        checks_to_count.forEach(check => {
             const contains = tablesReport.some(obj => obj.table_id == check.table_id);
             if (contains) {
                 let index = tablesReport.findIndex(obj => obj.table_id === check.table_id);

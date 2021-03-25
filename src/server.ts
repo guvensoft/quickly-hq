@@ -28,6 +28,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '10240kb' }));
 app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema!' } }));
 app.use(queryParser());
+
 // app.use(); // { origin: '*', credentials: true }
 
 app.use('/management', cors(), require('./routes/management'));
@@ -35,6 +36,7 @@ app.use('/store', cors(), require('./routes/store'));
 app.use('/market', cors(), require('./routes/market'));
 app.use('/menu', cors(), require('./routes/menu'));
 app.use('/order', cors(corsOptions), OrderMiddleware);
+
 // app.use('/order', cors({ origin: 'http://localhost:8100', credentials: true }), OrderMiddleware);
 
 app.all('/', (req, res) => res.status(404).end());
@@ -129,4 +131,8 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.clearDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77')
 
-// blackboard.documentTransport('kosmos-backup', 'kosmos-besiktas', {db_name:"endday"}, 'fetch');   
+// blackboard.documentTransport('mokka-cafe-pub-b099', 'sopung-besiktas', {db_name:"floors"}, 'fetch');   
+
+// blackboard.reportsTest('d622f9dd-036b-4775-bbee-911d301c5b77')
+
+

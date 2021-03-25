@@ -1,22 +1,43 @@
 import { Request, Response } from "express";
-import { ManagementDB, StoreDB, CouchDB, DatabaseQueryLimit } from '../../configrations/database';
-import { Store } from '../../models/management/store';
+import { StoreDB } from '../../configrations/database';
+import { backupPath } from '../../configrations/paths';
+import { readDirectory, writeJsonFile } from "../../functions/files";
+import { mkdir } from "fs";
 
-// import { StoreMessages } from '../../utils/messages';
-// import { storeTablesInfo, storeCashboxInfo, storeChecksInfo, storePaymentsInfo } from "../../functions/store/info";
-// import { Table } from "../../models/store/pos/table";
-// import { Cashbox } from "../..//models/store/pos/cashbox";
-// import { Check } from "../..//models/store/pos/check";
-// import { ClosedCheck } from "../..//models/store/pos/check";
-// import { StoreInfo } from "../..//models/store/info";
+export const uploadBackup = async (req: Request, res: Response) => {
+    const Store = req.headers.store;
+    const StoreDatabase = await StoreDB(Store);
+    StoreDatabase.find({ selector: { db_name: 'endday', data_file: req.body.timestamp } }).then(db_res => {
+        readDirectory(backupPath + `${Store}/days/`).then(exist => {
+            writeJsonFile(backupPath + `${Store}/days/${req.body.timestamp}`, req.body.data).then(isOk => {
+                res.status(200).json({ ok: true, message: 'Upload Process Succesfull!' })
+            }).catch(err => {
+                console.log(err);
+                res.status(400).json({ ok: false, message: err })
+            })
+        }).catch(err => {
+            mkdir(backupPath + `${Store}/days/`, { recursive: true }, (err) => {
+                if (!err) {
+                    writeJsonFile(backupPath + `${Store}/days/${req.body.timestamp}`, req.body.data).then(isOk => {
+                        res.status(200).json({ ok: true, message: 'Upload Process Succesfull!' })
+                    }).catch(err => {
+                        console.log(err);
+                        res.status(400).json({ ok: false, message: err })
+                    })
+                } else {
+                    console.log(err);
+                    res.status(400).json({ ok: false, message: err })
+                }
+            })
+        })
+    }).catch(err => {
+        res.status(400).json({ ok: false, message: 'Not Uploaded!' })
+    })
+}
 
 export const endDayProcess = (req: Request, res: Response) => {
     console.log('Store', req.headers.store);
     console.log(req.body.docs);
-
-
-
-
 
 
 }

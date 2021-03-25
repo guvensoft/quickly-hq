@@ -23,6 +23,8 @@ import { Category, Product, ProductSpecs, SubCategory } from './models/store/pro
 import { productToStock } from './functions/stocks';
 import { endDayProcess } from './controllers/store/endofday';
 
+import { StoreReport, ProductsReport, UsersReport, UserProductSalesReport, TablesReport, StoreSalesReport } from './functions/store/reports';
+
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
         const Databases: Database[] = databases.docs;
@@ -651,7 +653,7 @@ export const documentTransport = (from: string, to: string, selector: any, type:
                         return obj;
                     });
                 }).then(documents => {
-                    RemoteDB(db, to).bulkDocs(documents,{}).then(res3 => {
+                    RemoteDB(db, to).bulkDocs(documents, {}).then(res3 => {
                         console.log('Document Moved Successfuly');
                     }).catch(err => {
                         console.log(err);
@@ -1138,7 +1140,6 @@ export const importFromBackup = async (store_id: string) => {
     console.log(bulkResponse);
 };
 
-
 export const clearDatabase = async (store_id: string) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(store_id);
@@ -1389,4 +1390,18 @@ export const storesInfo2 = async () => {
     //     })
     // })
 
+}
+
+
+export const reportsTest = async (store_id: string) => {
+    // const t0 = performance.now();
+
+    const Days: Array<EndDay> = (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' } })).docs.sort((a, b) => a.timestamp - b.timestamp);
+    const BackupData: Array<BackupData> = await StoreReport(store_id, Days[0].timestamp.toString(), Days[Days.length - 1].timestamp.toString());
+    const Checks: Array<ClosedCheck> = BackupData.find(backup => backup.database == 'closed_checks').docs;
+    const Sales = StoreSalesReport(Checks);
+    console.log(Sales);
+
+    // const t1 = performance.now();
+    // console.log(`Call took ${t1 - t0} milliseconds.`);
 }

@@ -86,12 +86,6 @@ router.get("/reports/day/:start?/:end?",
     StoreReportsController.getDailyReports
 );
 
-// router.get("/reports/:start?/:end?",
-//     StoreAuthenticateGuard,
-//     StoreReportsController.getDurationReports
-// );
-
-
 // Store Documents Controller
 router.get("/db/:db_name/:id",
     StoreAuthenticateGuard,
@@ -133,6 +127,11 @@ router.get("/endday",
     StoreGuard,
     AccountGuard,
     StoreEndofdayController.endDayProcess
+);
+
+router.post("/backup",
+    StoreGuard,
+    StoreEndofdayController.uploadBackup
 );
 
 
