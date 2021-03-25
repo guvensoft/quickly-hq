@@ -37,6 +37,19 @@ router.post("/refresh",
     StoreAuthController.Refresh
 );
 
+/// Store Endday
+router.get("/endday",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreEndofdayController.endDayProcess
+);
+
+router.post("/backup",
+    StoreGuard,
+    StoreEndofdayController.uploadBackup
+);
+
 // Store General Controllers
 router.get("/list",
     StoreAuthenticateGuard,
@@ -121,18 +134,6 @@ router.get("/db/:db_name",
     DocumentController.queryDocuments
 );
 
-/// Store Endday
-router.get("/endday",
-    StoreAuthenticateGuard,
-    StoreGuard,
-    AccountGuard,
-    StoreEndofdayController.endDayProcess
-);
-
-router.post("/backup",
-    StoreGuard,
-    StoreEndofdayController.uploadBackup
-);
 
 
 module.exports = router;
