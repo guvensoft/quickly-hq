@@ -113,7 +113,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.purgeTest('d1265d7d-142a-46d3-8383-261ee97cb577');
 // blackboard.recrateDatabase('d1265d7d-142a-46d3-8383-261ee97cb577')
 // blackboard.importFromBackup('d622f9dd-036b-4775-bbee-911d301c5b77');
-// blackboard.makePdf('kosmos-besiktas')
+// blackboard.makePdf('kallavi-marmaraforum')
 // blackboard.dayDetail('643ed17a-0594-4ff7-bd90-193dac1e71c8','1603048585197')
 // blackboard.makePdf('kallavi-marmaraforum');
 // blackboard.menuChanger();
@@ -121,7 +121,6 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.DailySalesReport('kallavi-besiktas');
 // processPurchase()
 // blackboard.addNotes();
-// blackboard.menuToTerminal('d8412bb0-5546-4b78-922e-b7a774daa217');
 // blackboard.storesInfo2();
 // blackboard.documentTransport('okkali-marmara-forum', 'kallavi-marmaraforum', { db_name: 'settings', key:'Printers' }, 'fetch');
 
@@ -131,8 +130,11 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.clearDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77')
 
-// blackboard.documentTransport('mokka-cafe-pub-b099', 'sopung-besiktas', {db_name:"floors"}, 'fetch');   
+// blackboard.documentTransport('kosmos-backup', 'kosmos-besiktas', { db_name: "sub_categories" }, 'fetch');
 
 // blackboard.reportsTest('d622f9dd-036b-4775-bbee-911d301c5b77')
+
+// blackboard.clearStoreProducts('d8412bb0-5546-4b78-922e-b7a774daa217')
+// blackboard.menuToTerminal('d8412bb0-5546-4b78-922e-b7a774daa217');
 
 

@@ -179,6 +179,7 @@ export const payReceipt = async (req: Request, res: Response) => {
     const StoreDatabase = await StoreDB(StoreID);
 
     const CreditCard: { number: string, expiry: string, cvc: string, 'first-name': string, 'last-name': string } = req.body.card;
+    
     try {
         const orderRequestType = await StoreDatabase.get(Token);
         switch (orderRequestType.db_name) {

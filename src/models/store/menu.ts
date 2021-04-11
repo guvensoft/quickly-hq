@@ -38,7 +38,7 @@ export interface MenuCategory {
     description: string;
     image: string;
     items: Array<MenuItem>;
-    items_group: Array<MenuSubCategory>;
+    item_groups: Array<MenuSubCategory>;
 }
 
 export interface MenuSubCategory {
