@@ -36,7 +36,7 @@ export interface ClosedCheck {
 
 export interface PaymentStatus {
     owner: string;
-    method: string;
+    method: 'Nakit' | 'Kart' | 'Kupon' | 'İkram';
     amount: number;
     discount: number;
     timestamp: number;

@@ -126,10 +126,10 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
         //     })
         if (sync) {
             StoreDatabase.replicate.to(Database, { selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipts', check: name }] } }).then(isReplicated => {
-                console.log('First Replication Status: ', isReplicated.ok);
+                console.log('First Replication Status: ', isReplicated.ok, 'Docs Written: ', isReplicated.docs_written);
                 Database.sync(StoreDatabase, { since: 'now', live: true, selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipts', check: name }] } })
                     .on('change', (changes) => {
-                        console.log('Menu Changes ', changes)
+                        console.log('Menu Changes ', changes.direction, changes.change.docs.length)
                     }).on('error', (err) => {
                         console.log(err);
                     })

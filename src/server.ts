@@ -122,7 +122,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // processPurchase()
 // blackboard.addNotes();
 // blackboard.storesInfo2();
-// blackboard.documentTransport('okkali-marmara-forum', 'kallavi-marmaraforum', { db_name: 'settings', key:'Printers' }, 'fetch');
+// blackboard.documentTransport('kosmos-besiktas', 'order-test', { db_name: 'endday' }, 'fetch');
 
 // blackboard.Fixer('kallavi-besiktas');
 
@@ -135,6 +135,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.reportsTest('d622f9dd-036b-4775-bbee-911d301c5b77')
 
 // blackboard.clearStoreProducts('d8412bb0-5546-4b78-922e-b7a774daa217')
+
 // blackboard.menuToTerminal('d8412bb0-5546-4b78-922e-b7a774daa217');
+
+// blackboard.menuFixer();
 
 

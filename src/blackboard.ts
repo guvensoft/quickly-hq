@@ -1487,3 +1487,175 @@ export const reportsTest = async (store_id: string) => {
     // const t1 = performance.now();
     // console.log(`Call took ${t1 - t0} milliseconds.`);
 }
+
+
+export const menuFixer = async () => {
+    try {
+        const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
+        // const StoreDatabase = await StoreDB(store_id);
+        const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
+
+        let Menus: Menu[] = await (await MenuDatabase.find({ selector: {}, limit: DatabaseQueryLimit })).docs;
+
+        console.log(Menus.length);
+
+        Menus.map((menu, index) => {
+            menu.categories.map((category, index) => {
+                category.items.map((product: any) => {
+                    product.is_hidden = false;
+                    product.is_available = true;
+                    product.product_id = '';
+                    delete product.isHidden;
+                    delete product.productId;
+                })
+                category.item_groups.map(sub_cat => {
+                    sub_cat.items.map((product: any) => {
+                        product.is_hidden = false;
+                        product.is_available = true;
+                        product.product_id = '';
+                        delete product.isHidden;
+                        delete product.productId;
+                    })
+                })
+            })
+        })
+
+        // console.log(Menus);
+
+        // setTimeout(() => {
+        //     MenuDatabase.bulkDocs(Menus).then(res => {
+        //         console.log(res);
+        //     })
+        // }, 5000)
+
+
+
+
+        // Menu.categories.forEach((category, index) => {
+        //     let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
+        //     StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
+        //         console.log('+ Kategori Eklendi', newCategory.name);
+        //         category.id = cat_res.id;
+        //         if (category.item_groups.length > 0) {
+        //             category.item_groups.forEach(sub_cat => {
+        //                 let newSubCategory: SubCategory = { name: sub_cat.name, description: '', status: 0, cat_id: cat_res.id }
+        //                 StoreDatabase.post({ db_name: 'sub_categories', ...newSubCategory }).then(sub_cat_res => {
+        //                     sub_cat.id = sub_cat_res.id;
+        //                     console.log('+ Alt Kategori Eklendi', newCategory.name);
+        //                     sub_cat.items.forEach(item => {
+        //                         if (item.price) {
+        //                             let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+        //                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+        //                                 item.product_id = product_res.id;
+        //                                 console.log('+ Ürün Eklendi', newCategory.name);
+
+        //                                 /////////////////////////////////////////////////////////////
+        //                                 ////////////////////      Report    /////////////////////////
+        //                                 newProduct._id = product_res.id;
+        //                                 newProduct._rev = product_res.rev;
+        //                                 let newReport = createReport('Product', newProduct);
+        //                                 StoreDatabase.post(newReport).then(res => {
+        //                                     console.log('+ Rapor Eklendi', newReport.description);
+        //                                 }).catch(err => {
+        //                                     console.log('Rapor Hatası', newReport.description)
+        //                                 })
+        //                                 /////////////////////////////////////////////////////////////
+        //                             }).catch(err => {
+        //                                 console.log('Ürün Hatası', item.name)
+        //                             })
+        //                         } else {
+        //                             let specs: Array<ProductSpecs> = [];
+        //                             item.options.forEach(opts => {
+        //                                 let spec: ProductSpecs = {
+        //                                     spec_name: opts.name,
+        //                                     spec_price: opts.price
+        //                                 }
+        //                                 specs.push(spec);
+        //                             })
+        //                             let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+        //                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+        //                                 console.log('+ Ürün Eklendi', newCategory.name);
+
+        //                                 item.product_id = product_res.id;
+
+        //                                 /////////////////////////////////////////////////////////////
+        //                                 ////////////////////      Report    /////////////////////////
+        //                                 newProduct._id = product_res.id;
+        //                                 newProduct._rev = product_res.rev;
+        //                                 let newReport = createReport('Product', newProduct);
+        //                                 StoreDatabase.post(newReport).then(res => {
+        //                                     console.log('+ Rapor Eklendi', newReport.description);
+        //                                 }).catch(err => {
+        //                                     console.log('Rapor Hatası', newReport.description)
+        //                                 })
+        //                                 /////////////////////////////////////////////////////////////
+        //                             }).catch(err => {
+        //                                 console.log('Ürün Hatası', item.name)
+        //                             })
+        //                         }
+        //                     })
+        //                 }).catch(err => {
+        //                     console.log('Alt Kategori Hatası', category.name)
+        //                 });
+        //             });
+        //         } else {
+        //             category.items.forEach(item => {
+        //                 if (item.price) {
+        //                     let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
+        //                     StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+        //                         console.log('+ Ürün Eklendi', newCategory.name);
+        //                         item.product_id = product_res.id;
+        //                         /////////////////////////////////////////////////////////////
+        //                         ////////////////////      Report    /////////////////////////
+        //                         newProduct._id = product_res.id;
+        //                         newProduct._rev = product_res.rev;
+        //                         let newReport = createReport('Product', newProduct);
+        //                         StoreDatabase.post(newReport).then(res => {
+        //                             console.log('+ Rapor Eklendi', newReport.description);
+        //                         }).catch(err => {
+        //                             console.log('Rapor Hatası', newReport.description)
+        //                         })
+        //                         /////////////////////////////////////////////////////////////
+
+        //                     }).catch(err => {
+        //                         console.log('Ürün Hatası', item.name)
+        //                     })
+        //                 } else {
+        //                     let specs: Array<ProductSpecs> = [];
+        //                     item.options.forEach(opts => {
+        //                         let spec: ProductSpecs = {
+        //                             spec_name: opts.name,
+        //                             spec_price: opts.price
+        //                         }
+        //                         specs.push(spec);
+        //                     })
+        //                     let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, tax_value: 8, }
+        //                     StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+        //                         console.log('+ Ürün Eklendi', newCategory.name);
+        //                         item.product_id = product_res.id;
+        //                         /////////////////////////////////////////////////////////////
+        //                         ////////////////////      Report    /////////////////////////
+        //                         newProduct._id = product_res.id;
+        //                         newProduct._rev = product_res.rev;
+        //                         let newReport = createReport('Product', newProduct);
+        //                         StoreDatabase.post(newReport).then(res => {
+        //                             console.log('+ Rapor Eklendi', newReport.description);
+        //                         }).catch(err => {
+        //                             console.log('Rapor Hatası', newReport.description)
+        //                         })
+        //                         /////////////////////////////////////////////////////////////
+        //                     }).catch(err => {
+        //                         console.log('Ürün Hatası', item.name)
+        //                     })
+        //                 }
+        //             })
+        //         }
+        //     }).catch(err => {
+        //         console.log('Kategori Hatası', category.name)
+        //     })
+        // })
+    } catch (error) {
+        console.log(error);
+    }
+
+}

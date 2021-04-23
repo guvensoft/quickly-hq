@@ -74,6 +74,7 @@ export enum MenuStatus {
 export interface User {
     id: string,
     name: string,
+    surname?: string,
     phone?: string,
     address?: string,
 }
@@ -93,6 +94,7 @@ export interface OrderItem {
 
 export interface Order {
     db_name: string,
+    check: Check,
     user: User,
     items: Array<OrderItem>,
     status: OrderStatus,
@@ -113,7 +115,7 @@ export enum OrderStatus {
     PREPARING,
     APPROVED,
     CANCELED,
-    PAYED
+    PAYED,
 }
 
 export interface Receipt {
@@ -124,14 +126,16 @@ export interface Receipt {
     total: number,
     discount: number,
     type: ReceiptType,
-    method:ReceiptMethod,
+    method: ReceiptMethod,
     status: ReceiptStatus,
-    timestamp: number, 
+    timestamp: number,
+    note?: string,
     _id?: string;
     _rev?: string;
 }
 
 export enum ReceiptMethod {
+    UNDEFINED,
     CASH,
     CARD,
     COUPON,

@@ -6,9 +6,9 @@ import { writeFile } from 'fs';
 import { cdnMenuPath } from '../../configrations/paths';
 import { createLog, LogType } from "../../utils/logger";
 import { Store } from "../../models/management/store";
-import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus } from "../../models/store/menu";
+import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus, Order } from "../../models/store/menu";
 import { processPurchase } from "../../configrations/payments";
-import { Check } from "../../models/store/check";
+import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
 
 import axios from 'axios';
 
@@ -171,22 +171,79 @@ export const checkRequest = async (req: Request, res: Response) => {
 }
 
 
+export const acceptOrder = (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    const Token: string = req.params.token;
+
+    let Order: Order = req.body.order;
+
+    Order.status = OrderStatus.PREPARING;
+    // this.mainService.updateData('orders', order._id, { status: OrderStatus.PREPARING }).then(res => {
+    //     console.log(res);
+    // }).catch(err => {
+    //     console.log(err);
+    // })
+}
+
+export const approoveOrder = (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    const Token: string = req.params.token;
+
+    let Order: Order = req.body.order;
+
+    Order.status = 2;
+
+    let approveTime = Date.now();
+    // this.mainService.changeData('checks', order.check, (check: Check) => {
+    //     order.items.forEach(orderItem => {
+    //         let mappedProduct = this.products.find(product => product._id == orderItem.product_id || product.name == orderItem.name);
+    //         let newProduct = new CheckProduct(mappedProduct._id, mappedProduct.cat_id, mappedProduct.name + (orderItem.type ? ' ' + orderItem.type : ''), orderItem.price, orderItem.note, 2, this.ownerId, approveTime, mappedProduct.tax_value, mappedProduct.barcode);
+    //         check.total_price = check.total_price + newProduct.price;
+    //         check.products.push(newProduct);
+    //     })
+    //     return check;
+    // }).then(isOk => {
+    //     this.mainService.updateData('orders', order._id, { status: OrderStatus.APPROVED, timestamp: approveTime }).then(res => {
+    //         // console.log(res);
+    //     }).catch(err => {
+    //         console.log(err);
+    //     })
+    // }).catch(err => {
+    //     console.log(err);
+    // })
+}
+
+export const cancelOrder = (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    const Token: string = req.params.token;
+
+    let Order: Order = req.body.order;
+
+    Order.status = 3;
+    // this.mainService.updateData('orders', order._id, { status: OrderStatus.CANCELED }).then(res => {
+    //     console.log(res);
+    // }).catch(err => {
+    //     console.log(err);
+    // })
+}
+
+
 export const payReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const Token: string = req.params.token;
 
-    const Database = await OrderDB(StoreID, Token, false);
+    let Receipt: Receipt = req.body.receipt;
+
     const StoreDatabase = await StoreDB(StoreID);
 
     const CreditCard: { number: string, expiry: string, cvc: string, 'first-name': string, 'last-name': string } = req.body.card;
-    
     try {
         const orderRequestType = await StoreDatabase.get(Token);
         switch (orderRequestType.db_name) {
             case 'checks':
+                const Database = await OrderDB(StoreID, Token, false);
 
                 let Check: Check = orderRequestType;
-                let Receipt: Receipt = req.body.receipt;
                 let User: User = Receipt.user;
 
                 let userItems = Receipt.orders.filter(order => order.status == OrderStatus.APPROVED);
@@ -196,11 +253,30 @@ export const payReceipt = async (req: Request, res: Response) => {
                     return obj;
                 })
 
-                Receipt.status = ReceiptStatus.APPROVED;
+                /////////// Check Operations ////////////
+                let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj.timestamp).includes(product.timestamp));
+                const newPayment: PaymentStatus = { owner: User.name, method: 'Kart', amount: Receipt.total, discount: Receipt.discount, timestamp: Date.now(), payed_products: productsWillPay };
+                if (Check.payment_flow == undefined) {
+                    Check.payment_flow = [];
+                }
+                Check.payment_flow.push(newPayment);
+                Check.discount += newPayment.amount;
+                Check.products = Check.products.filter(product => !productsWillPay.includes(product));
+                Check.total_price = Check.products.map(product => product.price).reduce((a, b) => a + b, 0);
 
+                /////////// Check Operations ////////////
+
+                Receipt.status = ReceiptStatus.APPROVED;
                 Database.bulkDocs(userItems).then(order_res => {
                     Database.put(Receipt).then(isOK => {
-                        res.status(200).json({ ok: true, receipt: Receipt });
+                        StoreDatabase.put(Check).then(isCheckUpdated => {
+                            if (isCheckUpdated.ok) {
+                                res.status(200).json({ ok: true, receipt: Receipt });
+                            }
+                        }).catch(err => {
+                            console.log('Check Update Error on Payment Process', err);
+                            res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                        })
                     }).catch(err => {
                         console.log('Receipt Update Error on Payment Process', err);
                         res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
@@ -228,10 +304,12 @@ export const payReceipt = async (req: Request, res: Response) => {
                 //     console.log(err)
                 //     res.status(200).json({ ok: false, error: err });
                 // })
-                
+
                 break;
             case 'customers':
                 let Customer = orderRequestType;
+                Receipt.status = ReceiptStatus.APPROVED;
+                Receipt.orders[0].status = OrderStatus.APPROVED;
                 res.status(200).json({ ok: true, receipt: Receipt });
                 break;
             default:
