@@ -236,7 +236,7 @@ export const payReceipt = async (req: Request, res: Response) => {
 
     const StoreDatabase = await StoreDB(StoreID);
 
-    const CreditCard: { number: string, expiry: string, cvc: string, 'first-name': string, 'last-name': string } = req.body.card;
+    const CreditCard: { number: string, expiry: string, cvc: string, name: string } = req.body.card;
     try {
         const orderRequestType = await StoreDatabase.get(Token);
         switch (orderRequestType.db_name) {
@@ -255,6 +255,9 @@ export const payReceipt = async (req: Request, res: Response) => {
 
                 /////////// Check Operations ////////////
                 let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj.timestamp).includes(product.timestamp));
+
+                console.log(productsWillPay)
+
                 const newPayment: PaymentStatus = { owner: User.name, method: 'Kart', amount: Receipt.total, discount: Receipt.discount, timestamp: Date.now(), payed_products: productsWillPay };
                 if (Check.payment_flow == undefined) {
                     Check.payment_flow = [];
@@ -267,6 +270,7 @@ export const payReceipt = async (req: Request, res: Response) => {
                 /////////// Check Operations ////////////
 
                 Receipt.status = ReceiptStatus.APPROVED;
+
                 Database.bulkDocs(userItems).then(order_res => {
                     Database.put(Receipt).then(isOK => {
                         StoreDatabase.put(Check).then(isCheckUpdated => {
@@ -286,7 +290,6 @@ export const payReceipt = async (req: Request, res: Response) => {
                     res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
 
                 })
-
                 // TODO Delete items from Check to Payed
 
                 // processPurchase(CreditCard.number, CreditCard.expiry.slice(2), CreditCard.expiry.slice(0, 2), CreditCard.cvc, Receipt.total.toString()).then(async success => {
@@ -309,8 +312,18 @@ export const payReceipt = async (req: Request, res: Response) => {
             case 'customers':
                 let Customer = orderRequestType;
                 Receipt.status = ReceiptStatus.APPROVED;
-                Receipt.orders[0].status = OrderStatus.APPROVED;
-                res.status(200).json({ ok: true, receipt: Receipt });
+                delete Receipt.orders[0]._rev;
+                StoreDatabase.put(Receipt.orders[0]).then(order_res => {
+                    Receipt.orders[0].status = OrderStatus.PREPARING;
+                    delete Receipt._rev;
+                    StoreDatabase.put(Receipt).then(isOk => {
+                        res.status(200).json({ ok: true, receipt: Receipt });
+                    }).catch(err => {
+                        res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                    })
+                }).catch(err => {
+                    res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                })
                 break;
             default:
                 res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
