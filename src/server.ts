@@ -117,6 +117,8 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.dayDetail('643ed17a-0594-4ff7-bd90-193dac1e71c8','1603048585197')
 // blackboard.makePdf('kallavi-marmaraforum');
 // blackboard.menuChanger();
+// blackboard.makePdf('kallavi-besiktas');
+
 
 // blackboard.DailySalesReport('kallavi-besiktas');
 // processPurchase()

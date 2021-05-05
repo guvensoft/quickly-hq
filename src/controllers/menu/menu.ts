@@ -2,91 +2,13 @@ import { Request, Response } from "express";
 import { RemoteDB, ManagementDB, OrderDB, StoreDB } from '../../configrations/database';
 import { MenuMessages } from "../../utils/messages";
 import { Database } from "../../models/management/database";
-import { writeFile } from 'fs';
-import { cdnMenuPath } from '../../configrations/paths';
-import { createLog, LogType } from "../../utils/logger";
 import { Store } from "../../models/management/store";
 import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus, Order } from "../../models/store/menu";
-import { processPurchase } from "../../configrations/payments";
 import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
 
+import { processPurchase } from "../../configrations/payments";
+
 import axios from 'axios';
-
-
-export const requestStore = async (req: Request, res: Response) => {
-
-}
-
-export const uploadPicture = async (req: Request, res: Response) => {
-    const Slug: string = req.body.slug;
-    const Picture: string = req.body.picture;
-    const PictureName: string = req.body.name;
-    const PictureType: 'product' | 'category' | 'promotion' = req.body.type;
-
-    let uploadFolder = PictureType == 'product' ? 'urun' : PictureType == 'category' ? 'kategori' : PictureType == 'promotion' ? 'kampanya' : '';
-    let relativePath = `/${uploadFolder}/${PictureName}.jpg`;
-
-    writeFile(cdnMenuPath + Slug + relativePath, Picture, 'base64', (err) => {
-        if (!err) {
-            res.status(200).json({ ok: true, path: relativePath });
-        } else {
-            res.status(500).json({ ok: false, message: 'Resim Yüklenirken Hata Oluştu! Tekrar Deneyin.' });
-            createLog(req, LogType.INNER_LIBRARY_ERROR, err.message);
-        }
-    });
-}
-
-export const saveMenu = async (req: Request, res: Response) => {
-    const StoreID = req.params.store;
-    let MenuDoc = req.body.menu;
-    try {
-        const Store = await ManagementDB.Stores.get(StoreID);
-        const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
-        const UpdateMenu = await RemoteDB(Database, 'quickly-menu-app').put(MenuDoc);
-        if (UpdateMenu.ok) {
-            MenuDoc._rev = UpdateMenu.rev;
-            res.status(MenuMessages.MENU_UPDATED.code).json({ ok: true, menu: MenuDoc });
-        }
-    } catch (error) {
-        console.log(error);
-        res.status(MenuMessages.MENU_NOT_UPDATED.code).json(MenuMessages.MENU_NOT_UPDATED.response);
-    }
-}
-
-
-export const requestMenu = async (req: Request, res: Response) => {
-    const StoreID = req.params.store;
-    try {
-        const Store: Store = await ManagementDB.Stores.get(StoreID);
-        const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
-        const Menu: Menu = await (await RemoteDB(Database, 'quickly-menu-app').find({ selector: { store_id: StoreID } })).docs[0];
-
-        delete Store._id;
-        delete Store._rev;
-        delete Store.auth;
-        delete Store.auth;
-        delete Store.timestamp;
-        delete Store.type;
-        delete Store.status;
-
-        delete Store.settings.order
-        delete Store.settings.preorder
-        delete Store.settings.reservation
-        delete Store.settings.allowed_tables
-        delete Store.settings.allowed_products
-
-        delete Store.status;
-        delete Store.category;
-        delete Store.cuisine;
-        delete Store.accounts;
-
-        res.json({ store: Store, menu: Menu });
-    } catch (error) {
-        console.log(error);
-        res.status(MenuMessages.MENU_NOT_EXIST.code).json(MenuMessages.MENU_NOT_EXIST.response);
-    }
-}
-
 
 export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;
@@ -171,72 +93,14 @@ export const checkRequest = async (req: Request, res: Response) => {
 }
 
 
-export const acceptOrder = (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    const Token: string = req.params.token;
-
-    let Order: Order = req.body.order;
-
-    Order.status = OrderStatus.PREPARING;
-    // this.mainService.updateData('orders', order._id, { status: OrderStatus.PREPARING }).then(res => {
-    //     console.log(res);
-    // }).catch(err => {
-    //     console.log(err);
-    // })
-}
-
-export const approoveOrder = (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    const Token: string = req.params.token;
-
-    let Order: Order = req.body.order;
-
-    Order.status = 2;
-
-    let approveTime = Date.now();
-    // this.mainService.changeData('checks', order.check, (check: Check) => {
-    //     order.items.forEach(orderItem => {
-    //         let mappedProduct = this.products.find(product => product._id == orderItem.product_id || product.name == orderItem.name);
-    //         let newProduct = new CheckProduct(mappedProduct._id, mappedProduct.cat_id, mappedProduct.name + (orderItem.type ? ' ' + orderItem.type : ''), orderItem.price, orderItem.note, 2, this.ownerId, approveTime, mappedProduct.tax_value, mappedProduct.barcode);
-    //         check.total_price = check.total_price + newProduct.price;
-    //         check.products.push(newProduct);
-    //     })
-    //     return check;
-    // }).then(isOk => {
-    //     this.mainService.updateData('orders', order._id, { status: OrderStatus.APPROVED, timestamp: approveTime }).then(res => {
-    //         // console.log(res);
-    //     }).catch(err => {
-    //         console.log(err);
-    //     })
-    // }).catch(err => {
-    //     console.log(err);
-    // })
-}
-
-export const cancelOrder = (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    const Token: string = req.params.token;
-
-    let Order: Order = req.body.order;
-
-    Order.status = 3;
-    // this.mainService.updateData('orders', order._id, { status: OrderStatus.CANCELED }).then(res => {
-    //     console.log(res);
-    // }).catch(err => {
-    //     console.log(err);
-    // })
-}
-
-
 export const payReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const Token: string = req.params.token;
+    const StoreDatabase = await StoreDB(StoreID);
+    const CreditCard: { number: string, name: string, expiry: string, cvc: string } = req.body.card;
 
     let Receipt: Receipt = req.body.receipt;
 
-    const StoreDatabase = await StoreDB(StoreID);
-
-    const CreditCard: { number: string, expiry: string, cvc: string, name: string } = req.body.card;
     try {
         const orderRequestType = await StoreDatabase.get(Token);
         switch (orderRequestType.db_name) {

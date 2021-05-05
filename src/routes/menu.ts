@@ -22,22 +22,4 @@ router.post("/payment/:token",
 router.get("/slug/:slug",
     MenuController.requestMenuFromSlug);
 
-router.get("/:store",
-    StoreAuthenticateGuard,
-    StoreGuard,
-    AccountGuard,
-    MenuController.requestMenu);
-
-router.post("/upload/:store",
-    StoreAuthenticateGuard,
-    StoreGuard,
-    AccountGuard,
-    MenuController.uploadPicture);
-
-router.post("/:store",
-    StoreAuthenticateGuard,
-    StoreGuard,
-    AccountGuard,
-    MenuController.saveMenu);
-
 module.exports = router;

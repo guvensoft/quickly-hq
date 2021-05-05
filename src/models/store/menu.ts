@@ -94,7 +94,7 @@ export interface OrderItem {
 
 export interface Order {
     db_name: string,
-    check: Check,
+    check: string,
     user: User,
     items: Array<OrderItem>,
     status: OrderStatus,
