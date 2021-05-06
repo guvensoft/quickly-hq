@@ -121,7 +121,7 @@ export enum OrderStatus {
 export interface Receipt {
     db_name: string,
     user: User,
-    check: Check,
+    check: string,
     orders: Array<Order>,
     total: number,
     discount: number,
