@@ -25,12 +25,12 @@ export const approoveOrder = async (req: Request, res: Response) => {
     const approveTime = Date.now();
     let Order: Order = req.body.order;
 
-    StoreDatabase.find({ selector: { db_name: 'products' } }).then((product_res) => {
+    StoreDatabase.find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit }).then((product_res) => {
         const Products = product_res.docs;
         StoreDatabase.get(Order.check).then((check: Check) => {
             Order.items.forEach(orderItem => {
-                let mappedProduct: Product = Products.find(product => product._id == orderItem.product_id || product.name == orderItem.name);
-                let newProduct: CheckProduct = {
+                const mappedProduct: Product = Products.find(product => product._id == orderItem.product_id || product.name == orderItem.name);
+                const newProduct: CheckProduct = {
                     id: mappedProduct._id,
                     cat_id: mappedProduct.cat_id,
                     name: mappedProduct.name + (orderItem.type ? ' ' + orderItem.type : ''),
@@ -75,7 +75,7 @@ export const cancelOrder = async (req: Request, res: Response) => {
     let Order: Order = req.body.order;
     Order.status = OrderStatus.CANCELED;
     Order.timestamp = Date.now();
-    
+
     StoreDatabase.put(Order).then(isOk => {
         res.status(200).json({ ok: true, message: 'Sipariş İptal Edildi!' })
     }).catch(err => {
