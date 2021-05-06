@@ -59,8 +59,6 @@ export const approoveOrder = async (req: Request, res: Response) => {
             }).catch(err => {
                 res.status(404).json({ ok: false, message: 'Sipariş Onaylanırken Hata Oluştu!' })
                 createLog(req, LogType.DATABASE_ERROR, err)
-
-
             })
         }).catch(err => {
             res.status(404).json({ ok: false, message: 'Sipariş Onaylanırken Hata Oluştu!' })

@@ -21,6 +21,7 @@ export enum LogType {
 }
 
 export const createLog = (req: Request, type: LogType, message: any) => {
+    console.log(message);
     let log: Log = { req_ip: req.ip, req_headers: req.headers, req_body: req.body, log_type: type, message: message, timestamp: Date.now() };
     ManagementDB.Logs.post(log).catch(err => { console.log(err) });
 }
