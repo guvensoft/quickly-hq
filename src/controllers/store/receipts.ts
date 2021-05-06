@@ -16,7 +16,7 @@ export const acceptReceipt = async (req: Request, res: Response) => {
         res.status(200).json({ ok: true, message: 'Ödeme Kabul Edildi!' })
     }).catch(err => {
         res.status(404).json({ ok: false, message: 'Ödeme Kabul Edildilirken Hata Oluştu!' })
-        createLog(req, LogType.DATABASE_ERROR, 'Ödeme Kabul Edildilirken Hata Oluştu!')
+        createLog(req, LogType.DATABASE_ERROR, err)
     })
 }
 
@@ -57,16 +57,16 @@ export const approoveReceipt = async (req: Request, res: Response) => {
                     res.status(200).json({ ok: true, message: 'Ödeme Kabul Edildi!' })
                 }).catch(err => {
                     res.status(404).json({ ok: false, message: 'Ödeme Onaylanırken Hata Oluştu!' })
-                    createLog(req, LogType.DATABASE_ERROR, 'Ödeme Onaylanırken Hata Oluştu!')
+                    createLog(req, LogType.DATABASE_ERROR, err)
                 })
             }).catch(err => {
                 res.status(404).json({ ok: false, message: 'Ödeme Onaylanırken Hata Oluştu!' })
-                createLog(req, LogType.DATABASE_ERROR, 'Ödeme Onaylanırken Hata Oluştu!')
+                createLog(req, LogType.DATABASE_ERROR, err)
 
             })
         }).catch(err => {
             res.status(404).json({ ok: false, message: 'Ödeme Onaylanırken Hata Oluştu!' })
-            createLog(req, LogType.DATABASE_ERROR, 'Ödeme Onaylanırken Hata Oluştu!')
+            createLog(req, LogType.DATABASE_ERROR, err)
         })
     });
 }
@@ -82,6 +82,6 @@ export const cancelReceipt = async (req: Request, res: Response) => {
         res.status(200).json({ ok: true, message: 'Ödeme İptal Edildi!' })
     }).catch(err => {
         res.status(404).json({ ok: false, message: 'Ödeme İptal Edildilirken Hata Oluştu!' })
-        createLog(req, LogType.DATABASE_ERROR, 'Ödeme İptal Edildilirken Hata Oluştu!')
+        createLog(req, LogType.DATABASE_ERROR, err)
     })
 }

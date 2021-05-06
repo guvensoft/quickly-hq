@@ -14,7 +14,7 @@ export const acceptOrder = async (req: Request, res: Response) => {
         res.status(200).json({ ok: true, message: 'Sipariş Kabul Edildi!' })
     }).catch(err => {
         res.status(404).json({ ok: false, message: 'Sipariş Kabul Edildilirken Hata Oluştu!' })
-        createLog(req, LogType.DATABASE_ERROR, 'Sipariş Kabul Edildilirken Hata Oluştu!')
+        createLog(req, LogType.DATABASE_ERROR, err)
     })
 }
 
@@ -54,16 +54,17 @@ export const approoveOrder = async (req: Request, res: Response) => {
                     res.status(200).json({ ok: true, message: 'Sipariş Onaylandı Edildi!' })
                 }).catch(err => {
                     res.status(404).json({ ok: false, message: 'Sipariş Onaylanırken Hata Oluştu!' })
-                    createLog(req, LogType.DATABASE_ERROR, 'Sipariş Onaylanırken Hata Oluştu!')
+                    createLog(req, LogType.DATABASE_ERROR, err)
                 })
             }).catch(err => {
                 res.status(404).json({ ok: false, message: 'Sipariş Onaylanırken Hata Oluştu!' })
-                createLog(req, LogType.DATABASE_ERROR, 'Sipariş Onaylanırken Hata Oluştu!')
+                createLog(req, LogType.DATABASE_ERROR, err)
+
 
             })
         }).catch(err => {
             res.status(404).json({ ok: false, message: 'Sipariş Onaylanırken Hata Oluştu!' })
-            createLog(req, LogType.DATABASE_ERROR, 'Sipariş Onaylanırken Hata Oluştu!')
+            createLog(req, LogType.DATABASE_ERROR, err)
 
         })
     });
@@ -81,6 +82,6 @@ export const cancelOrder = async (req: Request, res: Response) => {
         res.status(200).json({ ok: true, message: 'Sipariş İptal Edildi!' })
     }).catch(err => {
         res.status(404).json({ ok: false, message: 'Sipariş İptal Edildilirken Hata Oluştu!' })
-        createLog(req, LogType.DATABASE_ERROR, 'Sipariş Onaylanırken Hata Oluştu!')
+        createLog(req, LogType.DATABASE_ERROR, err)
     })
 }
