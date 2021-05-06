@@ -7,8 +7,7 @@ import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus
 import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
 
 import { processPurchase } from "../../configrations/payments";
-
-import axios from 'axios';
+import axios from "axios";
 
 export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;

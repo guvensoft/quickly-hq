@@ -11,7 +11,6 @@ import * as StoreMenuController from '../controllers/store/menu';
 import * as StoreOrderController from '../controllers/store/orders';
 import * as StoreEndofdayController from '../controllers/store/endofday';
 
-import * as ProductsController from '../controllers/management/product';
 import { AuthSchemaSafe } from '../schemas/management'
 
 const router = Router();
@@ -45,7 +44,6 @@ router.post("/backup",
     StoreGuard,
     StoreEndofdayController.uploadBackup
 );
-
 
 // Store General Controllers
 router.get("/list",
@@ -148,6 +146,26 @@ router.post("/order/approovee",
     StoreOrderController.approoveOrder);
 
 router.post("/order/cancel",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreOrderController.cancelOrder);
+
+
+/// Store Receipt Controller
+router.post("/receipt/accept",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreOrderController.acceptOrder);
+
+router.post("/receipt/approovee",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreOrderController.approoveOrder);
+
+router.post("/receipt/cancel",
     StoreAuthenticateGuard,
     StoreGuard,
     AccountGuard,

@@ -30,7 +30,7 @@ export const storeInfo = async (req: Request, res: Response) => {
         let tables: Array<Table> = (await StoreDatabase.find({ selector: { db_name: 'tables' }, limit: DatabaseQueryLimit })).docs;
         let cashboxes: Array<Cashbox> = (await StoreDatabase.find({ selector: { db_name: 'cashbox' }, limit: DatabaseQueryLimit })).docs;
         let checks: Array<Check> = (await StoreDatabase.find({ selector: { db_name: 'checks' }, limit: DatabaseQueryLimit })).docs;
-        let closed_checks: Array<ClosedCheck> = (await StoreDatabase.find({ selector: { db_name: 'closed_checks' }, limit: 1000 })).docs;
+        let closed_checks: Array<ClosedCheck> = (await StoreDatabase.find({ selector: { db_name: 'closed_checks' }, limit: DatabaseQueryLimit })).docs;
         let StoreInfoObject: StoreInfo = {
             store_id: StoreID,
             tables: storeTablesInfo(tables),
@@ -138,7 +138,6 @@ export const storesInfo2 = async () => {
 
 
     // ManagementDB.Stores.bulkGet({})
-
 
     ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
         const Stores: Array<Store> = db_res.docs;
