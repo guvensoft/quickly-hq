@@ -5,6 +5,7 @@ import PouchDBHttp from 'pouchdb-adapter-http';
 import PouchDBLevelDB from 'pouchdb-adapter-leveldb';
 import PouchDBInMemory from 'pouchdb-adapter-memory';
 import PouchDBReplication from 'pouchdb-replication';
+import PouchDBUpsert from 'pouchdb-upsert';
 
 import ExpressPouch from 'express-pouchdb';
 
@@ -28,6 +29,7 @@ PouchDB.plugin(PouchDBInMemory);
 PouchDB.plugin(PouchDBLevelDB);
 PouchDB.plugin(PouchDBHttp);
 PouchDB.plugin(PouchDBReplication);
+PouchDB.plugin(PouchDBUpsert)
 
 export const DatabaseQueryLimit = 1000;
 
@@ -58,11 +60,11 @@ export const StoresDB = {
 }
 
 export const AdressDB = {
-    Countries: new PouchDB<User>(databasePath + 'address/countries', FileSystemConfigration),
-    States: new PouchDB<User>(databasePath + 'address/cities', FileSystemConfigration),
-    Provinces: new PouchDB<Group>(databasePath + 'address/provinces', FileSystemConfigration),
-    Districts: new PouchDB<Database>(databasePath + 'address/districts', FileSystemConfigration),
-    Streets: new PouchDB<Database>(databasePath + 'address/streets', FileSystemConfigration),
+    Countries: new PouchDB<any>(databasePath + 'address/countries', FileSystemConfigration),
+    States: new PouchDB<any>(databasePath + 'address/cities', FileSystemConfigration),
+    Provinces: new PouchDB<any>(databasePath + 'address/provinces', FileSystemConfigration),
+    Districts: new PouchDB<any>(databasePath + 'address/districts', FileSystemConfigration),
+    Streets: new PouchDB<any>(databasePath + 'address/streets', FileSystemConfigration),
 }
 
 export const SocialDB = {
@@ -110,20 +112,6 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
     try {
         const Database = new OrderDatabase(name);
         const StoreDatabase = await StoreDB(store_id);
-        // Database.changes({ since: 'now', live: true, include_docs: true, selector: { db_name: 'orders' } })
-        //     .on('change', (changes) => {
-        //         if (!changes.deleted) {
-        //             delete changes.doc._rev;
-        //             StoreDatabase.put({ check: name, ...changes.doc }).then(sendedOrders => {
-        //                 console.log(sendedOrders.ok);
-        //             }).catch(err => {
-        //                 console.log(err);
-        //             });
-        //         }
-        //     })
-        //     .on('error', (err) => {
-        //         console.log(err);
-        //     })
         if (sync) {
             StoreDatabase.replicate.to(Database, { selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipts', check: name }] } }).then(isReplicated => {
                 console.log('First Replication Status: ', isReplicated.ok, 'Docs Written: ', isReplicated.docs_written);

@@ -56,7 +56,6 @@ export const createStoreDatabase = (storeAuth: StoreAuth) => {
     })
 };
 
-
 export const purgeDatabase = (storeAuth: StoreAuth) => {
     return new Promise<PouchDB.Core.DatabaseInfo>((resolve, reject) => {
         ManagementDB.Databases.get(storeAuth.database_id).then((DatabaseWillUse: Database) => {
