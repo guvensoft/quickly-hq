@@ -9,6 +9,8 @@ import * as StoreAuthController from '../controllers/store/authentication';
 import * as StoreReportsController from '../controllers/store/reports';
 import * as StoreMenuController from '../controllers/store/menu';
 import * as StoreOrderController from '../controllers/store/orders';
+import * as StoreReceiptController from '../controllers/store/receipts';
+
 import * as StoreEndofdayController from '../controllers/store/endofday';
 
 import { AuthSchemaSafe } from '../schemas/management'
@@ -157,18 +159,18 @@ router.post("/receipt/accept",
     StoreAuthenticateGuard,
     StoreGuard,
     AccountGuard,
-    StoreOrderController.acceptOrder);
+    StoreReceiptController.acceptReceipt);
 
 router.post("/receipt/approovee",
     StoreAuthenticateGuard,
     StoreGuard,
     AccountGuard,
-    StoreOrderController.approoveOrder);
+    StoreReceiptController.approoveReceipt);
 
 router.post("/receipt/cancel",
     StoreAuthenticateGuard,
     StoreGuard,
     AccountGuard,
-    StoreOrderController.cancelOrder);
+    StoreReceiptController.cancelReceipt);
 
 module.exports = router;
