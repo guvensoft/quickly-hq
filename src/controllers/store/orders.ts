@@ -4,6 +4,7 @@ import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { Product } from "../../models/store/product";
 import { Check, CheckProduct } from "../../models/store/check";
 import { createLog, LogType } from "../../utils/logger";
+import { CountData, countProductsData, updateProductReport } from "../../functions/store/products";
 
 export const acceptOrder = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
@@ -21,9 +22,10 @@ export const acceptOrder = async (req: Request, res: Response) => {
 export const approoveOrder = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const StoreDatabase = await StoreDB(StoreID);
+    const ApproveTime = Date.now();
 
-    const approveTime = Date.now();
     let Order: Order = req.body.order;
+    let CountData: Array<CountData> = [];
 
     StoreDatabase.find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit }).then((product_res) => {
         const Products = product_res.docs;
@@ -38,18 +40,20 @@ export const approoveOrder = async (req: Request, res: Response) => {
                     note: orderItem.note,
                     status: 2,
                     owner: Order.user.name,
-                    timestamp: approveTime,
+                    timestamp: ApproveTime,
                     tax_value: mappedProduct.tax_value,
                     barcode: mappedProduct.barcode
                 };
+                countProductsData(CountData, newProduct.id, newProduct.price)
                 check.total_price = check.total_price + newProduct.price;
                 check.products.push(newProduct);
             })
             return check;
         }).then(Check => {
             StoreDatabase.put(Check).then(isOk => {
+                updateProductReport(StoreID, CountData)
                 Order.status = OrderStatus.APPROVED;
-                Order.timestamp = approveTime;
+                Order.timestamp = ApproveTime;
                 StoreDatabase.put(Order).then(isOk => {
                     res.status(200).json({ ok: true, message: 'Sipariş Onaylandı Edildi!' })
                 }).catch(err => {

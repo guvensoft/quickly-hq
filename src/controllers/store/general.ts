@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import { ManagementDB, StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { Store } from '../../models/management/store';
 import { StoreMessages } from '../../utils/messages';
-import { storeTablesInfo, storeCashboxInfo, storeChecksInfo, storePaymentsInfo } from "../../functions/store/info";
+import { storeTablesInfo, storeCashboxInfo, storeChecksInfo, storePaymentsInfo, storeOrdersInfo, storeReceiptsInfo } from "../../functions/store/info";
 import { Table } from "../../models/store/table";
 import { Cashbox } from "../../models/store/cashbox";
 import { Check } from "../../models/store/check";
 import { ClosedCheck } from "../../models/store/check";
-import { StoreInfo } from "../..//models/store/info";
+import { StoreInfo } from "../../models/store/info";
+import { Order, Receipt } from "../../models/store/menu";
 
 export const listStores = (req: Request, res: Response) => {
     ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
@@ -31,12 +32,17 @@ export const storeInfo = async (req: Request, res: Response) => {
         let cashboxes: Array<Cashbox> = (await StoreDatabase.find({ selector: { db_name: 'cashbox' }, limit: DatabaseQueryLimit })).docs;
         let checks: Array<Check> = (await StoreDatabase.find({ selector: { db_name: 'checks' }, limit: DatabaseQueryLimit })).docs;
         let closed_checks: Array<ClosedCheck> = (await StoreDatabase.find({ selector: { db_name: 'closed_checks' }, limit: DatabaseQueryLimit })).docs;
+        let orders: Array<Order> = (await StoreDatabase.find({ selector: { db_name: 'orders' }, limit: DatabaseQueryLimit })).docs;
+        let receipts: Array<Receipt> = (await StoreDatabase.find({ selector: { db_name: 'receipts' }, limit: DatabaseQueryLimit })).docs;
+
         let StoreInfoObject: StoreInfo = {
             store_id: StoreID,
             tables: storeTablesInfo(tables),
             cashbox: storeCashboxInfo(cashboxes),
-            checks: storeChecksInfo(checks), 
-            sales: storePaymentsInfo(closed_checks)
+            checks: storeChecksInfo(checks),
+            sales: storePaymentsInfo(closed_checks),
+            orders: storeOrdersInfo(orders),
+            receipts: storeReceiptsInfo(receipts)
         };
         res.status(200).json(StoreInfoObject);
     } catch (error) {

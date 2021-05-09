@@ -10,18 +10,18 @@ export const acceptReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const StoreDatabase = await StoreDB(StoreID);
     let Receipt: Receipt = req.body.receipt;
-    if (Receipt.status == ReceiptStatus.WAITING) {
-        Receipt.status = ReceiptStatus.READY;
-        Receipt.timestamp = Date.now();
-        StoreDatabase.put(Receipt).then(isOk => {
-            res.status(200).json({ ok: true, message: 'Ödeme Kabul Edildi!' });
-        }).catch(err => {
-            res.status(404).json({ ok: false, message: 'Ödeme Kabul Edildilirken Hata Oluştu!' });
-            createLog(req, LogType.DATABASE_ERROR, err)
-        });
-    } else {
+    // if (Receipt.status == ReceiptStatus.WAITING) {
+    Receipt.status = ReceiptStatus.READY;
+    Receipt.timestamp = Date.now();
+    StoreDatabase.put(Receipt).then(isOk => {
+        res.status(200).json({ ok: true, message: 'Ödeme Kabul Edildi!' });
+    }).catch(err => {
         res.status(404).json({ ok: false, message: 'Ödeme Kabul Edildilirken Hata Oluştu!' });
-    }
+        createLog(req, LogType.DATABASE_ERROR, err)
+    });
+    // } else {
+    //     res.status(404).json({ ok: false, message: 'Ödeme Kabul Edildilirken Hata Oluştu!' });
+    // }
 }
 
 export const approoveReceipt = async (req: Request, res: Response) => {

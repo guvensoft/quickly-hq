@@ -8,29 +8,29 @@ import { LogType } from '../../utils/logger';
 
 export interface CountData { product: string; count: number; total: number; };
 
-export const countProductsData = (id: string, price: number, manuelCount?): Array<CountData> => {
-    let countData = []; let countObj: CountData;
+export const countProductsData = (counDataArray: Array<CountData>, id: string, price: number, manuelCount?: number): Array<CountData> => {
+    let countObj: CountData;
     if (manuelCount) {
         countObj = { product: id, count: manuelCount, total: price };
     } else {
         countObj = { product: id, count: 1, total: price };
     }
-    let contains = countData.some(obj => obj.product === id);
+    let contains = counDataArray.some(obj => obj.product === id);
     if (contains) {
-        let index = countData.findIndex(p_id => p_id.product == id);
+        let index = counDataArray.findIndex(p_id => p_id.product == id);
         if (manuelCount) {
-            countData[index].count += manuelCount;
+            counDataArray[index].count += manuelCount;
         } else {
-            countData[index].count++;
+            counDataArray[index].count++;
         }
-        countData[index].total += price;
+        counDataArray[index].total += price;
     } else {
-        countData.push(countObj);
+        counDataArray.push(countObj);
     }
-    return countData;
+    return counDataArray;
 }
 
-export const updateProductReport = async (store_id: string, count_data: Array<CountData>)  => {
+export const updateProductReport = async (store_id: string | string[], count_data: Array<CountData>): Promise<boolean> => {
     try {
         const StoreDatabase = await StoreDB(store_id);
         const StoreDayInfo: DayInfo = await (await StoreDatabase.find({ selector: { key: 'DateSettings' } })).docs[0].value;
@@ -70,6 +70,7 @@ export const updateProductReport = async (store_id: string, count_data: Array<Co
                 });
             }
         });
+        return true;
     } catch (error) {
         console.log(error);
         createLog(null, LogType.DATABASE_ERROR, error);

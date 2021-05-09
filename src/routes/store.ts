@@ -54,6 +54,12 @@ router.get("/list",
 );
 router.get("/info",
     StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    ListController.storeInfo
+);
+router.get("/infos",
+    StoreAuthenticateGuard,
     ListController.storesInfo
 );
 
