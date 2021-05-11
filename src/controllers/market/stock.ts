@@ -35,7 +35,7 @@ export const addStock = async (req: Request, res: Response) => {
             })
         } else {
             if (isStockHaveCategory) {
-                StoreDatabase.post({ _id:Product.sub_category, db_name: 'stocks_cat', name: StockSubCategory.name, description: StockSubCategory.description, db_seq: 0 }).then(stock_category => {
+                StoreDatabase.put({ _id:Product.sub_category, db_name: 'stocks_cat', name: StockSubCategory.name, description: StockSubCategory.description, db_seq: 0 }).then(stock_category => {
                     StoreDatabase.post({ db_name: 'stocks', ...productToStock(Product, Quantity) });
                     res.status(200).json({ ok: true, message: `${Quantity} adet ürün Stok'a eklendi!` });
                 }).catch(err => {
