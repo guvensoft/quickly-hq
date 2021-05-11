@@ -1,9 +1,11 @@
+import { UnitType } from "../store/stocks";
+
 export interface Product {
     name: string,
     description: string,
     category: string,
     sub_category: string,
-    unit: string,
+    unit: UnitType,
     portion: number,
     packages: Array<ProductPackage>,
     producer_id: string,

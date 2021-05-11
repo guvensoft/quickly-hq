@@ -2,6 +2,7 @@ import { ManagementDB, RemoteDB } from '../configrations/database';
 import { Database } from '../models/management/database';
 import { Report } from '../models/store/report';
 import { Product } from '../models/management/product';
+import { Stock } from '../models/store/stocks';
 
 export const dailyStockExpense = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
@@ -23,7 +24,7 @@ export const dailyStockExpense = () => {
     })
 }
 
-export const productToStock = (product: Product, quantity: number, warning?: number, warehouse?: string) => {
+export const productToStock = (product: Product, quantity: number, warning?: number, warehouse?: string): Stock =>  {
     return {
         name: product.name,
         description: product.description,
