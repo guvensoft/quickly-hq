@@ -8,7 +8,7 @@ import { Stock, StockCategory } from "../../models/store/stocks";
 export const addStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const ProductID = req.params.product_id;
-    const Quantity = <number><unknown>req.params.quantity || 10;
+    const Quantity = parseInt(req.params.quantity) || 10;
     try {
         const StoreDatabase = await StoreDB(StoreID);
 
