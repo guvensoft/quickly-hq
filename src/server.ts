@@ -132,13 +132,14 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.clearDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77')
 
-// blackboard.documentTransport('kosmos-backup', 'kosmos-besiktas', { db_name: "sub_categories" }, 'fetch');
+// blackboard.documentTransport('kosmos-test', 'kosmos-besiktas', { db_name: "users_group" }, 'fetch');
 
 // blackboard.reportsTest('d622f9dd-036b-4775-bbee-911d301c5b77')
 
-// blackboard.clearStoreProducts('d8412bb0-5546-4b78-922e-b7a774daa217')
+// blackboard.clearStoreProducts('d622f9dd-036b-4775-bbee-911d301c5b77'
+// blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77');
 
-// blackboard.menuToTerminal('d8412bb0-5546-4b78-922e-b7a774daa217');
+// blackboard.menuToTerminal('d622f9dd-036b-4775-bbee-911d301c5b77');
 
 // blackboard.menuFixer();
 

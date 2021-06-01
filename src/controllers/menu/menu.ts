@@ -93,6 +93,7 @@ export const checkRequest = async (req: Request, res: Response) => {
 
 
 export const payReceipt = async (req: Request, res: Response) => {
+    
     const StoreID = req.headers.store;
     const Token: string = req.params.token;
     const StoreDatabase = await StoreDB(StoreID);
@@ -100,100 +101,90 @@ export const payReceipt = async (req: Request, res: Response) => {
 
     let Receipt: Receipt = req.body.receipt;
 
-    try {
-        const orderRequestType = await StoreDatabase.get(Token);
-        switch (orderRequestType.db_name) {
-            case 'checks':
-                const Database = await OrderDB(StoreID, Token, false);
-
-                let Check: Check = orderRequestType;
-                let User: User = Receipt.user;
-
-                let userItems = Receipt.orders.filter(order => order.status == OrderStatus.APPROVED);
-
-                userItems.map(obj => {
-                    obj.status = OrderStatus.PAYED;
-                    return obj;
-                })
-
-                /////////// Check Operations ////////////
-                let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj.timestamp).includes(product.timestamp));
-
-                console.log(productsWillPay)
-
-                const newPayment: PaymentStatus = { owner: User.name, method: 'Kart', amount: Receipt.total, discount: Receipt.discount, timestamp: Date.now(), payed_products: productsWillPay };
-                if (Check.payment_flow == undefined) {
-                    Check.payment_flow = [];
-                }
-                Check.payment_flow.push(newPayment);
-                Check.discount += newPayment.amount;
-                Check.products = Check.products.filter(product => !productsWillPay.includes(product));
-                Check.total_price = Check.products.map(product => product.price).reduce((a, b) => a + b, 0);
-
-                /////////// Check Operations ////////////
-
-                Receipt.status = ReceiptStatus.APPROVED;
-
-                Database.bulkDocs(userItems).then(order_res => {
-                    Database.put(Receipt).then(isOK => {
-                        StoreDatabase.put(Check).then(isCheckUpdated => {
-                            if (isCheckUpdated.ok) {
-                                res.status(200).json({ ok: true, receipt: Receipt });
-                            }
+    processPurchase(CreditCard.number, CreditCard.expiry.slice(2), CreditCard.expiry.slice(0, 2), CreditCard.cvc, Receipt.total.toString()).then(async success => {
+        console.log(success.OrderId, Receipt.user.id);
+        try {
+            const orderRequestType = await StoreDatabase.get(Token);
+            switch (orderRequestType.db_name) {
+                case 'checks':
+                    const Database = await OrderDB(StoreID, Token, false);
+    
+                    let Check: Check = orderRequestType;
+                    let User: User = Receipt.user;
+    
+                    let userItems = Receipt.orders.filter(order => order.status == OrderStatus.APPROVED);
+    
+                    userItems.map(obj => {
+                        obj.status = OrderStatus.PAYED;
+                        return obj;
+                    })
+    
+                    /////////// Check Operations ////////////
+                    let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj.timestamp).includes(product.timestamp));
+    
+                    console.log(productsWillPay)
+    
+                    const newPayment: PaymentStatus = { owner: User.name, method: 'Kart', amount: Receipt.total, discount: Receipt.discount, timestamp: Date.now(), payed_products: productsWillPay };
+                    if (Check.payment_flow == undefined) {
+                        Check.payment_flow = [];
+                    }
+                    Check.payment_flow.push(newPayment);
+                    Check.discount += newPayment.amount;
+                    Check.products = Check.products.filter(product => !productsWillPay.includes(product));
+                    Check.total_price = Check.products.map(product => product.price).reduce((a, b) => a + b, 0);
+    
+                    /////////// Check Operations ////////////
+    
+                    Receipt.status = ReceiptStatus.APPROVED;
+    
+                    Database.bulkDocs(userItems).then(order_res => {
+                        Database.put(Receipt).then(isOK => {
+                            StoreDatabase.put(Check).then(isCheckUpdated => {
+                                if (isCheckUpdated.ok) {
+                                    res.status(200).json({ ok: true, receipt: Receipt });
+                                }
+                            }).catch(err => {
+                                console.log('Check Update Error on Payment Process', err);
+                                res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                            })
                         }).catch(err => {
-                            console.log('Check Update Error on Payment Process', err);
+                            console.log('Receipt Update Error on Payment Process', err);
                             res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
                         })
                     }).catch(err => {
-                        console.log('Receipt Update Error on Payment Process', err);
+                        console.log('Orders Update Error on Payment Process', err);
                         res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+    
                     })
-                }).catch(err => {
-                    console.log('Orders Update Error on Payment Process', err);
-                    res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
-
-                })
-                // TODO Delete items from Check to Payed
-
-                // processPurchase(CreditCard.number, CreditCard.expiry.slice(2), CreditCard.expiry.slice(0, 2), CreditCard.cvc, Receipt.total.toString()).then(async success => {
-                //     console.log(success.OrderId, Receipt.user.id);
-                //     try {
-                //         let Database = await OrderDB(StoreID, Token, false);
-                //         console.log(Database.info())
-                //         res.status(200).json({ ok: true, receipt: Receipt });
-
-                //     } catch (error) {
-                //         res.status(200).json({ ok: false, error: error });
-
-                //     }
-                // }).catch(err => {
-                //     console.log(err)
-                //     res.status(200).json({ ok: false, error: err });
-                // })
-
-                break;
-            case 'customers':
-                let Customer = orderRequestType;
-                Receipt.status = ReceiptStatus.APPROVED;
-                delete Receipt.orders[0]._rev;
-                StoreDatabase.put(Receipt.orders[0]).then(order_res => {
-                    Receipt.orders[0].status = OrderStatus.PREPARING;
-                    delete Receipt._rev;
-                    StoreDatabase.put(Receipt).then(isOk => {
-                        res.status(200).json({ ok: true, receipt: Receipt });
+                    // TODO Delete items from Check to Payed
+                    break;
+                case 'customers':
+                    let Customer = orderRequestType;
+                    Receipt.status = ReceiptStatus.APPROVED;
+                    delete Receipt.orders[0]._rev;
+                    StoreDatabase.put(Receipt.orders[0]).then(order_res => {
+                        Receipt.orders[0].status = OrderStatus.PREPARING;
+                        delete Receipt._rev;
+                        StoreDatabase.put(Receipt).then(isOk => {
+                            res.status(200).json({ ok: true, receipt: Receipt });
+                        }).catch(err => {
+                            res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+                        })
                     }).catch(err => {
                         res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
                     })
-                }).catch(err => {
+                    break;
+                default:
                     res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
-                })
-                break;
-            default:
-                res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
-                break;
+                    break;
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
         }
-    } catch (error) {
-        console.log(error);
+    }).catch(err => {
+        console.log(err)
         res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
-    }
+    })
+
 }
