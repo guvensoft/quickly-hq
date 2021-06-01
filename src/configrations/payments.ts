@@ -1,10 +1,11 @@
 import NestPay from 'node-nestpay';
+import { nestPayUserName, nestPaySecret, nestPayClientId, nestPayStoreKey} from './secrets'
 
 const nestPay = new NestPay({
-    name: 'quicklyhq',
-    password: 'zUXnAMmP92Lj7yC',
-    clientId: 700668268733,
-    // storekey: 668268733,
+    name: nestPayUserName,
+    password: nestPaySecret,
+    clientId: nestPayClientId,
+    storekey: nestPayStoreKey,
     mode: 'T',
     currency: 'TRY',
     endpoint: 'isbank',
