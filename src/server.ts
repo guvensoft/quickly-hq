@@ -12,6 +12,7 @@ import queryParser from 'express-query-int';
 import { OrderMiddleware } from './configrations/database'
 import { corsOptions } from './configrations/cors';
 
+
 import * as blackboard from './blackboard';
 
 //// 19286545426 - 0(212)-367-60-60:3678
@@ -58,10 +59,11 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 //     console.log('HTTPS Server running on port 443');
 // });
 
-
 /* Worker Threads */
 // import './workers/tables';
 // import './workers/activities';
+
+
 
 /* Memory Listener Interval */
 
@@ -79,7 +81,6 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 //     console.log(`Allocated Heap:               ${(Math.round(total_heap * 100) / 100).toFixed(2)} MB`);
 //     console.log('---------------------------------------')
 // }, 1000)
-
 
 /* For Testing New Functions */
 
@@ -107,7 +108,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.documentbackup('quickly-cafe-459c')
 // blackboard.reisImport();
 // blackboard.addProperty();
-// blackboard.allRevisions('okkali-marmara-forum','83644083-a915-48fd-8961-e4045d440d33');
+
+// blackboard.allRevisions('kosmos-besiktas','2def61b4-d2e6-4843-abdb-ab153c136555');
+
 // blackboard.databaseLogs('kosmos-besiktas','C-1');
 // blackboard.thatDay();
 // blackboard.purgeTest('d1265d7d-142a-46d3-8383-261ee97cb577');
@@ -118,29 +121,27 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.makePdf('kallavi-marmaraforum');
 // blackboard.menuChanger();
 // blackboard.makePdf('kallavi-besiktas');
-
-
 // blackboard.DailySalesReport('kallavi-besiktas');
 // processPurchase()
 // blackboard.addNotes();
 // blackboard.storesInfo2();
 // blackboard.documentTransport('kosmos-besiktas', 'order-test', { db_name: 'endday' }, 'fetch');
-
 // blackboard.Fixer('kallavi-besiktas');
-
-
 // blackboard.clearDatabase('d622f9dd-036b-4775-bbee-911d301c5b77')
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77')
-
-// blackboard.documentTransport('kosmos-test', 'kosmos-besiktas', { db_name: "users_group" }, 'fetch');
-
+// blackboard.documentTransport('kallavi-marmaraforum', 'kallavi-besiktas', { db_name: "categories" }, 'update');
 // blackboard.reportsTest('d622f9dd-036b-4775-bbee-911d301c5b77')
-
 // blackboard.clearStoreProducts('d622f9dd-036b-4775-bbee-911d301c5b77'
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77');
-
-// blackboard.menuToTerminal('d622f9dd-036b-4775-bbee-911d301c5b77');
-
 // blackboard.menuFixer();
 
+// blackboard.allRevisions('quickly-menu-app','joker-no-5')
+// blackboard.allOrders('kosmos-besiktas','8c0dc80f-1377-427d-a912-4e1b2a80f46a')
+// blackboard.makePdf('kallavi-besiktas',1625097600000,1627776000000)
+
+// blackboard.getSessions();
+
+// blackboard.fixTables("kallavi-besiktas")
+// blackboard.menuToTerminal2('d8412bb0-5546-4b78-922e-b7a774daa217');
+// blackboard.clearStoreProducts('d8412bb0-5546-4b78-922e-b7a774daa217');
 

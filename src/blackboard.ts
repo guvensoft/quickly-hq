@@ -24,6 +24,7 @@ import { productToStock } from './functions/stocks';
 import { endDayProcess } from './controllers/store/endofday';
 
 import { StoreReport, ProductsReport, UsersReport, UserProductSalesReport, TablesReport, StoreSalesReport } from './functions/store/reports';
+import { getSession } from './controllers/management/session';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -134,11 +135,11 @@ export const fixTables = async (db_name: string) => {
     //     }
     // });
 
-    // RemoteDB(db, db_name).bulkDocs(tables).then(res => {
-    //     console.log('Tables Successfuly Reoladed...!');
-    // }).catch(err => {
-    //     console.log(err);
-    // })
+    RemoteDB(db, db_name).bulkDocs(tables).then(res => {
+        console.log('Tables Successfuly Reoladed...!');
+    }).catch(err => {
+        console.log(err);
+    })
 }
 
 export const Logs = () => {
@@ -514,14 +515,26 @@ export const dayDetail = (store_id: string, day_file: string) => {
     // })
 }
 
+export const allOrders = (db_name: string, check_id: string) => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
+        const db: Database = res.docs[0];
+        RemoteDB(db, db_name).find({selector: {db_name:'orders' , check:check_id} }).then(res => {
+            res.docs.forEach(order => console.table(order.items,['name','note','price']));
+        })
+    
+    }).catch(err => {
+        console.log(err);
+    })
+}
+
 export const allRevisions = (db_name: string, doc_id: string) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
-        let db: Database = res.docs[0];
+        const db: Database = res.docs[0];
         RemoteDB(db, db_name).get(doc_id, { revs_info: true }).then(res => {
-            console.log(res);
-            res._revs_info.filter(rev => rev.status == "available").forEach(obj => {
+            res._revs_info.filter(rev => rev.status == "available").forEach((obj,index) => {
+                console.log(obj);
                 RemoteDB(db, db_name).get(doc_id, { rev: obj.rev }).then((res: any) => {
-                    console.log(res);
+                    writeJsonFile('data'+index+'.json', res)
                 });
             })
         }).catch(err => {
@@ -548,11 +561,26 @@ export const databaseLogs = (db_name: string, search: string) => {
     })
 }
 
+
+export const getSessions = async () => {
+    // StoresDB.Sessions.allDocs()
+    let owners = (await ManagementDB.Owners.find({ selector: {} })).docs;
+    
+    let sessions = (await StoresDB.Sessions.find({selector:{}})).docs;
+
+    sessions.sort((a,b) => b.expire_date - a.expire_date);
+    sessions.forEach((session,index) => {
+    
+        console.log(index,'   ', new Date(session.timestamp).toLocaleDateString('tr-TR'),new Date(session.timestamp).toLocaleTimeString('tr-TR'),'            ',owners.find(obj => obj._id == session.user_id)?.fullname || '--------')
+        
+    
+    })
+
+}
+
 export const veryOldUpdate = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-
-
         RemoteDB(db, 'goches-coffee-18fa').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
 
             // let test = res.docs.map(obj => obj.weekly_count[1]);
@@ -1193,20 +1221,34 @@ export const addNotes = () => {
     })
 }
 
-export const makePdf = async (db_name: string) => {
+export const makePdf = async (db_name: string, start_date:number, end_date:number) => {
     try {
+
         const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } });
         const enddays: Array<EndDay> = await (await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'endday' }, limit: 2500 })).docs;
         const doc = new jsPDF({ orientation: "portrait" }); // landscape
-        let bodyLink = [];
         const transformPrice = (value: number): string => {
             if (!value) value = 0;
             return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
         }
-        enddays.sort((a, b) => a.timestamp - b.timestamp).forEach((end, index) => {
-            let data = [new Date(end.timestamp).toLocaleDateString('tr-TR'), transformPrice(end.total_income), transformPrice(end.cash_total), transformPrice(end.card_total), transformPrice(end.coupon_total), transformPrice(end.free_total), transformPrice(end.canceled_total), transformPrice(end.discount_total)];
+        const totalProperty = (property:string) => {
+            return transformPrice(data.map(obj => obj[property]).reduce((a,b) => a+b,0))
+        }
+
+
+        let bodyLink = [];
+        let data = enddays.sort((a, b) => a.timestamp - b.timestamp).filter((day) => day.timestamp > start_date && day.timestamp < end_date)
+
+        // hitDates.some(function(dateStr) {
+        //     var date = new Date(dateStr);
+        //     return date >= startDate && date <= endDate
+        // });
+
+        data.forEach((end, index) => {
+            let data = [new Date(end.timestamp).toLocaleDateString('tr',{year:'numeric',month:'2-digit',day:'2-digit'}), transformPrice(end.total_income), transformPrice(end.cash_total), transformPrice(end.card_total), transformPrice(end.coupon_total), transformPrice(end.free_total), transformPrice(end.canceled_total), transformPrice(end.discount_total)];
             bodyLink.push(data);
         });
+        doc.setLanguage('tr')
         autoTable(doc, {
             styles: {
                 // cellPadding: 5,
@@ -1214,29 +1256,34 @@ export const makePdf = async (db_name: string) => {
                 font: "helvetica", // helvetica, times, courier
                 lineColor: 200,
                 // lineWidth: 0.1,
-                fontStyle: 'bold', // normal, bold, italic, bolditalic
+                fontStyle: 'bold', // normal, bold, italic, bolditalic,
                 overflow: 'ellipsize', // visible, hidden, ellipsize or linebreak
                 // fillColor: 255,
                 // textColor: 20,
                 halign: 'right', // left, center, right
                 valign: 'middle', // top, middle, bottom
+                
                 // fillStyle: 'F', // 'S', 'F' or 'DF' (stroke, fill or fill then stroke)
                 // rowHeight: 20,
                 // columnWidth: 'auto' // 'auto', 'wrap' or a number
             },
             head: [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']],
+            foot: [['Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]],
             body: bodyLink,
             theme: 'plain',
+            margin: {vertical:0,horizontal:0},
             headStyles: { halign: "center", fillColor: [43, 62, 80], textColor: 255 },
+            footStyles: { halign: "right", minCellHeight:10, fillColor: [255, 255, 255], textColor: 0 },
+
             columnStyles: {
-                0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'bold' },
-                1: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'bold' },
-                2: { fillColor: [28, 40, 48], textColor: [98, 173, 101], fontStyle: 'bold' },
-                3: { fillColor: [28, 40, 48], textColor: [232, 167, 84], fontStyle: 'bold' },
-                4: { fillColor: [28, 40, 48], textColor: [87, 184, 205], fontStyle: 'bold' },
-                5: { fillColor: [28, 40, 48], textColor: [181, 91, 82], fontStyle: 'bold' },
-                6: { fillColor: [28, 40, 48], textColor: [186, 109, 46], fontStyle: 'bold' },
-                7: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'bold' },
+                0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'normal' },
+                1: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'normal' },
+                2: { fillColor: [28, 40, 48], textColor: [98, 173, 101], fontStyle: 'normal' },
+                3: { fillColor: [28, 40, 48], textColor: [232, 167, 84], fontStyle: 'normal' },
+                4: { fillColor: [28, 40, 48], textColor: [87, 184, 205], fontStyle: 'normal' },
+                5: { fillColor: [28, 40, 48], textColor: [181, 91, 82], fontStyle: 'normal' },
+                6: { fillColor: [28, 40, 48], textColor: [186, 109, 46], fontStyle: 'normal' },
+                7: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'normal' },
             },
         })
         doc.save('table.pdf');
@@ -1286,10 +1333,10 @@ export const clearStoreProducts = async (store_id: string) => {
     const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
     const StoreDatabase = await StoreDB(store_id);
 
-    let products = (await StoreDatabase.find({ selector: { db_name: 'products' } })).docs;
-    let categories = (await StoreDatabase.find({ selector: { db_name: 'categories' } })).docs;
-    let sub_categories = (await StoreDatabase.find({ selector: { db_name: 'sub_categories' } })).docs;
-    let reports = (await StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product' } })).docs;
+    let products = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit:2000 })).docs;
+    let categories = (await StoreDatabase.find({ selector: { db_name: 'categories', limit:2000 } })).docs;
+    let sub_categories = (await StoreDatabase.find({ selector: { db_name: 'sub_categories', limit:2000 } })).docs;
+    let reports = (await StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product', limit:2000 } })).docs;
 
     let docsWillRemove = [...products, ...categories, ...sub_categories, ...reports];
 
@@ -1302,6 +1349,331 @@ export const clearStoreProducts = async (store_id: string) => {
 }
 
 export const menuToTerminal = async (store_id: string) => {
+    try {
+        const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
+        const StoreDatabase = await StoreDB(store_id);
+        const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
+
+        const Menu: Menu = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
+
+        Menu.categories.forEach((category, index) => {
+            let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
+
+            StoreDatabase.find({selector:{ db_name:'categories', name:category.name }}).then(isCatAvailable => {
+                if(isCatAvailable.docs.length > 0){
+                    //// Category Exist
+                    let cat_res = isCatAvailable.docs[0];
+
+                    if (category.item_groups.length > 0) {
+
+                        category.item_groups.forEach(sub_cat => {
+
+                            let newSubCategory: SubCategory = { name: sub_cat.name, description: '', status: 0, cat_id: cat_res.id }
+
+                            StoreDatabase.find({selector:{ db_name:'sub_categories', name:sub_cat.name }}).then(isSubCatAvailable => {
+                                if(isSubCatAvailable.docs.length > 0){
+                                    //// SubCategory Exist
+                                    let sub_cat_res = isSubCatAvailable.docs[0];
+                                    console.log('! Alt Kategori Zaten Var', sub_cat_res.name);
+                                    sub_cat.items.forEach(item => {
+                                        if (item.price) {
+                                            let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                            StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                                item.product_id = product_res.id;
+                                                console.log('+ Ürün Eklendi', newCategory.name);
+        
+                                                /////////////////////////////////////////////////////////////
+                                                ////////////////////      Report    /////////////////////////
+                                                newProduct._id = product_res.id;
+                                                newProduct._rev = product_res.rev;
+                                                let newReport = createReport('Product', newProduct);
+                                                StoreDatabase.post(newReport).then(res => {
+                                                    console.log('+ Rapor Eklendi', newReport.description);
+                                                }).catch(err => {
+                                                    console.log('Rapor Hatası', newReport.description)
+                                                })
+                                                /////////////////////////////////////////////////////////////
+                                            }).catch(err => {
+                                                console.log('Ürün Hatası', item.name)
+                                            })
+                                        } else {
+                                            let specs: Array<ProductSpecs> = [];
+                                            item.options.forEach(opts => {
+                                                let spec: ProductSpecs = {
+                                                    spec_name: opts.name,
+                                                    spec_price: opts.price
+                                                }
+                                                specs.push(spec);
+                                            })
+                                            let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                            StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                                console.log('+ Ürün Eklendi', newCategory.name);
+        
+                                                item.product_id = product_res.id;
+        
+                                                /////////////////////////////////////////////////////////////
+                                                ////////////////////      Report    /////////////////////////
+                                                newProduct._id = product_res.id;
+                                                newProduct._rev = product_res.rev;
+                                                let newReport = createReport('Product', newProduct);
+                                                StoreDatabase.post(newReport).then(res => {
+                                                    console.log('+ Rapor Eklendi', newReport.description);
+                                                }).catch(err => {
+                                                    console.log('Rapor Hatası', newReport.description)
+                                                })
+                                                /////////////////////////////////////////////////////////////
+                                            }).catch(err => {
+                                                console.log('Ürün Hatası', item.name)
+                                            })
+                                        }
+                                    })
+                                }else{
+                                    //// SubCategory Not Exist
+                                    StoreDatabase.post({ db_name: 'sub_categories', ...newSubCategory }).then(sub_cat_res => {
+                                        sub_cat.id = sub_cat_res.id;
+                                        console.log('+ Alt Kategori Eklendi', newCategory.name);
+                                        sub_cat.items.forEach(item => {
+                                            if (item.price) {
+                                                let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                                StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                                    item.product_id = product_res.id;
+                                                    console.log('+ Ürün Eklendi', newCategory.name);
+            
+                                                    /////////////////////////////////////////////////////////////
+                                                    ////////////////////      Report    /////////////////////////
+                                                    newProduct._id = product_res.id;
+                                                    newProduct._rev = product_res.rev;
+                                                    let newReport = createReport('Product', newProduct);
+                                                    StoreDatabase.post(newReport).then(res => {
+                                                        console.log('+ Rapor Eklendi', newReport.description);
+                                                    }).catch(err => {
+                                                        console.log('Rapor Hatası', newReport.description)
+                                                    })
+                                                    /////////////////////////////////////////////////////////////
+                                                }).catch(err => {
+                                                    console.log('Ürün Hatası', item.name)
+                                                })
+                                            } else {
+                                                let specs: Array<ProductSpecs> = [];
+                                                item.options.forEach(opts => {
+                                                    let spec: ProductSpecs = {
+                                                        spec_name: opts.name,
+                                                        spec_price: opts.price
+                                                    }
+                                                    specs.push(spec);
+                                                })
+                                                let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                                StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                                    console.log('+ Ürün Eklendi', newCategory.name);
+            
+                                                    item.product_id = product_res.id;
+            
+                                                    /////////////////////////////////////////////////////////////
+                                                    ////////////////////      Report    /////////////////////////
+                                                    newProduct._id = product_res.id;
+                                                    newProduct._rev = product_res.rev;
+                                                    let newReport = createReport('Product', newProduct);
+                                                    StoreDatabase.post(newReport).then(res => {
+                                                        console.log('+ Rapor Eklendi', newReport.description);
+                                                    }).catch(err => {
+                                                        console.log('Rapor Hatası', newReport.description)
+                                                    })
+                                                    /////////////////////////////////////////////////////////////
+                                                }).catch(err => {
+                                                    console.log('Ürün Hatası', item.name)
+                                                })
+                                            }
+                                        })
+                                    }).catch(err => {
+                                        console.log('Alt Kategori Hatası', category.name)
+                                    });
+                                }
+                            })
+                        });
+                    }else{
+                        category.items.forEach(item => {
+                            if (item.price) {
+                                let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
+                                StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                    console.log('+ Ürün Eklendi', newCategory.name);
+                                    item.product_id = product_res.id;
+                                    /////////////////////////////////////////////////////////////
+                                    ////////////////////      Report    /////////////////////////
+                                    newProduct._id = product_res.id;
+                                    newProduct._rev = product_res.rev;
+                                    let newReport = createReport('Product', newProduct);
+                                    StoreDatabase.post(newReport).then(res => {
+                                        console.log('+ Rapor Eklendi', newReport.description);
+                                    }).catch(err => {
+                                        console.log('Rapor Hatası', newReport.description)
+                                    })
+                                    /////////////////////////////////////////////////////////////
+    
+                                }).catch(err => {
+                                    console.log('Ürün Hatası', item.name)
+                                })
+                            } else {
+                                let specs: Array<ProductSpecs> = [];
+                                item.options.forEach(opts => {
+                                    let spec: ProductSpecs = {
+                                        spec_name: opts.name,
+                                        spec_price: opts.price
+                                    }
+                                    specs.push(spec);
+                                })
+                                let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, tax_value: 8, }
+                                StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                    console.log('+ Ürün Eklendi', newCategory.name);
+                                    item.product_id = product_res.id;
+                                    /////////////////////////////////////////////////////////////
+                                    ////////////////////      Report    /////////////////////////
+                                    newProduct._id = product_res.id;
+                                    newProduct._rev = product_res.rev;
+                                    let newReport = createReport('Product', newProduct);
+                                    StoreDatabase.post(newReport).then(res => {
+                                        console.log('+ Rapor Eklendi', newReport.description);
+                                    }).catch(err => {
+                                        console.log('Rapor Hatası', newReport.description)
+                                    })
+                                    /////////////////////////////////////////////////////////////
+                                }).catch(err => {
+                                    console.log('Ürün Hatası', item.name)
+                                })
+                            }
+                        })
+                    }
+                }else{
+                    ///// Category Not Exist
+                    StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
+                        console.log('+ Kategori Eklendi', newCategory.name);
+                        category.id = cat_res.id;
+                        if (category.item_groups.length > 0) {
+                            category.item_groups.forEach(sub_cat => {
+                                let newSubCategory: SubCategory = { name: sub_cat.name, description: '', status: 0, cat_id: cat_res.id }
+                                StoreDatabase.post({ db_name: 'sub_categories', ...newSubCategory }).then(sub_cat_res => {
+                                    sub_cat.id = sub_cat_res.id;
+                                    console.log('+ Alt Kategori Eklendi', newCategory.name);
+                                    sub_cat.items.forEach(item => {
+                                        if (item.price) {
+                                            let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                            StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                                item.product_id = product_res.id;
+                                                console.log('+ Ürün Eklendi', newCategory.name);
+        
+                                                /////////////////////////////////////////////////////////////
+                                                ////////////////////      Report    /////////////////////////
+                                                newProduct._id = product_res.id;
+                                                newProduct._rev = product_res.rev;
+                                                let newReport = createReport('Product', newProduct);
+                                                StoreDatabase.post(newReport).then(res => {
+                                                    console.log('+ Rapor Eklendi', newReport.description);
+                                                }).catch(err => {
+                                                    console.log('Rapor Hatası', newReport.description)
+                                                })
+                                                /////////////////////////////////////////////////////////////
+                                            }).catch(err => {
+                                                console.log('Ürün Hatası', item.name)
+                                            })
+                                        } else {
+                                            let specs: Array<ProductSpecs> = [];
+                                            item.options.forEach(opts => {
+                                                let spec: ProductSpecs = {
+                                                    spec_name: opts.name,
+                                                    spec_price: opts.price
+                                                }
+                                                specs.push(spec);
+                                            })
+                                            let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                            StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                                console.log('+ Ürün Eklendi', newCategory.name);
+        
+                                                item.product_id = product_res.id;
+        
+                                                /////////////////////////////////////////////////////////////
+                                                ////////////////////      Report    /////////////////////////
+                                                newProduct._id = product_res.id;
+                                                newProduct._rev = product_res.rev;
+                                                let newReport = createReport('Product', newProduct);
+                                                StoreDatabase.post(newReport).then(res => {
+                                                    console.log('+ Rapor Eklendi', newReport.description);
+                                                }).catch(err => {
+                                                    console.log('Rapor Hatası', newReport.description)
+                                                })
+                                                /////////////////////////////////////////////////////////////
+                                            }).catch(err => {
+                                                console.log('Ürün Hatası', item.name)
+                                            })
+                                        }
+                                    })
+                                }).catch(err => {
+                                    console.log('Alt Kategori Hatası', category.name)
+                                });
+                            });
+                        } else {
+                            category.items.forEach(item => {
+                                if (item.price) {
+                                    let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
+                                    StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                        console.log('+ Ürün Eklendi', newCategory.name);
+                                        item.product_id = product_res.id;
+                                        /////////////////////////////////////////////////////////////
+                                        ////////////////////      Report    /////////////////////////
+                                        newProduct._id = product_res.id;
+                                        newProduct._rev = product_res.rev;
+                                        let newReport = createReport('Product', newProduct);
+                                        StoreDatabase.post(newReport).then(res => {
+                                            console.log('+ Rapor Eklendi', newReport.description);
+                                        }).catch(err => {
+                                            console.log('Rapor Hatası', newReport.description)
+                                        })
+                                        /////////////////////////////////////////////////////////////
+        
+                                    }).catch(err => {
+                                        console.log('Ürün Hatası', item.name)
+                                    })
+                                } else {
+                                    let specs: Array<ProductSpecs> = [];
+                                    item.options.forEach(opts => {
+                                        let spec: ProductSpecs = {
+                                            spec_name: opts.name,
+                                            spec_price: opts.price
+                                        }
+                                        specs.push(spec);
+                                    })
+                                    let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, tax_value: 8, }
+                                    StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
+                                        console.log('+ Ürün Eklendi', newCategory.name);
+                                        item.product_id = product_res.id;
+                                        /////////////////////////////////////////////////////////////
+                                        ////////////////////      Report    /////////////////////////
+                                        newProduct._id = product_res.id;
+                                        newProduct._rev = product_res.rev;
+                                        let newReport = createReport('Product', newProduct);
+                                        StoreDatabase.post(newReport).then(res => {
+                                            console.log('+ Rapor Eklendi', newReport.description);
+                                        }).catch(err => {
+                                            console.log('Rapor Hatası', newReport.description)
+                                        })
+                                        /////////////////////////////////////////////////////////////
+                                    }).catch(err => {
+                                        console.log('Ürün Hatası', item.name)
+                                    })
+                                }
+                            })
+                        }
+                    }).catch(err => {
+                        console.log('Kategori Hatası', category.name)
+                    })
+                }
+            })
+        })
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+export const menuToTerminal2 = async (store_id: string) => {
     try {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
         const StoreDatabase = await StoreDB(store_id);
@@ -1548,7 +1920,6 @@ export const menuFixer = async () => {
         //                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
         //                                 item.product_id = product_res.id;
         //                                 console.log('+ Ürün Eklendi', newCategory.name);
-
         //                                 /////////////////////////////////////////////////////////////
         //                                 ////////////////////      Report    /////////////////////////
         //                                 newProduct._id = product_res.id;

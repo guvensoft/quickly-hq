@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { ManagementDB, DatabaseQueryLimit } from "../../configrations/database";
+import { ManagementDB, DatabaseQueryLimit, StoresDB } from "../../configrations/database";
 import { SessionMessages } from '../../utils/messages';
 import { createLog, LogType } from '../../utils/logger';
 import { Session } from "../../models/management/session";
@@ -81,7 +81,7 @@ export const querySessions = (req: Request, res: Response) => {
         req.query.name = JSON.parse(req.query.name);
         delete req.query.regex;
     }
-    ManagementDB.Sessions.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
+    StoresDB.Sessions.find({ selector: req.query, limit: qLimit, skip: qSkip }).then((obj: any) => {
         res.send(obj.docs);
     }).catch(err => {
         res.status(SessionMessages.SESSION_NOT_EXIST.code).json(SessionMessages.SESSION_NOT_EXIST.response);

@@ -48,9 +48,9 @@ export const createActivity = (activityType: activityType, activityName: string)
 
 export const createReport = (reportType: reportType, reportObj: Product | Table | Floor | User | UserGroup | Category | SubCategory | Stock): Report => {
     const date = new Date();
-    const daysLength = new Date(date.getFullYear(), (date.getMonth() + 1), 0).getDate();
+    // const daysLength = new Date(date.getFullYear(), (date.getMonth() + 1), 0).getDate();
     const weeklyArray = new Array(7).fill(0, 0, 7);
-    const monthlyArray = new Array(daysLength).fill(0, 0, daysLength);
+    const monthlyArray = new Array(12).fill(0, 0, 12);
     return {
         type: reportType,
         connection_id: reportObj._id,
