@@ -3,6 +3,7 @@ import { StoreDB } from '../../configrations/database';
 import { backupPath } from '../../configrations/paths';
 import { readDirectory, writeJsonFile } from "../../functions/files";
 import { mkdir } from "fs";
+import { clearStoreDatabase } from "../../functions/database";
 
 export const uploadBackup = async (req: Request, res: Response) => {
     const Store = req.headers.store;
@@ -37,7 +38,12 @@ export const uploadBackup = async (req: Request, res: Response) => {
 
 export const endDayProcess = (req: Request, res: Response) => {
     console.log('Store', req.headers.store);
-    console.log(req.body.docs);
-
+    const Store: any = req.headers.store;
+    clearStoreDatabase(Store).then(isOk => {
+        console.log(isOk);
+        res.status(201).json({ok:true , message:'Gün Sonu İşlemi Tamamlandı'});
+    }).catch(err => {
+        res.status(400).json({ ok: false, message: 'Error: '+ err })
+    })
 
 }

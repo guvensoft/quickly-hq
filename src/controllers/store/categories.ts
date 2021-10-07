@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { CategoryMessages } from '../../utils/messages';
-import { Report } from "../../models/store/report";
 import { Category, SubCategory } from "../../models/store/product";
+import { createReport } from "../../functions/store/reports";
 
 ////// /categories/new [POST]
 export const createCategory = async (req: Request, res: Response) => {
@@ -10,11 +10,18 @@ export const createCategory = async (req: Request, res: Response) => {
     const newCategory: Category = req.body;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const CategoryWillCreate = { db_name: 'categories', db_seq: 0, ...newCategory };
-        // const CategoryReport = new Report('Category', newCategory);
-        await StoresDB.post(CategoryWillCreate);
-        // await StoresDB.post({ db_name: 'reports', db_seq: 0, ...CategoryReport });
-        res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
+        let CategoryWillCreate = { db_name: 'categories', db_seq: 0, ...newCategory };
+        let Category = await StoresDB.post(CategoryWillCreate);
+        CategoryWillCreate._id = Category.id;
+        CategoryWillCreate._rev = Category.rev;
+        let CategoryReport = { db_name: 'reports', db_seq: 0, ...createReport('Category', CategoryWillCreate) }
+        const isCreated = await StoresDB.post(CategoryReport)
+        if (isCreated && Category.ok) {
+            res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
+
+        } else {
+            res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
+        }
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
     }
@@ -84,10 +91,18 @@ export const createSubCategory = async (req: Request, res: Response) => {
     const newSubCategory: SubCategory = req.body;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const SubCategoryWillCreate = { db_name: 'sub_categories', db_seq: 0, ...newSubCategory };
-        // const SubCategoryReport = new Report('SubCategory', newSubCategory);
-        await StoresDB.post(SubCategoryWillCreate);
-        // await StoresDB.post({ db_name: 'reports', db_seq: 0, ...SubCategoryReport });
+        let SubCategoryWillCreate = { db_name: 'sub_categories', db_seq: 0, ...newSubCategory };
+        let Category = await StoresDB.post(SubCategoryWillCreate);
+        SubCategoryWillCreate._id = Category.id;
+        SubCategoryWillCreate._rev = Category.rev;
+        let CategoryReport = { db_name: 'reports', db_seq: 0, ...createReport('SubCategory', SubCategoryWillCreate) }
+        const isCreated = await StoresDB.post(CategoryReport)
+        if (isCreated && Category.ok) {
+            res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
+
+        } else {
+            res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);
+        }
         res.status(CategoryMessages.CATEGORY_CREATED.code).json(CategoryMessages.CATEGORY_CREATED.response);
     } catch (error) {
         res.status(CategoryMessages.CATEGORY_NOT_CREATED.code).json(CategoryMessages.CATEGORY_NOT_CREATED.response);

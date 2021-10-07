@@ -31,7 +31,7 @@ PouchDB.plugin(PouchDBHttp);
 PouchDB.plugin(PouchDBReplication);
 PouchDB.plugin(PouchDBUpsert)
 
-export const DatabaseQueryLimit = 1000;
+export const DatabaseQueryLimit = 2500;
 
 export const FileSystemConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'leveldb' };
 export const InMemoryConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'memory' };

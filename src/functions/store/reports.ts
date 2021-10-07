@@ -1,7 +1,12 @@
-import { readJsonFile, readDirectory } from '../files';
 import { backupPath } from '../../configrations/paths';
+import { CheckProduct, CheckType, ClosedCheck } from '../../models/store/check';
 import { BackupData } from '../../models/store/endoftheday';
-import { ClosedCheck, CheckStatus, CheckType, CheckProduct } from '../../models/store/check';
+import { Category, Product, SubCategory } from '../../models/store/product';
+import { Activity, Report, reportType, activityType } from '../../models/store/report';
+import { Stock } from '../../models/store/stocks';
+import { Floor, Table } from '../../models/store/table';
+import { User, UserGroup } from '../../models/store/user';
+import { readDirectory, readJsonFile } from '../files';
 
 interface SalesReport { cash: number; card: number; coupon: number; free: number; canceled: number; discount: number; checks: number; customers: { male: number, female: number } }
 interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }
@@ -250,5 +255,36 @@ export const TablesReport = (checks_to_count: Array<ClosedCheck>): Array<TableSa
         return tablesReport;
     } catch (error) {
         console.log(error);
+    }
+}
+
+export const createActivity = (activityType: activityType, activityName: string): Activity => {
+    return {
+        type: activityType,
+        name: activityName,
+        activity: [],
+        activity_time: [],
+        activity_count: [],
+    }
+}
+
+export const createReport = (reportType: reportType, reportObj: Product | Table | Floor | User | UserGroup | Category | SubCategory | Stock): Report => {
+    const date = new Date();
+    const weeklyArray = new Array(7).fill(0, 0, 7);
+    const monthlyArray = new Array(12).fill(0, 0, 12);
+    return {
+        type: reportType,
+        connection_id: reportObj._id,
+        count: 0,
+        amount: 0,
+        profit: 0,
+        weekly: weeklyArray,
+        weekly_count: weeklyArray,
+        monthly: monthlyArray,
+        monthly_count: monthlyArray,
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+        description: reportObj.name,
+        timestamp: Date.now()
     }
 }

@@ -45,10 +45,11 @@ export const requestMenu = async (req: Request, res: Response) => {
 
 export const saveMenu = async (req: Request, res: Response) => {
     const StoreID = req.params.store;
-    let MenuDoc = req.body.menu;
+    let MenuDoc:Menu = req.body.menu;
     try {
         const Store = await ManagementDB.Stores.get(StoreID);
         const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
+        MenuDoc.timestamp = Date.now();
         const UpdateMenu = await RemoteDB(Database, 'quickly-menu-app').put(MenuDoc);
         if (UpdateMenu.ok) {
             MenuDoc._rev = UpdateMenu.rev;

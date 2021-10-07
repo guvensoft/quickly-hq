@@ -6,7 +6,7 @@ import { Store } from './models/management/store';
 import { Stock } from './models/store/stocks';
 import { backupPath, documentsPath, reisPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/endoftheday';
-import { Report, createReport } from './models/store/report';
+import { Report } from './models/store/report';
 import { Cashbox } from './models/store/cashbox';
 import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/check';
 import { Log, logType } from './models/store/log';
@@ -18,12 +18,13 @@ import { Table, TableStatus } from './models/store/table';
 
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { Menu, MenuStatus } from './models/store/menu';
+
+import { Menu, MenuStatus, Order } from './models/store/menu';
 import { Category, Product, ProductSpecs, SubCategory } from './models/store/product';
 import { productToStock } from './functions/stocks';
 import { endDayProcess } from './controllers/store/endofday';
 
-import { StoreReport, ProductsReport, UsersReport, UserProductSalesReport, TablesReport, StoreSalesReport } from './functions/store/reports';
+import { StoreReport, ProductsReport, UsersReport, UserProductSalesReport, TablesReport, StoreSalesReport, createReport } from './functions/store/reports';
 import { getSession } from './controllers/management/session';
 
 export const TableWorker = () => {
@@ -249,11 +250,11 @@ export const Fixer = (db_name: string) => {
                     //     });
                     // })
 
-                    // oldChecks.forEach((check, index) => {
-                    //     RemoteDB(db, db_name).remove(check).then(res => {
-                    //         console.log(check._id, 'Silindi');
-                    //     });
-                    // })
+                    oldChecks.forEach((check, index) => {
+                        RemoteDB(db, db_name).remove(check).then(res => {
+                            console.log(check._id, 'Silindi');
+                        });
+                    })
 
 
                 })
@@ -516,12 +517,55 @@ export const dayDetail = (store_id: string, day_file: string) => {
 }
 
 export const allOrders = (db_name: string, check_id: string) => {
+    ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' }, limit: 5000 }).then((res: any) => {
+        const db: Database = res.docs[0];
+        RemoteDB(db, db_name).find({ selector: { db_name: 'orders', check: check_id } }).then(res => {
+
+            let orders: Order[] = res.docs.sort((a, b) => b.timestamp - a.timestamp);
+            let tableData = []
+            // orders.map(order => order.items )
+            orders.forEach(order => {
+                // console.log(order) 
+
+                tableData = tableData.concat(order.items)
+
+            });
+            console.table(tableData);
+            console.log('Toplam:        ', tableData.map(data => data.price).reduce((a, b) => a + b, 0));
+
+        })
+
+    }).catch(err => {
+        console.log(err);
+    })
+}
+
+
+export const reOpenCheck = (db_name: string, check_id: string) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         const db: Database = res.docs[0];
-        RemoteDB(db, db_name).find({selector: {db_name:'orders' , check:check_id} }).then(res => {
-            res.docs.forEach(order => console.table(order.items,['name','note','price']));
+
+
+        RemoteDB(db, db_name).get(check_id).then((check: Check) => {
+
+            if (check.payment_flow) {
+                check.payment_flow.forEach((payment) => {
+                    check.discount = check.discount - payment.amount;
+                    check.total_price += payment.amount;
+                    payment.payed_products.forEach(product => {
+                        check.products.push(product);
+                    })
+                })
+                delete check.payment_flow
+                RemoteDB(db, db_name).put(check).then(isCheckReOpened => {
+                    console.log('Check Updated');
+                })
+            } else {
+
+            }
+        }).catch(err => {
+            console.log(err);
         })
-    
     }).catch(err => {
         console.log(err);
     })
@@ -531,10 +575,10 @@ export const allRevisions = (db_name: string, doc_id: string) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         const db: Database = res.docs[0];
         RemoteDB(db, db_name).get(doc_id, { revs_info: true }).then(res => {
-            res._revs_info.filter(rev => rev.status == "available").forEach((obj,index) => {
+            res._revs_info.filter(rev => rev.status == "available").forEach((obj, index) => {
                 console.log(obj);
                 RemoteDB(db, db_name).get(doc_id, { rev: obj.rev }).then((res: any) => {
-                    writeJsonFile('data'+index+'.json', res)
+                    writeJsonFile('data' + index + '.json', res)
                 });
             })
         }).catch(err => {
@@ -565,16 +609,27 @@ export const databaseLogs = (db_name: string, search: string) => {
 export const getSessions = async () => {
     // StoresDB.Sessions.allDocs()
     let owners = (await ManagementDB.Owners.find({ selector: {} })).docs;
-    
-    let sessions = (await StoresDB.Sessions.find({selector:{}})).docs;
 
-    sessions.sort((a,b) => b.expire_date - a.expire_date);
-    sessions.forEach((session,index) => {
-    
-        console.log(index,'   ', new Date(session.timestamp).toLocaleDateString('tr-TR'),new Date(session.timestamp).toLocaleTimeString('tr-TR'),'            ',owners.find(obj => obj._id == session.user_id)?.fullname || '--------')
-        
-    
-    })
+    let sessions = (await StoresDB.Sessions.find({ selector: {} })).docs;
+
+    sessions.sort((a, b) => b.timestamp - a.timestamp);
+    let dataTable = [];
+    sessions.forEach((session, index) => {
+
+        if (owners.some(obj => obj._id == session.user_id)) {
+            dataTable.push({
+                Tarih: new Date(session.timestamp).toLocaleDateString('tr-TR'),
+                Saat: new Date(session.timestamp).toLocaleTimeString('tr-TR'),
+                Kullanıcı: owners.find(obj => obj._id == session.user_id)?.fullname,
+                KullancıAdı: owners.find(obj => obj._id == session.user_id)?.username,
+                Telefon: owners.find(obj => obj._id == session.user_id)?.phone_number
+            })
+        }
+    });
+
+    console.table(dataTable);
+
+
 
 }
 
@@ -1171,9 +1226,25 @@ export const importFromBackup = async (store_id: string) => {
 export const clearDatabase = async (store_id: string) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(store_id);
-        const StoreDocuments = (await (await StoreDB(store_id)).allDocs({ include_docs: true })).rows.map(obj => obj.doc);
-        const purgeProcess = await purgeDatabase(Store.auth);
-        await (await StoreDB(store_id)).bulkDocs(StoreDocuments, {});
+        const StoreDatabase = await StoreDB(store_id);
+        const StoreDocuments = (await StoreDatabase.find({selector:{},limit:10000})).docs.map(obj => {
+            delete obj._rev;
+            return obj;
+        });
+        console.log(StoreDocuments[0])
+        console.log('Docs Count:', StoreDocuments.length);
+        purgeDatabase(Store.auth).then(res => {
+            StoreDatabase.bulkDocs(StoreDocuments).then(docs => {
+                let isAnyConflict = docs.some(doc => doc.hasOwnProperty('error'));
+                if(isAnyConflict){
+                    console.log('There Are Some Conflicts')
+                }else{
+                    console.log('Looks Great')
+                }
+            })
+        }).catch(err => {
+            console.log(err);
+        })
     } catch (error) {
         console.log(error);
     }
@@ -1221,7 +1292,7 @@ export const addNotes = () => {
     })
 }
 
-export const makePdf = async (db_name: string, start_date:number, end_date:number) => {
+export const makePdf = async (db_name: string, start_date: number, end_date: number) => {
     try {
 
         const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } });
@@ -1231,8 +1302,8 @@ export const makePdf = async (db_name: string, start_date:number, end_date:numbe
             if (!value) value = 0;
             return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
         }
-        const totalProperty = (property:string) => {
-            return transformPrice(data.map(obj => obj[property]).reduce((a,b) => a+b,0))
+        const totalProperty = (property: string) => {
+            return transformPrice(data.map(obj => obj[property]).reduce((a, b) => a + b, 0))
         }
 
 
@@ -1245,9 +1316,36 @@ export const makePdf = async (db_name: string, start_date:number, end_date:numbe
         // });
 
         data.forEach((end, index) => {
-            let data = [new Date(end.timestamp).toLocaleDateString('tr',{year:'numeric',month:'2-digit',day:'2-digit'}), transformPrice(end.total_income), transformPrice(end.cash_total), transformPrice(end.card_total), transformPrice(end.coupon_total), transformPrice(end.free_total), transformPrice(end.canceled_total), transformPrice(end.discount_total)];
+            let data = [new Date(end.timestamp).toLocaleDateString('tr', { year: 'numeric', month: '2-digit', day: '2-digit' }), transformPrice(end.total_income), transformPrice(end.cash_total), transformPrice(end.card_total), transformPrice(end.coupon_total), transformPrice(end.free_total), transformPrice(end.canceled_total), transformPrice(end.discount_total)];
             bodyLink.push(data);
         });
+        // const imgData = 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0ia2F0bWFuXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNTk1LjMgMjgwLjQiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDU5NS4zIDI4MC40OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KCS5zdDB7ZmlsbDojRkZGRkZGO30NCgkuc3Qxe2ZpbGw6I0UzMDYxMzt9DQo8L3N0eWxlPg0KPGcgaWQ9IlhNTElEXzNfIj4NCgk8ZyBpZD0iWE1MSURfMzY0NDZfIj4NCgkJPHBhdGggaWQ9IlhNTElEXzc2XyIgY2xhc3M9InN0MCIgZD0iTTE2Ni4xLDgxYzAsMzMuNC0yNiw2MC42LTU4LDYwLjZjLTMyLjIsMC01OC4yLTI3LjItNTguMi02MC42YzAtMzMuNiwyNi02MC44LDU4LjItNjAuOA0KCQkJQzE0MC4xLDIwLjIsMTY2LjEsNDcuNCwxNjYuMSw4MXogTTE1OS40LDgxYzAtMjkuMS0yMy41LTUyLjktNTEuNC01Mi45Yy0yOCwwLTUxLDIzLjktNTEsNTIuOWMwLDI4LjksMjMsNTIuOSw1MSw1Mi45DQoJCQlDMTM1LjksMTM0LDE1OS40LDEwOS45LDE1OS40LDgxeiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NjBfIiBjbGFzcz0ic3QwIiBkPSJNMTc3LjUsMTAwLjVjLTAuMy0yLjgtMC4yLTQuNSwwLjItNDUuOGg2LjZ2NDYuOWMxLjcsMTguNSwxOC42LDMzLjEsMzQuNSwzMy4xDQoJCQljMTUuNywwLDMwLjctMTEuOCwzNC4zLTI5LjhWNTQuN2g2LjZ2ODcuMWgtNi42di0xOC42YzAsMC00LjksNS45LTkuNCw5LjZjLTcuMSw1LjctMTUuOCw5LjEtMjQuOSw5LjFjLTE0LjMsMC0yNy4zLTcuOC0zNS0yMS4xDQoJCQlDMTgwLjMsMTE0LjYsMTc4LjEsMTA3LjcsMTc3LjUsMTAwLjV6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1N18iIGNsYXNzPSJzdDAiIGQ9Ik0yNzAuOSwyNC4zYzAtMi4zLDEuOS00LDQtNGMyLjMsMCw0LDEuNyw0LDRjMCwyLjEtMS43LDMuOC00LDMuOA0KCQkJQzI3Mi44LDI4LjEsMjcwLjksMjYuMywyNzAuOSwyNC4zeiBNMjc3LjksNTQuOXY4Ny40aC03VjU0LjlIMjc3Ljl6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1NV8iIGNsYXNzPSJzdDAiIGQ9Ik0zNTYuNCw2MC43bC0zLjMsNi42Yy01LjktMy44LTEyLjctNS43LTE5LjktNS43Yy0yMC4yLDAtMzYuNiwxNi40LTM2LjYsMzYuNg0KCQkJYzAsMjAsMTYuNCwzNi42LDM2LjYsMzYuNmM3LjEsMCwxNC4xLTIuMSwyMC02LjFsMy4xLDYuOGMtNyw0LjQtMTUsNi42LTIzLjIsNi42Yy0yNC4yLDAtNDMuOS0xOS43LTQzLjktNDMuOQ0KCQkJYzAtMjQuNCwxOS43LTQ0LjEsNDMuOS00NC4xQzM0MS40LDU0LDM0OS41LDU2LjMsMzU2LjQsNjAuN3oiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzM2NDUzXyIgY2xhc3M9InN0MCIgZD0iTTM5NC40LDkxLjdsNDAuMSw1MC4zaC03LjNsLTM2LjktNDUuMWwtMTQuNiwxNy44VjE0MmgtNy4xVjExLjVoNy4xdjkxLjZsNDAuNi00OC4yDQoJCQlsOS42LTAuMkwzOTQuNCw5MS43eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NTFfIiBjbGFzcz0ic3QwIiBkPSJNNDU0LjgsMTAuOHYxMzFoLTcuNXYtMTMxSDQ1NC44eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NDlfIiBjbGFzcz0ic3QwIiBkPSJNNTExLjEsMTMxLjdsLTIzLjMsNTQuM2gtNy44bDIxLjktNTFMNDY3LDU0LjloNy44bDMwLjcsNjkuOGwzMC44LTY5LjhoNy43TDUxMS4xLDEzMS43eiINCgkJCS8+DQoJCTxwYXRoIGlkPSJYTUxJRF83NV8iIGNsYXNzPSJzdDAiIGQ9Ik0xMzkuNSwxODAuMWMxLjEsMS45LDAuMywzLjgtMC4zLDUuNmMtMS4yLDMuNi0yLjQsNy4yLTMuNiwxMC44Yy0xLjIsMy41LTIuMyw2LjktMy41LDEwLjQNCgkJCWMtMS40LDQuMi0yLjgsOC41LTQuMiwxMi43Yy0xLjMsNC0yLjcsOC00LDEyYy0xLjIsMy42LTIuNCw3LjItMy42LDEwLjhjLTEuMiwzLjUtMi4zLDYuOS0zLjUsMTAuNGMtMS40LDQuMS0yLjgsOC4zLTQuMSwxMi41DQoJCQljLTAuMywxLTAuNywyLjEtMS4xLDMuMWMtMC42LDEuNi0yLDIuNC00LDIuNGMtMS41LDAtMi44LTEtMy4zLTIuNWMtMS4zLTMuOC0yLjUtNy41LTMuOC0xMS4zYy0xLjItMy42LTIuNC03LjItMy42LTEwLjkNCgkJCWMtMS4zLTQtMi42LTcuOS00LTExLjljLTEuNC00LjEtMi44LTguMy00LjItMTIuNGMtMS4zLTQtMi43LTguMS00LTEyLjFjLTEuNC00LjEtMi43LTguMi00LjEtMTIuM2MtMS4yLTMuNS0yLjMtNy0zLjUtMTAuNQ0KCQkJYy0wLjMtMC44LTAuNS0xLjYtMC44LTIuM2MtMC42LTEuNS0wLjctMywwLjItNC40YzAuMy0wLjMsMC43LTAuNywxLTFjMi43LTEuMyw0LjItMC41LDUuOSwxLjJjOCw4LDE2LDE2LDI0LDI0DQoJCQljMC42LDAuNiwwLjYsMC42LDEuMywwYzcuNi03LjYsMTUuMi0xNS4yLDIyLjgtMjIuOGMwLjctMC43LDEuNC0xLjQsMi4xLTJjMC40LTAuMywwLjktMC42LDEuNC0wLjhjMS4yLTAuNSwyLjQtMC4xLDMuNSwwLjUNCgkJCUMxMzguOCwxNzkuNCwxMzkuMiwxNzkuNywxMzkuNSwxODAuMXoiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzc0XyIgY2xhc3M9InN0MSIgZD0iTTE2Mi42LDE2MS4yYy01LjIsNS45LTExLjgsOC45LTE4LjYsOC45Yy0xNy44LDAuMi0yMi44LTIwLjktMzYuNC0yMS4xDQoJCQljLTUuMiwwLTEwLjEsMi40LTE0LjEsNy4zbC00LjItNS40YzUuMi02LjEsMTEuNy05LjQsMTguMy05LjRjMTYuNywwLDIxLjgsMjEuMSwzNi40LDIwLjljNS40LDAsMTAuNS0yLjYsMTQuMy03LjFMMTYyLjYsMTYxLjJ6Ig0KCQkJLz4NCgk8L2c+DQo8L2c+DQo8L3N2Zz4NCg==';
+        // const imgData = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0ia2F0bWFuXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNTk1LjMgMjgwLjQiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDU5NS4zIDI4MC40OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KCS5zdDB7ZmlsbDojRkZGRkZGO30NCgkuc3Qxe2ZpbGw6I0UzMDYxMzt9DQo8L3N0eWxlPg0KPGcgaWQ9IlhNTElEXzNfIj4NCgk8ZyBpZD0iWE1MSURfMzY0NDZfIj4NCgkJPHBhdGggaWQ9IlhNTElEXzc2XyIgY2xhc3M9InN0MCIgZD0iTTE2Ni4xLDgxYzAsMzMuNC0yNiw2MC42LTU4LDYwLjZjLTMyLjIsMC01OC4yLTI3LjItNTguMi02MC42YzAtMzMuNiwyNi02MC44LDU4LjItNjAuOA0KCQkJQzE0MC4xLDIwLjIsMTY2LjEsNDcuNCwxNjYuMSw4MXogTTE1OS40LDgxYzAtMjkuMS0yMy41LTUyLjktNTEuNC01Mi45Yy0yOCwwLTUxLDIzLjktNTEsNTIuOWMwLDI4LjksMjMsNTIuOSw1MSw1Mi45DQoJCQlDMTM1LjksMTM0LDE1OS40LDEwOS45LDE1OS40LDgxeiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NjBfIiBjbGFzcz0ic3QwIiBkPSJNMTc3LjUsMTAwLjVjLTAuMy0yLjgtMC4yLTQuNSwwLjItNDUuOGg2LjZ2NDYuOWMxLjcsMTguNSwxOC42LDMzLjEsMzQuNSwzMy4xDQoJCQljMTUuNywwLDMwLjctMTEuOCwzNC4zLTI5LjhWNTQuN2g2LjZ2ODcuMWgtNi42di0xOC42YzAsMC00LjksNS45LTkuNCw5LjZjLTcuMSw1LjctMTUuOCw5LjEtMjQuOSw5LjFjLTE0LjMsMC0yNy4zLTcuOC0zNS0yMS4xDQoJCQlDMTgwLjMsMTE0LjYsMTc4LjEsMTA3LjcsMTc3LjUsMTAwLjV6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1N18iIGNsYXNzPSJzdDAiIGQ9Ik0yNzAuOSwyNC4zYzAtMi4zLDEuOS00LDQtNGMyLjMsMCw0LDEuNyw0LDRjMCwyLjEtMS43LDMuOC00LDMuOA0KCQkJQzI3Mi44LDI4LjEsMjcwLjksMjYuMywyNzAuOSwyNC4zeiBNMjc3LjksNTQuOXY4Ny40aC03VjU0LjlIMjc3Ljl6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1NV8iIGNsYXNzPSJzdDAiIGQ9Ik0zNTYuNCw2MC43bC0zLjMsNi42Yy01LjktMy44LTEyLjctNS43LTE5LjktNS43Yy0yMC4yLDAtMzYuNiwxNi40LTM2LjYsMzYuNg0KCQkJYzAsMjAsMTYuNCwzNi42LDM2LjYsMzYuNmM3LjEsMCwxNC4xLTIuMSwyMC02LjFsMy4xLDYuOGMtNyw0LjQtMTUsNi42LTIzLjIsNi42Yy0yNC4yLDAtNDMuOS0xOS43LTQzLjktNDMuOQ0KCQkJYzAtMjQuNCwxOS43LTQ0LjEsNDMuOS00NC4xQzM0MS40LDU0LDM0OS41LDU2LjMsMzU2LjQsNjAuN3oiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzM2NDUzXyIgY2xhc3M9InN0MCIgZD0iTTM5NC40LDkxLjdsNDAuMSw1MC4zaC03LjNsLTM2LjktNDUuMWwtMTQuNiwxNy44VjE0MmgtNy4xVjExLjVoNy4xdjkxLjZsNDAuNi00OC4yDQoJCQlsOS42LTAuMkwzOTQuNCw5MS43eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NTFfIiBjbGFzcz0ic3QwIiBkPSJNNDU0LjgsMTAuOHYxMzFoLTcuNXYtMTMxSDQ1NC44eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NDlfIiBjbGFzcz0ic3QwIiBkPSJNNTExLjEsMTMxLjdsLTIzLjMsNTQuM2gtNy44bDIxLjktNTFMNDY3LDU0LjloNy44bDMwLjcsNjkuOGwzMC44LTY5LjhoNy43TDUxMS4xLDEzMS43eiINCgkJCS8+DQoJCTxwYXRoIGlkPSJYTUxJRF83NV8iIGNsYXNzPSJzdDAiIGQ9Ik0xMzkuNSwxODAuMWMxLjEsMS45LDAuMywzLjgtMC4zLDUuNmMtMS4yLDMuNi0yLjQsNy4yLTMuNiwxMC44Yy0xLjIsMy41LTIuMyw2LjktMy41LDEwLjQNCgkJCWMtMS40LDQuMi0yLjgsOC41LTQuMiwxMi43Yy0xLjMsNC0yLjcsOC00LDEyYy0xLjIsMy42LTIuNCw3LjItMy42LDEwLjhjLTEuMiwzLjUtMi4zLDYuOS0zLjUsMTAuNGMtMS40LDQuMS0yLjgsOC4zLTQuMSwxMi41DQoJCQljLTAuMywxLTAuNywyLjEtMS4xLDMuMWMtMC42LDEuNi0yLDIuNC00LDIuNGMtMS41LDAtMi44LTEtMy4zLTIuNWMtMS4zLTMuOC0yLjUtNy41LTMuOC0xMS4zYy0xLjItMy42LTIuNC03LjItMy42LTEwLjkNCgkJCWMtMS4zLTQtMi42LTcuOS00LTExLjljLTEuNC00LjEtMi44LTguMy00LjItMTIuNGMtMS4zLTQtMi43LTguMS00LTEyLjFjLTEuNC00LjEtMi43LTguMi00LjEtMTIuM2MtMS4yLTMuNS0yLjMtNy0zLjUtMTAuNQ0KCQkJYy0wLjMtMC44LTAuNS0xLjYtMC44LTIuM2MtMC42LTEuNS0wLjctMywwLjItNC40YzAuMy0wLjMsMC43LTAuNywxLTFjMi43LTEuMyw0LjItMC41LDUuOSwxLjJjOCw4LDE2LDE2LDI0LDI0DQoJCQljMC42LDAuNiwwLjYsMC42LDEuMywwYzcuNi03LjYsMTUuMi0xNS4yLDIyLjgtMjIuOGMwLjctMC43LDEuNC0xLjQsMi4xLTJjMC40LTAuMywwLjktMC42LDEuNC0wLjhjMS4yLTAuNSwyLjQtMC4xLDMuNSwwLjUNCgkJCUMxMzguOCwxNzkuNCwxMzkuMiwxNzkuNywxMzkuNSwxODAuMXoiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzc0XyIgY2xhc3M9InN0MSIgZD0iTTE2Mi42LDE2MS4yYy01LjIsNS45LTExLjgsOC45LTE4LjYsOC45Yy0xNy44LDAuMi0yMi44LTIwLjktMzYuNC0yMS4xDQoJCQljLTUuMiwwLTEwLjEsMi40LTE0LjEsNy4zbC00LjItNS40YzUuMi02LjEsMTEuNy05LjQsMTguMy05LjRjMTYuNywwLDIxLjgsMjEuMSwzNi40LDIwLjljNS40LDAsMTAuNS0yLjYsMTQuMy03LjFMMTYyLjYsMTYxLjJ6Ig0KCQkJLz4NCgk8L2c+DQo8L2c+DQo8L3N2Zz4NCg=='
+
+        const imgData =
+            `
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="katman_1" x="0px" y="0px" viewBox="0 0 595.3 280.4" style="enable-background:new 0 0 595.3 280.4;" xml:space="preserve">
+        <style type="text/css">
+            .st0{fill:#FFFFFF;}
+            .st1{fill:#E30613;}
+        </style>
+        <g id="XMLID_3_">
+            <g id="XMLID_36446_">
+                <path id="XMLID_76_" class="st0" d="M166.1,81c0,33.4-26,60.6-58,60.6c-32.2,0-58.2-27.2-58.2-60.6c0-33.6,26-60.8,58.2-60.8    C140.1,20.2,166.1,47.4,166.1,81z M159.4,81c0-29.1-23.5-52.9-51.4-52.9c-28,0-51,23.9-51,52.9c0,28.9,23,52.9,51,52.9    C135.9,134,159.4,109.9,159.4,81z"/>
+                <path id="XMLID_36460_" class="st0" d="M177.5,100.5c-0.3-2.8-0.2-4.5,0.2-45.8h6.6v46.9c1.7,18.5,18.6,33.1,34.5,33.1    c15.7,0,30.7-11.8,34.3-29.8V54.7h6.6v87.1h-6.6v-18.6c0,0-4.9,5.9-9.4,9.6c-7.1,5.7-15.8,9.1-24.9,9.1c-14.3,0-27.3-7.8-35-21.1    C180.3,114.6,178.1,107.7,177.5,100.5z"/>
+                <path id="XMLID_36457_" class="st0" d="M270.9,24.3c0-2.3,1.9-4,4-4c2.3,0,4,1.7,4,4c0,2.1-1.7,3.8-4,3.8    C272.8,28.1,270.9,26.3,270.9,24.3z M277.9,54.9v87.4h-7V54.9H277.9z"/>
+                <path id="XMLID_36455_" class="st0" d="M356.4,60.7l-3.3,6.6c-5.9-3.8-12.7-5.7-19.9-5.7c-20.2,0-36.6,16.4-36.6,36.6    c0,20,16.4,36.6,36.6,36.6c7.1,0,14.1-2.1,20-6.1l3.1,6.8c-7,4.4-15,6.6-23.2,6.6c-24.2,0-43.9-19.7-43.9-43.9    c0-24.4,19.7-44.1,43.9-44.1C341.4,54,349.5,56.3,356.4,60.7z"/>
+                <path id="XMLID_36453_" class="st0" d="M394.4,91.7l40.1,50.3h-7.3l-36.9-45.1l-14.6,17.8V142h-7.1V11.5h7.1v91.6l40.6-48.2    l9.6-0.2L394.4,91.7z"/>
+                <path id="XMLID_36451_" class="st0" d="M454.8,10.8v131h-7.5v-131H454.8z"/>
+                <path id="XMLID_36449_" class="st0" d="M511.1,131.7l-23.3,54.3h-7.8l21.9-51L467,54.9h7.8l30.7,69.8l30.8-69.8h7.7L511.1,131.7z"/>
+                <path id="XMLID_75_" class="st0" d="M139.5,180.1c1.1,1.9,0.3,3.8-0.3,5.6c-1.2,3.6-2.4,7.2-3.6,10.8c-1.2,3.5-2.3,6.9-3.5,10.4    c-1.4,4.2-2.8,8.5-4.2,12.7c-1.3,4-2.7,8-4,12c-1.2,3.6-2.4,7.2-3.6,10.8c-1.2,3.5-2.3,6.9-3.5,10.4c-1.4,4.1-2.8,8.3-4.1,12.5    c-0.3,1-0.7,2.1-1.1,3.1c-0.6,1.6-2,2.4-4,2.4c-1.5,0-2.8-1-3.3-2.5c-1.3-3.8-2.5-7.5-3.8-11.3c-1.2-3.6-2.4-7.2-3.6-10.9    c-1.3-4-2.6-7.9-4-11.9c-1.4-4.1-2.8-8.3-4.2-12.4c-1.3-4-2.7-8.1-4-12.1c-1.4-4.1-2.7-8.2-4.1-12.3c-1.2-3.5-2.3-7-3.5-10.5    c-0.3-0.8-0.5-1.6-0.8-2.3c-0.6-1.5-0.7-3,0.2-4.4c0.3-0.3,0.7-0.7,1-1c2.7-1.3,4.2-0.5,5.9,1.2c8,8,16,16,24,24    c0.6,0.6,0.6,0.6,1.3,0c7.6-7.6,15.2-15.2,22.8-22.8c0.7-0.7,1.4-1.4,2.1-2c0.4-0.3,0.9-0.6,1.4-0.8c1.2-0.5,2.4-0.1,3.5,0.5    C138.8,179.4,139.2,179.7,139.5,180.1z"/>
+                <path id="XMLID_74_" class="st1" d="M162.6,161.2c-5.2,5.9-11.8,8.9-18.6,8.9c-17.8,0.2-22.8-20.9-36.4-21.1    c-5.2,0-10.1,2.4-14.1,7.3l-4.2-5.4c5.2-6.1,11.7-9.4,18.3-9.4c16.7,0,21.8,21.1,36.4,20.9c5.4,0,10.5-2.6,14.3-7.1L162.6,161.2z"/>
+            </g>
+        </g>
+        </svg>
+        `;
+
+        // doc.addSvgAsImage(imgData,10,10,200,100);
         doc.setLanguage('tr')
         autoTable(doc, {
             styles: {
@@ -1262,18 +1360,18 @@ export const makePdf = async (db_name: string, start_date:number, end_date:numbe
                 // textColor: 20,
                 halign: 'right', // left, center, right
                 valign: 'middle', // top, middle, bottom
-                
+
                 // fillStyle: 'F', // 'S', 'F' or 'DF' (stroke, fill or fill then stroke)
                 // rowHeight: 20,
                 // columnWidth: 'auto' // 'auto', 'wrap' or a number
             },
             head: [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']],
-            foot: [['Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]],
+            foot: [['Genel Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]],
             body: bodyLink,
             theme: 'plain',
-            margin: {vertical:0,horizontal:0},
+            margin: { vertical: 0, horizontal: 0 },
             headStyles: { halign: "center", fillColor: [43, 62, 80], textColor: 255 },
-            footStyles: { halign: "right", minCellHeight:10, fillColor: [255, 255, 255], textColor: 0 },
+            footStyles: { halign: "right", minCellHeight: 10, fillColor: [255, 255, 255], textColor: 0 },
 
             columnStyles: {
                 0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'normal' },
@@ -1308,6 +1406,7 @@ export const menuChanger = () => {
 
                 let newMenu: Menu = {
                     slug: menu.slug,
+                    store_id: menu.store_id,
                     categories: menu.categories,
                     promotions: menu.promotions,
                     social_links: menu.socialLinks.map(obj => {
@@ -1316,7 +1415,7 @@ export const menuChanger = () => {
                         return obj;
                     }),
                     status: MenuStatus.ACTIVE,
-                    store_id: menu.store_id,
+                    timestamp: Date.now(),
                     theme: { background: 'dark', brand: '', buttons: 'primary', fonts: '', greetings: 'success', segment: 'dark' },
                 }
                 console.log(newMenu);
@@ -1333,10 +1432,10 @@ export const clearStoreProducts = async (store_id: string) => {
     const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
     const StoreDatabase = await StoreDB(store_id);
 
-    let products = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit:2000 })).docs;
-    let categories = (await StoreDatabase.find({ selector: { db_name: 'categories', limit:2000 } })).docs;
-    let sub_categories = (await StoreDatabase.find({ selector: { db_name: 'sub_categories', limit:2000 } })).docs;
-    let reports = (await StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product', limit:2000 } })).docs;
+    let products = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit: 2000 })).docs;
+    let categories = (await StoreDatabase.find({ selector: { db_name: 'categories', limit: 2000 } })).docs;
+    let sub_categories = (await StoreDatabase.find({ selector: { db_name: 'sub_categories', limit: 2000 } })).docs;
+    let reports = (await StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product', limit: 2000 } })).docs;
 
     let docsWillRemove = [...products, ...categories, ...sub_categories, ...reports];
 
@@ -1359,8 +1458,8 @@ export const menuToTerminal = async (store_id: string) => {
         Menu.categories.forEach((category, index) => {
             let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
 
-            StoreDatabase.find({selector:{ db_name:'categories', name:category.name }}).then(isCatAvailable => {
-                if(isCatAvailable.docs.length > 0){
+            StoreDatabase.find({ selector: { db_name: 'categories', name: category.name } }).then(isCatAvailable => {
+                if (isCatAvailable.docs.length > 0) {
                     //// Category Exist
                     let cat_res = isCatAvailable.docs[0];
 
@@ -1370,8 +1469,8 @@ export const menuToTerminal = async (store_id: string) => {
 
                             let newSubCategory: SubCategory = { name: sub_cat.name, description: '', status: 0, cat_id: cat_res.id }
 
-                            StoreDatabase.find({selector:{ db_name:'sub_categories', name:sub_cat.name }}).then(isSubCatAvailable => {
-                                if(isSubCatAvailable.docs.length > 0){
+                            StoreDatabase.find({ selector: { db_name: 'sub_categories', name: sub_cat.name } }).then(isSubCatAvailable => {
+                                if (isSubCatAvailable.docs.length > 0) {
                                     //// SubCategory Exist
                                     let sub_cat_res = isSubCatAvailable.docs[0];
                                     console.log('! Alt Kategori Zaten Var', sub_cat_res.name);
@@ -1381,7 +1480,7 @@ export const menuToTerminal = async (store_id: string) => {
                                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                                 item.product_id = product_res.id;
                                                 console.log('+ Ürün Eklendi', newCategory.name);
-        
+
                                                 /////////////////////////////////////////////////////////////
                                                 ////////////////////      Report    /////////////////////////
                                                 newProduct._id = product_res.id;
@@ -1408,9 +1507,9 @@ export const menuToTerminal = async (store_id: string) => {
                                             let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
                                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                                 console.log('+ Ürün Eklendi', newCategory.name);
-        
+
                                                 item.product_id = product_res.id;
-        
+
                                                 /////////////////////////////////////////////////////////////
                                                 ////////////////////      Report    /////////////////////////
                                                 newProduct._id = product_res.id;
@@ -1427,7 +1526,7 @@ export const menuToTerminal = async (store_id: string) => {
                                             })
                                         }
                                     })
-                                }else{
+                                } else {
                                     //// SubCategory Not Exist
                                     StoreDatabase.post({ db_name: 'sub_categories', ...newSubCategory }).then(sub_cat_res => {
                                         sub_cat.id = sub_cat_res.id;
@@ -1438,7 +1537,7 @@ export const menuToTerminal = async (store_id: string) => {
                                                 StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                                     item.product_id = product_res.id;
                                                     console.log('+ Ürün Eklendi', newCategory.name);
-            
+
                                                     /////////////////////////////////////////////////////////////
                                                     ////////////////////      Report    /////////////////////////
                                                     newProduct._id = product_res.id;
@@ -1465,9 +1564,9 @@ export const menuToTerminal = async (store_id: string) => {
                                                 let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
                                                 StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                                     console.log('+ Ürün Eklendi', newCategory.name);
-            
+
                                                     item.product_id = product_res.id;
-            
+
                                                     /////////////////////////////////////////////////////////////
                                                     ////////////////////      Report    /////////////////////////
                                                     newProduct._id = product_res.id;
@@ -1490,7 +1589,7 @@ export const menuToTerminal = async (store_id: string) => {
                                 }
                             })
                         });
-                    }else{
+                    } else {
                         category.items.forEach(item => {
                             if (item.price) {
                                 let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
@@ -1508,7 +1607,7 @@ export const menuToTerminal = async (store_id: string) => {
                                         console.log('Rapor Hatası', newReport.description)
                                     })
                                     /////////////////////////////////////////////////////////////
-    
+
                                 }).catch(err => {
                                     console.log('Ürün Hatası', item.name)
                                 })
@@ -1542,7 +1641,7 @@ export const menuToTerminal = async (store_id: string) => {
                             }
                         })
                     }
-                }else{
+                } else {
                     ///// Category Not Exist
                     StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
                         console.log('+ Kategori Eklendi', newCategory.name);
@@ -1559,7 +1658,7 @@ export const menuToTerminal = async (store_id: string) => {
                                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                                 item.product_id = product_res.id;
                                                 console.log('+ Ürün Eklendi', newCategory.name);
-        
+
                                                 /////////////////////////////////////////////////////////////
                                                 ////////////////////      Report    /////////////////////////
                                                 newProduct._id = product_res.id;
@@ -1586,9 +1685,9 @@ export const menuToTerminal = async (store_id: string) => {
                                             let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
                                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                                 console.log('+ Ürün Eklendi', newCategory.name);
-        
+
                                                 item.product_id = product_res.id;
-        
+
                                                 /////////////////////////////////////////////////////////////
                                                 ////////////////////      Report    /////////////////////////
                                                 newProduct._id = product_res.id;
@@ -1627,7 +1726,7 @@ export const menuToTerminal = async (store_id: string) => {
                                             console.log('Rapor Hatası', newReport.description)
                                         })
                                         /////////////////////////////////////////////////////////////
-        
+
                                     }).catch(err => {
                                         console.log('Ürün Hatası', item.name)
                                     })
@@ -1679,10 +1778,10 @@ export const menuToTerminal2 = async (store_id: string) => {
         const StoreDatabase = await StoreDB(store_id);
         const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
 
-        const Menu: Menu = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
+        const Menu: any = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
 
         Menu.categories.forEach((category, index) => {
-            let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
+            let newCategory: any = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
             StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
                 console.log('+ Kategori Eklendi', newCategory.name);
                 category.id = cat_res.id;
@@ -1751,7 +1850,7 @@ export const menuToTerminal2 = async (store_id: string) => {
                 } else {
                     category.items.forEach(item => {
                         if (item.price) {
-                            let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
+                            let newProduct: any = { name: item.name, description: item.description, type: 0, status: 0, price: parseInt(item.price), barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                 console.log('+ Ürün Eklendi', newCategory.name);
                                 item.product_id = product_res.id;
@@ -2028,5 +2127,127 @@ export const menuFixer = async () => {
     } catch (error) {
         console.log(error);
     }
+
+}
+
+export const deletedRestore = async (store_id: string) => {
+    //    let results = await (await StoreDB(store_id)).changes()
+    //    console.log(results);
+}
+
+
+export const creationDateOfStores = () => {
+    ManagementDB.Stores.find({ selector: {} }).then(res => {
+        let stores = res.docs.sort((a, b) => a.timestamp - b.timestamp);
+
+        let dataTable = [];
+
+        stores.forEach(obj => {
+            dataTable.push({
+                İşletme: obj.name,
+                Tarih: new Date(obj.timestamp).toLocaleDateString('tr-TR'),
+            })
+        })
+
+        console.table(dataTable);
+
+
+    })
+
+}
+
+
+export const quicklySellingData = async (year: number) => {
+    const monthlyLabels = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+    const Stores = (await ManagementDB.Stores.find({ selector: {} })).docs;
+
+    let Days = [];
+    let Months = [];
+
+    for (const store of Stores) {
+
+        let storeEndDayData: Array<EndDay> = (await (await StoreDB(store._id)).find({ selector: { db_name: 'endday' }, limit: DatabaseQueryLimit })).docs
+
+        let endDayData = storeEndDayData.filter(obj => new Date(obj.timestamp).getFullYear() == year);
+
+        if (endDayData.length > 0) {
+
+            console.log(store.name);
+
+            endDayData.forEach((obj, index) => {
+
+                let Schema = {
+                    cash: (typeof obj.cash_total === 'number' ? obj.cash_total : 0),
+                    card: (typeof obj.card_total === 'number' ? obj.card_total : 0),
+                    coupon: (typeof obj.coupon_total === 'number' ? obj.coupon_total : 0),
+                    free: (typeof obj.free_total === 'number' ? obj.free_total : 0),
+                    total: (typeof obj.total_income === 'number' ? obj.total_income : 0),
+                    checks: (typeof obj.check_count === 'number' ? obj.check_count : 0),
+                    month: new Date(obj.timestamp).getMonth(),
+                    year: new Date(obj.timestamp).getFullYear()
+                };
+
+                Days.push(Schema);
+
+
+
+
+                // if (index == endDayData.length - 1) {
+                //     let cash = { label: 'Nakit', data: [] };
+                //     let coupon = { label: 'Kupon', data: [] };
+                //     let card = { label: 'Kart', data: [] };
+                //     let free = { label: 'İkram', data: [] };
+                //     let total = { label: 'Toplam', data: [] };
+
+                //     monthlyLabels.forEach((monthName, monthIndex) => {
+                //         let monthWillProcess = Days.filter(obj => obj.month == monthIndex);
+                //         if (monthWillProcess.length > 1) {
+                //             cash.data[monthIndex] = monthWillProcess.map(obj => obj.cash).reduce((a, b) => a + b, 0);
+                //             card.data[monthIndex] = monthWillProcess.map(obj => obj.card).reduce((a, b) => a + b);
+                //             coupon.data[monthIndex] = monthWillProcess.map(obj => obj.coupon).reduce((a, b) => a + b);
+                //             free.data[monthIndex] = monthWillProcess.map(obj => obj.free).reduce((a, b) => a + b);
+                //             total.data[monthIndex] = monthWillProcess.map(obj => obj.total).reduce((a, b) => a + b);
+                //         } else if (monthWillProcess.length == 1) {
+                //             cash.data[monthIndex] = monthWillProcess[0].cash;
+                //             card.data[monthIndex] = monthWillProcess[0].card;
+                //             coupon.data[monthIndex] = monthWillProcess[0].coupon;
+                //             free.data[monthIndex] = monthWillProcess[0].free;
+                //             total.data[monthIndex] = monthWillProcess[0].total;
+                //         } else {
+                //             cash.data[monthIndex] = 0;
+                //             card.data[monthIndex] = 0;
+                //             coupon.data[monthIndex] = 0;
+                //             free.data[monthIndex] = 0;
+                //             total.data[monthIndex] = 0;
+                //         }
+                //         if (monthIndex == monthlyLabels.length - 1) {
+                //             Months.push(cash, coupon, card, free, total);
+                //             console.table(Months);
+                //         }
+                //     });
+                // }
+            });
+
+
+
+
+
+        }
+
+    }
+
+    let Data = {
+        cash: Days.map(x => x.cash).reduce((a, b) => a + b,0),
+        card: Days.map(x => x.card).reduce((a, b) => a + b,0),
+        coupon: Days.map(x => x.coupon).reduce((a, b) => a + b,0),
+        free: Days.map(x => x.free).reduce((a, b) => a + b,0),
+        total: Days.map(x => x.total).reduce((a, b) => a + b,0),
+        checks: Days.map(x => x.checks).reduce((a, b) => a + b,0)
+    }
+
+    console.log(Data);
+
+
 
 }

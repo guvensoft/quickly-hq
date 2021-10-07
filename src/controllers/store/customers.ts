@@ -1,20 +1,26 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { CustomerMessages } from '../../utils/messages';
-import { Report } from "../../models/store/report";
 import { Customer } from "../../models/store/customer";
+import { createReport } from "../../functions/store/reports";
 
 ////// /customers/new [POST]
 export const createCustomer = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
-    const newCustomer: Customer = req.body;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const CustomerWillCreate = { db_name: 'customers', db_seq: 0, ...newCustomer };
-        // const CustomerReport = new Report('Customer', newCustomer);
-        await StoresDB.post(CustomerWillCreate);
-        // await StoresDB.post({ db_name: 'reports', db_seq: 0, ...CustomerReport });
-        res.status(CustomerMessages.CUSTOMER_CREATED.code).json(CustomerMessages.CUSTOMER_CREATED.response);
+        let CustomerWillCreate = { db_name: 'customers', db_seq: 0, ...req.body };
+        let Customer = await StoresDB.post(CustomerWillCreate);
+        CustomerWillCreate._id = Customer.id;
+        CustomerWillCreate._rev = Customer.rev;
+        let CustomerReport = { db_name: 'reports', db_seq: 0, ...createReport('Customer', CustomerWillCreate) }
+        const isCreated = await StoresDB.post(CustomerReport)
+        if (isCreated && Customer.ok) {
+            res.status(CustomerMessages.CUSTOMER_CREATED.code).json(CustomerMessages.CUSTOMER_CREATED.response);
+        } else {
+            res.status(CustomerMessages.CUSTOMER_NOT_CREATED.code).json(CustomerMessages.CUSTOMER_NOT_CREATED.response);
+        }
+        
     } catch (error) {
         res.status(CustomerMessages.CUSTOMER_NOT_CREATED.code).json(CustomerMessages.CUSTOMER_NOT_CREATED.response);
     }

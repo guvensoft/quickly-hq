@@ -1,6 +1,6 @@
 import { Database, DatabaseUser, DatabaseU } from '../models/management/database';
-import { CouchDB, ManagementDB, RemoteCollection } from '../configrations/database';
-import { StoreAuth } from '../models/management/store';
+import { CouchDB, ManagementDB, RemoteCollection, StoreDB } from '../configrations/database';
+import { StoreAuth, Store } from '../models/management/store';
 
 export const createDatabaseUser = (username: string, password: string): DatabaseU => ({ _id: `org.couchdb.user:${username}`, name: username, password: password, type: 'user', roles: [] })
 
@@ -78,6 +78,35 @@ export const purgeDatabase = (storeAuth: StoreAuth) => {
             })
         })
     });
+}
+
+
+export const clearStoreDatabase = async (store_id: string) => {
+    try {
+        const Store: Store = await ManagementDB.Stores.get(store_id);
+        const StoreDatabase = await StoreDB(store_id);
+        const StoreDocuments = (await StoreDatabase.find({selector:{},limit:10000})).docs.map(obj => {
+            delete obj._rev;
+            return obj;
+        });
+        console.log(StoreDocuments[0])
+        console.log('Docs Count:', StoreDocuments.length);
+        return purgeDatabase(Store.auth).then(res => {
+            StoreDatabase.bulkDocs(StoreDocuments).then(docs => {
+                let isAnyConflict = docs.some(doc => doc.hasOwnProperty('error'));
+                if(isAnyConflict){
+                    console.log('There Are Some Conflicts')
+                }else{
+                    console.log('Looks Great')
+                    return true;
+                }
+            })
+        }).catch(err => {
+            console.log(err);
+        })
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 

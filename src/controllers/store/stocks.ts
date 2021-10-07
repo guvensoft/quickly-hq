@@ -2,25 +2,32 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { StockMessages } from '../../utils/messages';
-import { Report } from "../../models/store/report";
+import { Stock } from "../../models/store/stocks";
+import { createReport } from "../../functions/store/reports";
 
-////// /stocks/new [POST]
+////// /stock [POST]
 export const createStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const StockWillCreate = { db_name: 'stocks', db_seq: 0, ...req.body };
-        const Stock = await StoresDB.post(StockWillCreate);
-        // const StockReport = new Report('stocks', Stock.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        // StoresDB.post({ db_name: 'reports', db_seq: 0, ...StockReport });
-        res.status(StockMessages.STOCK_CREATED.code).json(StockMessages.STOCK_CREATED.response);
+        let StockWillCreate:Stock = { db_name: 'stocks', db_seq: 0, ...req.body };
+        let Stock = await StoresDB.post(StockWillCreate);
+        StockWillCreate._id = Stock.id;
+        StockWillCreate._rev = Stock.rev;
+        let StockReport = { db_name: 'reports', db_seq: 0, ...createReport('Stock', StockWillCreate) }
+        const isCreated = await StoresDB.post(StockReport)
+        if (isCreated && Stock.ok) {
+            res.status(StockMessages.STOCK_CREATED.code).json(StockMessages.STOCK_CREATED.response);
+        } else {
+            res.status(StockMessages.STOCK_NOT_CREATED.code).json(StockMessages.STOCK_NOT_CREATED.response);
+        }
     } catch (error) {
         res.status(StockMessages.STOCK_NOT_CREATED.code).json(StockMessages.STOCK_NOT_CREATED.response);
     }
 }
 
 
-////// /stocks/id [DELETE]
+////// /stock/id [DELETE]
 export const deleteStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -36,7 +43,7 @@ export const deleteStock = async (req: Request, res: Response) => {
 
 }
 
-////// /stocks/id [PUT]
+////// /stock/id [PUT]
 export const updateStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -50,7 +57,7 @@ export const updateStock = async (req: Request, res: Response) => {
 
 }
 
-////// /stocks/id [GET]
+////// /stock/id [GET]
 export const getStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {

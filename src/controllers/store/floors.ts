@@ -2,24 +2,31 @@ import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { FloorMessages } from '../../utils/messages';
 import { Report } from "../../models/store/report";
+import { createReport } from "../../functions/store/reports";
 
 
-////// /floors/new [POST]
+////// /floor [POST]
 export const createFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const FloorWillCreate = { db_name: 'floors', db_seq: 0, ...req.body };
-        const Floor = await StoresDB.post(FloorWillCreate);
-        // const FloorReport = new Report('floors', Floor.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        // StoresDB.post(Object.assign(FloorReport, { db_name: 'reports', db_seq: 0 }));
-        res.status(FloorMessages.FLOOR_CREATED.code).json(FloorMessages.FLOOR_CREATED.response);
+        let FloorWillCreate = { db_name: 'floors', db_seq: 0, ...req.body };
+        let Floor = await StoresDB.post(FloorWillCreate);
+        FloorWillCreate._id = Floor.id;
+        FloorWillCreate._rev = Floor.rev;
+        let GroupReport = { db_name: 'reports', db_seq: 0, ...createReport('Floor', FloorWillCreate) }
+        const isCreated = await StoresDB.post(GroupReport)
+        if (isCreated && Floor.ok) {
+            res.status(FloorMessages.FLOOR_CREATED.code).json(FloorMessages.FLOOR_CREATED.response);
+        } else {
+            res.status(FloorMessages.FLOOR_NOT_CREATED.code).json(FloorMessages.FLOOR_NOT_CREATED.response);
+        }
     } catch (error) {
         res.status(FloorMessages.FLOOR_NOT_CREATED.code).json(FloorMessages.FLOOR_NOT_CREATED.response);
     }
 }
 
-////// /floors/id [DELETE]
+////// /floor/id [DELETE]
 export const deleteFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -35,7 +42,7 @@ export const deleteFloor = async (req: Request, res: Response) => {
 
 }
 
-////// /floors/id [PUT]
+////// /floor/id [PUT]
 export const updateFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -49,7 +56,7 @@ export const updateFloor = async (req: Request, res: Response) => {
 
 }
 
-////// /floors/id [GET]
+////// /floor/id [GET]
 export const getFloor = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {

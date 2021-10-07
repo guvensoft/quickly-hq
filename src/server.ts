@@ -14,6 +14,7 @@ import { corsOptions } from './configrations/cors';
 
 
 import * as blackboard from './blackboard';
+import { sendNotifications } from './configrations/apn';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 //// MOM 23957103044
@@ -31,6 +32,8 @@ app.use(bodyParserError.beautify({ status: 500, res: { msg: 'Unvalid JSON Schema
 app.use(queryParser());
 
 // app.use(); // { origin: '*', credentials: true }
+
+// hq.quickly.com.tr
 
 app.use('/management', cors(), require('./routes/management'));
 app.use('/store', cors(), require('./routes/store'));
@@ -109,7 +112,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.reisImport();
 // blackboard.addProperty();
 
-// blackboard.allRevisions('kosmos-besiktas','2def61b4-d2e6-4843-abdb-ab153c136555');
+// blackboard.allRevisions('kosmos-besiktas','e0b25f64-eede-4d9f-8b40-b6063c6ba286');
 
 // blackboard.databaseLogs('kosmos-besiktas','C-1');
 // blackboard.thatDay();
@@ -135,13 +138,41 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.purgeTest('d622f9dd-036b-4775-bbee-911d301c5b77');
 // blackboard.menuFixer();
 
-// blackboard.allRevisions('quickly-menu-app','joker-no-5')
-// blackboard.allOrders('kosmos-besiktas','8c0dc80f-1377-427d-a912-4e1b2a80f46a')
-// blackboard.makePdf('kallavi-besiktas',1625097600000,1627776000000)
+// blackboard.allRevisions('quickly-menu-app','beefroom')
 
-// blackboard.getSessions();
+// blackboard.reOpenCheck('kallavi-besiktas','23c19bc4-031d-459f-8972-07100756af8d')
+// blackboard.allOrders('kosmos-besiktas','86263601-71fc-4cb1-8c32-4a563d969925')
 
+// blackboard.makePdf('kallavi-besiktas',1630454400000,1633046400000)
+
+// blackboard.getSessions()
 // blackboard.fixTables("kallavi-besiktas")
-// blackboard.menuToTerminal2('d8412bb0-5546-4b78-922e-b7a774daa217');
+// blackboard.menuToTerminal2('faa92f5e-69d6-41d0-a7be-a0a0159155d7');
 // blackboard.clearStoreProducts('d8412bb0-5546-4b78-922e-b7a774daa217');
 
+// blackboard.menuToTerminal2("d675d07a-671a-4623-b953-6bf0e55745a1")
+
+
+// blackboard.allRevisions('kosmos-besiktas', '81517077-dfc5-48bf-abf1-5eca118832d1')
+// blackboard.allOrders('kosmos-besiktas', '93dde37a-9a49-43e0-9ca7-9fb15be66ee1')
+
+// blackboard.deletedRestore('3f5fd0e5-6393-41b2-8df9-a91edd788751');
+
+
+// sendNotifications().then(res => {
+//     console.log(res)
+// }).catch(err => {
+//     console.log(err);
+// })
+
+
+// blackboard.creationDateOfStores();
+
+
+// blackboard.quicklySellingData(2021)
+
+// blackboard.Fixer('kosmos-besiktas');
+
+
+
+// blackboard.clearDatabase('d8412bb0-5546-4b78-922e-b7a774daa217')

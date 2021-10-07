@@ -1,26 +1,33 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { UserMessages, GroupMessages } from '../../utils/messages';
-import { Report } from "../../models/store/report";
+import { User } from "../../models/store/user";
+import { createReport } from "../../functions/store/reports";
 
 
-////// /users/new [POST]
+////// /user [POST]
 export const createUser = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const UserWillCreate = { db_name: 'users', db_seq: 0, ...req.body };
-        const User = await StoresDB.post(UserWillCreate);
-        // const UserReport = new Report('users', User.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        // StoresDB.post({ db_name: 'reports', db_seq: 0, ...UserReport });
-        res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
+        let UserWillCreate: User = { db_name: 'users', db_seq: 0, ...req.body };
+        let User = await StoresDB.post(UserWillCreate);
+        UserWillCreate._id = User.id;
+        UserWillCreate._rev = User.rev;
+        let UserReport = { db_name: 'reports', db_seq: 0, ...createReport('User', UserWillCreate) }
+        const isCreated = await StoresDB.post(UserReport)
+        if (isCreated && User.ok) {
+            res.status(UserMessages.USER_CREATED.code).json(UserMessages.USER_CREATED.response);
+        } else {
+            res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
+        }
     } catch (error) {
         res.status(UserMessages.USER_NOT_CREATED.code).json(UserMessages.USER_NOT_CREATED.response);
     }
 }
 
 
-////// /users/id [DELETE]
+////// /user/:id [DELETE]
 export const deleteUser = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -36,7 +43,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 }
 
-////// /users/id [PUT]
+////// /user/:id [PUT]
 export const updateUser = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -50,7 +57,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
 }
 
-////// /users/id [GET]
+////// /user/:id [GET]
 export const getUser = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -79,75 +86,3 @@ export const queryUsers = async (req: Request, res: Response) => {
     }
 }
 
-////// /users_group/new [POST]
-export const createGroup = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    try {
-        const StoresDB = await StoreDB(StoreID);
-        const GroupWillCreate = { db_name: 'users_group', db_seq: 0, ...req.body };
-        const Group = await StoresDB.post(GroupWillCreate);
-        // const GroupReport = new Report('users_group', Group.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], '', Date.now());
-        // StoresDB.post(Object.assign(GroupReport, { db_name: 'reports', db_seq: 0 }));
-        res.status(GroupMessages.GROUP_CREATED.code).json(GroupMessages.GROUP_CREATED.response);
-    } catch (error) {
-        res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
-    }
-}
-
-////// /users_group/id [DELETE]
-export const deleteGroup = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    try {
-        const StoresDB = await StoreDB(StoreID);
-        const Group = await StoresDB.get(req.params.id);
-        const GroupReport = await StoresDB.find({ selector: { db_name: 'reports', connection_id: Group._id } });
-        StoresDB.remove(Group);
-        StoresDB.remove(GroupReport.docs[0]);
-        res.status(GroupMessages.GROUP_DELETED.code).json(GroupMessages.GROUP_DELETED.response);
-    } catch (error) {
-        res.status(GroupMessages.GROUP_NOT_DELETED.code).json(GroupMessages.GROUP_NOT_DELETED.response);
-    }
-
-}
-
-////// /users_group/id [PUT]
-export const updateGroup = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    try {
-        const StoresDB = await StoreDB(StoreID);
-        const Group = await StoresDB.get(req.params.id);
-        await StoresDB.put({ Group, ...req.body });
-        res.status(GroupMessages.GROUP_CREATED.code).json(GroupMessages.GROUP_CREATED.response);
-    } catch (error) {
-        res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
-    }
-
-}
-
-////// /users_group/id [GET]
-export const getGroup = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    try {
-        const StoresDB = await StoreDB(StoreID);
-        const Group = await StoresDB.get(req.params.id);
-        res.json(Group);
-    } catch (error) {
-        res.status(GroupMessages.GROUP_NOT_CREATED.code).json(GroupMessages.GROUP_NOT_CREATED.response);
-    }
-}
-
-////// /users_group + QueryString [GET]
-export const queryGroups = async (req: Request, res: Response) => {
-    const StoreID = req.headers.store;
-    let qLimit = req.query.limit || DatabaseQueryLimit;
-    let qSkip = req.query.skip || 0;
-    delete req.query.skip;
-    delete req.query.limit;
-    try {
-        const StoresDB = await StoreDB(StoreID);
-        const Groups = await StoresDB.find({ selector: { db_name: 'users_group', ...req.query }, limit: qLimit, skip: qSkip });
-        res.json(Groups.docs);
-    } catch (error) {
-        res.status(GroupMessages.GROUP_NOT_EXIST.code).json(GroupMessages.GROUP_NOT_EXIST.response);
-    }
-}

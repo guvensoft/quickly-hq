@@ -6,8 +6,14 @@ export interface Menu {
     social_links: MenuSocialLinks;
     theme: MenuTheme;
     status: MenuStatus;
+    // settings: MenuSettings;
+    timestamp:number,
     _id?: string;
     _rev?: string;
+}
+
+export interface MenuSettings {
+    public_order:boolean;
 }
 
 export interface MenuSocialLinks {
@@ -57,6 +63,7 @@ export interface MenuItem {
     is_hidden: boolean;
     product_id: string;
     options?: Array<{ name: string, price: number }>;
+
 }
 
 export interface MenuStore {

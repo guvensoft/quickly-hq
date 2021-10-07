@@ -36,7 +36,7 @@ router.post("/refresh",
 );
 
 /// Store Endday
-router.get("/endday",
+router.post("/endday",
     StoreAuthenticateGuard,
     StoreGuard,
     AccountGuard,

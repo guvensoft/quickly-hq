@@ -1,26 +1,33 @@
 import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { TableMessages } from '../../utils/messages';
-import { Report } from "../../models/store/report";
+import { Table } from "../../models/store/table";
+import { createReport } from "../../functions/store/reports";
 
 
-////// /tables/new [POST]
+////// /table [POST]
 export const createTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
         const StoresDB = await StoreDB(StoreID);
-        const TableWillCreate = { db_name: 'tables', db_seq: 0, ...req.body };
-        const Table = await StoresDB.post(TableWillCreate);
-        // const TableReport = new Report('Table', Table.id, 0, 0, 0, [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], req.body.name, Date.now());
-        // StoresDB.post({ db_name: 'reports', db_seq: 0, ...TableReport });
-        res.status(TableMessages.TABLE_CREATED.code).json(TableMessages.TABLE_CREATED.response);
+        let TableWillCreate: Table = { db_name: 'tables', db_seq: 0, ...req.body };
+        let Table = await StoresDB.post(TableWillCreate);
+        TableWillCreate._id = Table.id;
+        TableWillCreate._rev = Table.rev;
+        let TableReport = { db_name: 'reports', db_seq: 0, ...createReport('Table', TableWillCreate) }
+        const isCreated = await StoresDB.post(TableReport)
+        if (isCreated && Table.ok) {
+            res.status(TableMessages.TABLE_CREATED.code).json(TableMessages.TABLE_CREATED.response);
+        } else {
+            res.status(TableMessages.TABLE_NOT_CREATED.code).json(TableMessages.TABLE_NOT_CREATED.response);
+        }
     } catch (error) {
         res.status(TableMessages.TABLE_NOT_CREATED.code).json(TableMessages.TABLE_NOT_CREATED.response);
     }
 }
 
 
-////// /tables/:id [DELETE]
+////// /table/:id [DELETE]
 export const deleteTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -36,7 +43,7 @@ export const deleteTable = async (req: Request, res: Response) => {
 
 }
 
-////// /tables/:id [PUT]
+////// /table/:id [PUT]
 export const updateTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {
@@ -50,7 +57,7 @@ export const updateTable = async (req: Request, res: Response) => {
 
 }
 
-////// /tables/:id [GET]
+////// /table/:id [GET]
 export const getTable = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {

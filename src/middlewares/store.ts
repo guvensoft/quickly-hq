@@ -10,19 +10,20 @@ export const StoreAuthenticateGuard = (req: Request, res: Response, next: NextFu
     if (AuthToken) {
         StoresDB.Sessions.get(AuthToken.toString()).then((session: Session) => {
             if (session) {
-
                 req.app.locals.user = session.user_id;
-
-                session.timestamp = Date.now();
-
                 if(isSessionExpired(session)){
-                    console.log('Session Expired!',session)
+                    StoresDB.Sessions.remove(session).then(isRemoved => {
+                        res.status(SessionMessages.SESSION_EXPIRED.code).json(SessionMessages.SESSION_EXPIRED.response);
+                        createLog(req, LogType.AUTH_ERROR, 'Session Expired!');
+                    }).catch(err => {
+                        res.status(SessionMessages.SESSION_NOT_UPDATED.code).json(SessionMessages.SESSION_NOT_UPDATED.response);
+                        createLog(req, LogType.AUTH_ERROR, 'Session Removing Error!');
+                    })
                 }else{
-                    console.log('Session Not Expired!',session)
+                    session.timestamp = Date.now();
+                    StoresDB.Sessions.put(session);
+                    next();
                 }
-                StoresDB.Sessions.put(session);
-                
-                next();
             } else {
                 res.status(SessionMessages.UNAUTHORIZED_REQUEST.code).json(SessionMessages.UNAUTHORIZED_REQUEST.response);
                 createLog(req, LogType.AUTH_ERROR, 'Owner Session Not Found!');
