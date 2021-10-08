@@ -10,7 +10,7 @@ export const StoreAuthenticateGuard = (req: Request, res: Response, next: NextFu
     if (AuthToken) {
         StoresDB.Sessions.get(AuthToken.toString()).then((session: Session) => {
             if (session) {
-                req.app.locals.user = session.user_id;
+                res.locals.user = session.user_id;
                 if(isSessionExpired(session)){
                     StoresDB.Sessions.remove(session).then(isRemoved => {
                         res.status(SessionMessages.SESSION_EXPIRED.code).json(SessionMessages.SESSION_EXPIRED.response);
@@ -49,9 +49,9 @@ export const StoreGuard = (req: Request, res: Response, next: NextFunction) => {
 }
 
 
-export const AccountGuard = (req: Request, res: Response, next: NextFunction) => {
+export const AccountGuard = (req: Request | any, res: Response, next: NextFunction) => {
     let StoreID: any = req.headers.store;
-    let OwnerID: any = req.app.locals.user;
+    let OwnerID: any = res.locals.user;
     ManagementDB.Owners.get(OwnerID).then(owner => {
         let hasOwnership = owner.stores.includes(StoreID);
         if (hasOwnership) {

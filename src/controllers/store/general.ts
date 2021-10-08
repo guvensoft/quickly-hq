@@ -13,7 +13,8 @@ import { Order, Receipt } from "../../models/store/menu";
 export const listStores = (req: Request, res: Response) => {
     ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
         let Stores: Array<Store> = db_res.docs;
-        ManagementDB.Owners.get(req.app.locals.user).then(Owner => {
+        const OwnerID = res.locals.user;
+        ManagementDB.Owners.get(OwnerID).then(Owner => {
             let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
             res.json(OwnerStores);
         }).catch(err => {
@@ -53,7 +54,8 @@ export const storeInfo = async (req: Request, res: Response) => {
 export const storesInfo = (req: Request, res: Response) => {
     ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
         let Stores: Array<Store> = db_res.docs;
-        ManagementDB.Owners.get(req.app.locals.user).then(Owner => {
+        const OwnerID = res.locals.user;
+        ManagementDB.Owners.get(OwnerID).then(Owner => {
             let Response: Array<any> = [];
             let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
             OwnerStores.forEach((store, index) => {

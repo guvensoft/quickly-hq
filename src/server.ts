@@ -150,7 +150,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.menuToTerminal2('faa92f5e-69d6-41d0-a7be-a0a0159155d7');
 // blackboard.clearStoreProducts('d8412bb0-5546-4b78-922e-b7a774daa217');
 
-// blackboard.menuToTerminal2("d675d07a-671a-4623-b953-6bf0e55745a1")
+// blackboard.menuToTerminal2("35530049-06c2-4d1e-b1e2-f9550f94aaf4")
 
 
 // blackboard.allRevisions('kosmos-besiktas', '81517077-dfc5-48bf-abf1-5eca118832d1')
@@ -176,3 +176,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 
 // blackboard.clearDatabase('d8412bb0-5546-4b78-922e-b7a774daa217')
+
+
+// blackboard.clearStoreProducts('35530049-06c2-4d1e-b1e2-f9550f94aaf4')
+
