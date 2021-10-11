@@ -13,8 +13,8 @@ import { OrderMiddleware } from './configrations/database'
 import { corsOptions } from './configrations/cors';
 
 
-import * as blackboard from './blackboard';
-import { sendNotifications } from './configrations/apn';
+// import * as blackboard from './blackboard';
+// import { sendNotifications } from './configrations/apn';
 
 //// 19286545426 - 0(212)-367-60-60:3678
 //// MOM 23957103044
@@ -178,5 +178,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.clearDatabase('d8412bb0-5546-4b78-922e-b7a774daa217')
 
 
-// blackboard.clearStoreProducts('35530049-06c2-4d1e-b1e2-f9550f94aaf4')
+// blackboard.clearStoreProducts('f93c9160-64e2-4f52-a732-1acd35f0dc46')
+
+// blackboard.menuToTerminal2('f93c9160-64e2-4f52-a732-1acd35f0dc46')
 

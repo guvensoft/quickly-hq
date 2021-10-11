@@ -4,6 +4,7 @@ import { createLog, LogType } from '../utils/logger';
 import { SessionMessages } from '../utils/messages';
 import { Session } from '../models/management/session';
 import { isSessionExpired } from '../functions/session';
+import { defaultSessionTime } from '../configrations/session';
 
 export const StoreAuthenticateGuard = (req: Request, res: Response, next: NextFunction) => {
     let AuthToken = req.headers.authorization;
@@ -21,8 +22,13 @@ export const StoreAuthenticateGuard = (req: Request, res: Response, next: NextFu
                     })
                 }else{
                     session.timestamp = Date.now();
-                    StoresDB.Sessions.put(session);
-                    next();
+                    session.expire_date = Date.now() + defaultSessionTime;
+                    StoresDB.Sessions.put(session).then(isUpdated => {
+                        next();
+                    }).catch(err => {
+                        res.status(SessionMessages.SESSION_NOT_UPDATED.code).json(SessionMessages.SESSION_NOT_UPDATED.response);
+                        createLog(req, LogType.DATABASE_ERROR, err);
+                    })
                 }
             } else {
                 res.status(SessionMessages.UNAUTHORIZED_REQUEST.code).json(SessionMessages.UNAUTHORIZED_REQUEST.response);

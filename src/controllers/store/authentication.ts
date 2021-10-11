@@ -1,5 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
+import { defaultSessionTime } from "../../configrations/session";
 import { ManagementDB, StoresDB } from "../../configrations/database";
 import { createSession, isSessionExpired } from "../../functions/session";
 import { Owner } from "../../models/management/owner";
@@ -106,7 +107,8 @@ export const Refresh = (req: Request, res: Response) => {
                     res.status(SessionMessages.SESSION_NOT_DELETED.code).json(SessionMessages.SESSION_NOT_DELETED.response);
                 })
             } else {
-                session.timestamp = Date.now() + 604800000;
+                session.timestamp = Date.now();
+                session.expire_date = Date.now() + defaultSessionTime;
                 StoresDB.Sessions.put(session).then(isUpdated => {
                     if (isUpdated.ok) {
                         res.status(SessionMessages.SESSION_UPDATED.code).json({ ...SessionMessages.SESSION_UPDATED.response, ...{ token: isUpdated.id } });
