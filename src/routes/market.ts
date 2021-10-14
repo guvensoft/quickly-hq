@@ -8,70 +8,83 @@ import * as BrandController from '../controllers/management/brand';
 
 import * as StockController from '../controllers/market/stock';
 
-import { StoreAuthenticateGuard } from '../middlewares/store';
+import { MarketAccountGuard, MarketStoreGuard } from '../middlewares/market';
 
 const router = Router();
 
 // Products
 router.get("/product/:id",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     ProductController.getProduct);
 
 router.get("/products",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     ProductController.queryProducts);
 
 // Suppliers
 router.get("/supplier/:id",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     SupplierController.getSupplier);
 
 router.get("/suppliers",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     SupplierController.querySuppliers);
 
 // Producers
 router.get("/producer/:id",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     ProducerController.getProducer);
 
 router.get("/producers",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     ProducerController.queryProducers);
 
 
 // Brands
 router.get("/brand/:id",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     BrandController.getBrand);
 
 router.get("/brands",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     BrandController.queryBrands);
 
 
 // Categories
 router.get("/category/:id",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     CategoryController.getCategory);
 
 router.get("/categories",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     CategoryController.queryCategories);
 
 
 // SubCategories
 router.get("/sub_category/:id",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     CategoryController.getSubCategory);
 
 router.get("/sub_categories",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     CategoryController.querySubCategories);
 
 
 router.post("/add_stock/:product_id/:quantity",
-    StoreAuthenticateGuard,
+    MarketAccountGuard,
+    MarketStoreGuard,
     StockController.addStock
 )
 

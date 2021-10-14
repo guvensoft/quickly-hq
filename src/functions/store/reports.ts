@@ -285,6 +285,8 @@ export const createReport = (reportType: reportType, reportObj: Product | Table 
         month: date.getMonth() + 1,
         year: date.getFullYear(),
         description: reportObj.name,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        db_name:'reports',
+        db_seq:0
     }
 }

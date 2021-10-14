@@ -175,10 +175,16 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 
 
-// blackboard.clearDatabase('d8412bb0-5546-4b78-922e-b7a774daa217')
+// blackboard.clearDatabase('2275d56d-b704-4d96-a8f9-4b2d8ecfa52d')
 
 
 // blackboard.clearStoreProducts('f93c9160-64e2-4f52-a732-1acd35f0dc46')
 
-// blackboard.menuToTerminal2('f93c9160-64e2-4f52-a732-1acd35f0dc46')
+// blackboard.menuToTerminal2('0ac596dc-a81b-4211-80c5-738baa3bdde4')
 
+// blackboard.generateReportsFor('f93c9160-64e2-4f52-a732-1acd35f0dc46','Product');
+
+// blackboard.clearOrders('2275d56d-b704-4d96-a8f9-4b2d8ecfa52d')
+
+
+// blackboard.storesInfo2();

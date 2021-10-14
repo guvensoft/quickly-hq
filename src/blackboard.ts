@@ -6,7 +6,7 @@ import { Store } from './models/management/store';
 import { Stock } from './models/store/stocks';
 import { backupPath, documentsPath, reisPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/endoftheday';
-import { Report } from './models/store/report';
+import { Report, reportType } from './models/store/report';
 import { Cashbox } from './models/store/cashbox';
 import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/check';
 import { Log, logType } from './models/store/log';
@@ -1227,7 +1227,7 @@ export const clearDatabase = async (store_id: string) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(store_id);
         const StoreDatabase = await StoreDB(store_id);
-        const StoreDocuments = (await StoreDatabase.find({selector:{},limit:10000})).docs.map(obj => {
+        const StoreDocuments = (await StoreDatabase.find({ selector: {}, limit: 10000 })).docs.map(obj => {
             delete obj._rev;
             return obj;
         });
@@ -1236,9 +1236,9 @@ export const clearDatabase = async (store_id: string) => {
         purgeDatabase(Store.auth).then(res => {
             StoreDatabase.bulkDocs(StoreDocuments).then(docs => {
                 let isAnyConflict = docs.some(doc => doc.hasOwnProperty('error'));
-                if(isAnyConflict){
+                if (isAnyConflict) {
                     console.log('There Are Some Conflicts')
-                }else{
+                } else {
                     console.log('Looks Great')
                 }
             })
@@ -1915,7 +1915,7 @@ export const storesInfo2 = async () => {
     const Stores = await (await ManagementDB.Stores.allDocs({ include_docs: true, keys: OwnerStores })).rows.map(obj => obj.doc);
 
 
-
+    console.log(Stores);
 
     // ManagementDB.Stores.bulkGet({})
 
@@ -2238,12 +2238,12 @@ export const quicklySellingData = async (year: number) => {
     }
 
     let Data = {
-        cash: Days.map(x => x.cash).reduce((a, b) => a + b,0),
-        card: Days.map(x => x.card).reduce((a, b) => a + b,0),
-        coupon: Days.map(x => x.coupon).reduce((a, b) => a + b,0),
-        free: Days.map(x => x.free).reduce((a, b) => a + b,0),
-        total: Days.map(x => x.total).reduce((a, b) => a + b,0),
-        checks: Days.map(x => x.checks).reduce((a, b) => a + b,0)
+        cash: Days.map(x => x.cash).reduce((a, b) => a + b, 0),
+        card: Days.map(x => x.card).reduce((a, b) => a + b, 0),
+        coupon: Days.map(x => x.coupon).reduce((a, b) => a + b, 0),
+        free: Days.map(x => x.free).reduce((a, b) => a + b, 0),
+        total: Days.map(x => x.total).reduce((a, b) => a + b, 0),
+        checks: Days.map(x => x.checks).reduce((a, b) => a + b, 0)
     }
 
     console.log(Data);
@@ -2251,3 +2251,34 @@ export const quicklySellingData = async (year: number) => {
 
 
 }
+
+
+export const generateReportsFor = async (store_id: string, type: reportType) => {
+
+    const StoreDatabase = await StoreDB(store_id);
+    const Documents = await StoreDatabase.find({ selector: { db_name: type.toLowerCase() + 's' }, limit: DatabaseQueryLimit })
+    console.log(Documents.docs[10]);
+    let ReportsArray = [];
+    for (const document of Documents.docs) {
+        const Report = createReport(type, document);
+        const Response = await StoreDatabase.post(Report);
+        console.log(Response);
+    }
+    // const BulkPost = await StoreDatabase.bulkDocs(ReportsArray);
+    // console.log(BulkPost);
+}
+
+export const clearOrders = async (store_id: string) => {
+
+    const StoreDatabase = await StoreDB(store_id);
+    const Documents = await StoreDatabase.find({ selector: { db_name: 'orders' }, limit: 30000 })
+    console.log(Documents.docs.length);
+    for (const document of Documents.docs) {
+        const Response = await StoreDatabase.remove(document);
+        console.log(Response);
+    }
+    // const BulkPost = await StoreDatabase.bulkDocs(ReportsArray);
+    // console.log(BulkPost);
+}
+
+
