@@ -1227,7 +1227,7 @@ export const clearDatabase = async (store_id: string) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(store_id);
         const StoreDatabase = await StoreDB(store_id);
-        const StoreDocuments = (await StoreDatabase.find({ selector: {}, limit: 10000 })).docs.map(obj => {
+        const StoreDocuments = (await StoreDatabase.find({ selector: {}, limit: 50000 })).docs.map(obj => {
             delete obj._rev;
             return obj;
         });
@@ -2271,14 +2271,22 @@ export const generateReportsFor = async (store_id: string, type: reportType) => 
 export const clearOrders = async (store_id: string) => {
 
     const StoreDatabase = await StoreDB(store_id);
-    const Documents = await StoreDatabase.find({ selector: { db_name: 'orders' }, limit: 30000 })
+    let Documents = await StoreDatabase.find({ selector: { db_name: 'orders' }, limit: 40000 })
     console.log(Documents.docs.length);
-    for (const document of Documents.docs) {
-        const Response = await StoreDatabase.remove(document);
-        console.log(Response);
-    }
-    // const BulkPost = await StoreDatabase.bulkDocs(ReportsArray);
-    // console.log(BulkPost);
+
+    Documents.docs.map(obj => {
+        obj._deleted = true;
+        return obj
+    })
+
+    // for (const document of Documents.docs) {
+
+    //     const Response = await StoreDatabase.remove(document);
+    //     console.log(Response);
+    // }
+
+    const BulkPost = await StoreDatabase.bulkDocs(Documents.docs);
+    console.log(BulkPost);
 }
 
 

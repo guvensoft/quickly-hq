@@ -43,7 +43,7 @@ app.use('/order', cors(corsOptions), OrderMiddleware);
 
 // app.use('/order', cors({ origin: 'http://localhost:8100', credentials: true }), OrderMiddleware);
 
-app.all('/', (req, res) => res.status(404).end());
+app.all('/*', (req, res) => res.status(404).end());
 
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
@@ -175,7 +175,7 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 
 
-// blackboard.clearDatabase('2275d56d-b704-4d96-a8f9-4b2d8ecfa52d')
+// blackboard.clearDatabase('f7019ba0-50e7-4a7e-b813-19ae6cdf1dec')
 
 
 // blackboard.clearStoreProducts('f93c9160-64e2-4f52-a732-1acd35f0dc46')
@@ -184,7 +184,9 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 
 // blackboard.generateReportsFor('f93c9160-64e2-4f52-a732-1acd35f0dc46','Product');
 
-// blackboard.clearOrders('2275d56d-b704-4d96-a8f9-4b2d8ecfa52d')
-
+// blackboard.clearOrders('f7019ba0-50e7-4a7e-b813-19ae6cdf1dec')
 
 // blackboard.storesInfo2();
+
+
+// blackboard.allOrders('kosmos-besiktas','3ea919ea-4b39-4151-931a-cf5b2029e25d')
