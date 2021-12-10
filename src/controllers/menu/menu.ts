@@ -8,6 +8,7 @@ import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
 
 import { processPurchase } from "../../configrations/payments";
 import axios from "axios";
+import fetch from "node-fetch";
 
 export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;
@@ -23,6 +24,7 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
         delete Store.timestamp;
         delete Store.type;
         delete Store.status;
+        delete Store.slug;
 
         delete Store.settings.allowed_tables
         delete Store.settings.allowed_products
@@ -65,6 +67,17 @@ export const checkRequest = async (req: Request, res: Response) => {
         switch (orderRequestType.db_name) {
             case 'checks':
                 let Check = orderRequestType;
+
+                // fetch('http://localhost:3000/order/' + Token, { method: 'GET' }).then(isOk => {
+                //     res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
+                // }).catch(async err => {
+                //     const inMemoryOrderDB = await OrderDB(StoreID, Token, true);
+                //     if (inMemoryOrderDB.name == Token) {
+                //         res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE, check: Check });
+                //     } else {
+                //         res.status(200).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' });
+                //     }
+                // })
                 axios.get('http://localhost:3000/order/' + Token).then(ax_res => {
                     res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
                 }).catch(async err => {
@@ -93,7 +106,7 @@ export const checkRequest = async (req: Request, res: Response) => {
 
 
 export const payReceipt = async (req: Request, res: Response) => {
-    
+
     const StoreID = req.headers.store;
     const Token: string = req.params.token;
     const StoreDatabase = await StoreDB(StoreID);
@@ -108,22 +121,22 @@ export const payReceipt = async (req: Request, res: Response) => {
             switch (orderRequestType.db_name) {
                 case 'checks':
                     const Database = await OrderDB(StoreID, Token, false);
-    
+
                     let Check: Check = orderRequestType;
                     let User: User = Receipt.user;
-    
+
                     let userItems = Receipt.orders.filter(order => order.status == OrderStatus.APPROVED);
-    
+
                     userItems.map(obj => {
                         obj.status = OrderStatus.PAYED;
                         return obj;
                     })
-    
+
                     /////////// Check Operations ////////////
                     let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj.timestamp).includes(product.timestamp));
-    
+
                     console.log(productsWillPay)
-    
+
                     const newPayment: PaymentStatus = { owner: User.name, method: 'Kart', amount: Receipt.total, discount: Receipt.discount, timestamp: Date.now(), payed_products: productsWillPay };
                     if (Check.payment_flow == undefined) {
                         Check.payment_flow = [];
@@ -132,11 +145,12 @@ export const payReceipt = async (req: Request, res: Response) => {
                     Check.discount += newPayment.amount;
                     Check.products = Check.products.filter(product => !productsWillPay.includes(product));
                     Check.total_price = Check.products.map(product => product.price).reduce((a, b) => a + b, 0);
-    
+
                     /////////// Check Operations ////////////
-    
+
                     Receipt.status = ReceiptStatus.APPROVED;
-    
+                    Receipt.timestamp = Date.now();
+
                     Database.bulkDocs(userItems).then(order_res => {
                         Database.put(Receipt).then(isOK => {
                             StoreDatabase.put(Check).then(isCheckUpdated => {
@@ -154,7 +168,7 @@ export const payReceipt = async (req: Request, res: Response) => {
                     }).catch(err => {
                         console.log('Orders Update Error on Payment Process', err);
                         res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
-    
+
                     })
                     // TODO Delete items from Check to Payed
                     break;
@@ -179,12 +193,24 @@ export const payReceipt = async (req: Request, res: Response) => {
                     break;
             }
         } catch (error) {
-            console.log(error);
+            console.log(error.CC5Response.ErrMsg);
             res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
         }
-    }).catch(err => {
-        console.log(err)
-        res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+    }).catch(async err => {
+        const Database = await OrderDB(StoreID, Token, false);
+        Receipt.status = ReceiptStatus.CANCELED;
+        Receipt.timestamp = Date.now();
+        Database.put(Receipt).then(receipt_update => {
+            Database.get(Receipt._id).then(receipt => {
+                res.status(404).json({ ok: false, message: err.CC5Response.ErrMsg })
+            }).catch(err => {
+                console.log('Receipt Update Error on Payment Process', err);
+                res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+            })
+        }).catch(err => {
+            console.log('Receipt Update Error on Payment Process', err);
+            res.status(404).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' })
+        })
     })
 
 }

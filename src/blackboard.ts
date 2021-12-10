@@ -4,16 +4,20 @@ import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit,
 import { Database } from './models/management/database';
 import { Store } from './models/management/store';
 import { Stock } from './models/store/stocks';
-import { backupPath, documentsPath, reisPath } from './configrations/paths';
+import { backupPath, documentsPath } from './configrations/paths';
 import { BackupData, EndDay } from './models/store/endoftheday';
 import { Report, reportType } from './models/store/report';
 import { Cashbox } from './models/store/cashbox';
 import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/check';
 import { Log, logType } from './models/store/log';
-import { readJsonFile, writeJsonFile, readDirectory } from './functions/files';
-import { createIndexesForDatabase, purgeDatabase, createStoreDatabase } from './functions/database';
+import { readJsonFile, writeJsonFile, readDirectory } from './functions/shared/files';
+import { createIndexesForDatabase, purgeDatabase, createStoreDatabase } from './functions/management/database';
+import { parse } from 'node-html-parser';
 
-import { Parser } from 'xml2js';
+import fetch from 'node-fetch';
+
+import { OptionsV2, Parser, processors } from 'xml2js';
+import XLSX from 'xlsx';
 import { Table, TableStatus } from './models/store/table';
 
 import jsPDF from 'jspdf'
@@ -21,11 +25,19 @@ import autoTable from 'jspdf-autotable'
 
 import { Menu, MenuStatus, Order } from './models/store/menu';
 import { Category, Product, ProductSpecs, SubCategory } from './models/store/product';
-import { productToStock } from './functions/stocks';
+import { productToStock } from './functions/store/stocks';
 import { endDayProcess } from './controllers/store/endofday';
 
 import { StoreReport, ProductsReport, UsersReport, UserProductSalesReport, TablesReport, StoreSalesReport, createReport } from './functions/store/reports';
 import { getSession } from './controllers/management/session';
+
+import fatura from 'fatura';
+import { eFaturaSecret, eFaturaUserName } from './configrations/secrets';
+import { Customer } from './models/store/customer';
+import { proformaGenerator } from './functions/management/invoice';
+import { parseBooleans, parseNumbers } from 'xml2js/lib/processors';
+import axios from 'axios';
+import { UBL } from './models/external/ubl';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -112,16 +124,16 @@ export const fixTables = async (db_name: string) => {
     let checks: Array<Check> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'checks', type: CheckType.NORMAL } })).docs;
     let tables: Array<Table> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'tables', status: TableStatus.OCCUPIED } })).docs;
 
-    checks.forEach(async (check: Check) => {
-        try {
-            let tableWillFix: Check = await RemoteDB(db, db_name).get(check.table_id);
-            tableWillFix.status = 2;
-            let isUpdated = await RemoteDB(db, db_name).put(tableWillFix);
-            console.log(isUpdated);
-        } catch (error) {
-            console.log(error);
-        }
-    });
+    // checks.forEach(async (check: Check) => {
+    //     try {
+    //         let tableWillFix: Check = await RemoteDB(db, db_name).get(check.table_id);
+    //         tableWillFix.status = 2;
+    //         let isUpdated = await RemoteDB(db, db_name).put(tableWillFix);
+    //         console.log(isUpdated);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // });
 
     // tables.forEach(async (table: Table) => {
     //     try {
@@ -136,11 +148,11 @@ export const fixTables = async (db_name: string) => {
     //     }
     // });
 
-    RemoteDB(db, db_name).bulkDocs(tables).then(res => {
-        console.log('Tables Successfuly Reoladed...!');
-    }).catch(err => {
-        console.log(err);
-    })
+    // RemoteDB(db, db_name).bulkDocs(tables).then(res => {
+    //     console.log('Tables Successfuly Reoladed...!');
+    // }).catch(err => {
+    //     console.log(err);
+    // })
 }
 
 export const Logs = () => {
@@ -213,7 +225,7 @@ export const Fixer = (db_name: string) => {
             console.log(new Date(lastDay.timestamp).toDateString());
             return lastDay;
         }).then(lastDay => {
-            let databasesWillFix = ['closed_checks', 'checks', 'logs', 'cashbox'];
+            let databasesWillFix = ['closed_checks', 'checks', 'logs', 'cashbox', 'orders', 'receipts'];
             databasesWillFix.forEach(selectedDatabase => {
                 RemoteDB(db, db_name).find({ selector: { db_name: selectedDatabase }, limit: 2500 }).then((res: any) => {
                     console.log(selectedDatabase);
@@ -234,7 +246,8 @@ export const Fixer = (db_name: string) => {
                     //     console.log(new Date(element.timestampFixer).getDay());
                     // });
 
-                    let dayThat = lastDay.data_file.split('.')[0];
+                    // let dayThat = lastDay.data_file.split('.')[0];
+                    let dayThat = 1634706042000;
 
                     let newChecks = checks.filter(obj => obj.timestamp > dayThat);
                     let oldChecks = checks.filter(obj => obj.timestamp < dayThat);
@@ -259,8 +272,34 @@ export const Fixer = (db_name: string) => {
 
                 })
             });
+        }).catch(err => {
+            console.log(err);
         })
     })
+}
+
+export const getDeleted = async (store_id: string) => {
+    try {
+        const StoreDatabase = await StoreDB(store_id);
+        let dbChanges = (await StoreDatabase.changes({ include_docs: false }))
+        let data = dbChanges.results.filter(obj => obj.hasOwnProperty('deleted')).map(doc => doc.id);
+        console.log(data.length);
+        data.forEach(doc_id => {
+            StoreDatabase.get(doc_id, { revs_info: true, }).then(res => {
+                res._revs_info.filter(rev => rev.status == "available").forEach((obj, index) => {
+                    console.log(obj);
+                    StoreDatabase.get(doc_id, { rev: obj.rev }).then((res: any) => {
+                        console.log(res);
+                        // writeJsonFile('data' + index + '.json', res)
+                    });
+                })
+            }).catch(err => {
+                console.log(err);
+            });
+        })
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 export const DailySalesReport = (store_db_name: string) => {
@@ -540,7 +579,6 @@ export const allOrders = (db_name: string, check_id: string) => {
     })
 }
 
-
 export const reOpenCheck = (db_name: string, check_id: string) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         const db: Database = res.docs[0];
@@ -604,7 +642,6 @@ export const databaseLogs = (db_name: string, search: string) => {
         console.log(err);
     })
 }
-
 
 export const getSessions = async () => {
     // StoresDB.Sessions.allDocs()
@@ -741,8 +778,9 @@ export const documentTransport = (from: string, to: string, selector: any, type:
                     }).catch(err => {
                         console.log(err);
                     })
+                }).catch(err => {
+                    console.log(err);
                 })
-
             })
         } else if (type == 'fetch') {
             RemoteDB(db, from).find({ selector: selector, limit: 5000 }).then((res: any) => {
@@ -1046,32 +1084,74 @@ export const productFinder = (product_name: string) => {
 }
 
 export const invoiceReader = () => {
-    const xmlParser = new Parser();
-    const invoicePath = path.join(__dirname, '../', '/backup/kosmos/fatura.xml');
+    const parserOpts: OptionsV2 =  { ignoreAttrs: true, explicitArray: false, tagNameProcessors: [processors.stripPrefix], valueProcessors: [parseNumbers, parseBooleans] };
+    const xmlParser = new Parser(parserOpts);
+    const invoicePath = path.join(__dirname, '../', '/backup/d622f9dd-036b-4775-bbee-911d301c5b77/mikro.xml');
     readFile(invoicePath, (err, buffer) => {
         if (!err) {
             let data = buffer.toString('utf8');
-            xmlParser.parseStringPromise(data).then(res => {
+            let productsTable = [];
+            xmlParser.parseStringPromise(data).then((ubl:UBL) => {
 
-                res['Invoice']['cac:InvoiceLine'].forEach(row => {
+                const Invoice = ubl.Invoice;
+
+                console.log('       ')
+                console.log(Invoice.UUID + ' ' + Invoice.ID);
+                console.log('       ');
+                console.log(Invoice.IssueDate + ' ' + Invoice.IssueTime);
+                console.log('       ')
+                console.log(Invoice.AccountingSupplierParty.Party.PartyName.Name);
+                console.log('VD:  ' + Invoice.AccountingSupplierParty.Party.PartyTaxScheme.TaxScheme.Name);
+                console.log('VN:  ' + Invoice.AccountingSupplierParty.Party.PartyIdentification[0].ID);
+                console.log('       ')
+                console.log(Invoice.AccountingCustomerParty.Party.PartyName.Name);
+                console.log('VD:  ' + Invoice.AccountingCustomerParty.Party.PartyTaxScheme.TaxScheme.Name);
+                console.log('VN:  ' + Invoice.AccountingCustomerParty.Party.PartyIdentification.ID);
+                console.log('       ');
+                // console.log('Ürün Toplamı:      ' + Invoice.LegalMonetaryTotal.LineExtensionAmount);
+                // console.log('KDV siz Toplam:    ' + Invoice.LegalMonetaryTotal.TaxExclusiveAmount);
+                // console.log('KDV li Toplam:     ' + Invoice.LegalMonetaryTotal.TaxInclusiveAmount);
+
+                console.table(Invoice.InvoiceLine.map(obj => [obj.Item.Name, obj.InvoicedQuantity, obj.Price.PriceAmount,obj.TaxTotal.TaxAmount,obj.LineExtensionAmount]));
+
+                console.log('       ');
+                console.log('Ara Toplam:        ' + Invoice.LegalMonetaryTotal.TaxExclusiveAmount);
+                console.log('KDV Toplamı:       ' + Invoice.TaxTotal.TaxAmount)
+                console.log('Genel Toplam:      ' + Invoice.LegalMonetaryTotal.PayableAmount);
 
 
-                    let quantity = row["cbc:InvoicedQuantity"][0]["_"];
-                    let total_price = row["cbc:LineExtensionAmount"][0]["_"];
-                    let currency = row["cbc:LineExtensionAmount"][0]["$"];
-                    let discountAmount = row["cac:AllowanceCharge"][0]["cbc:Amount"][0]["_"];
-                    let discountValue = row["cac:AllowanceCharge"][0]["cbc:MultiplierFactorNumeric"];
-                    let withoutDiscount = row["cac:AllowanceCharge"][0]["cbc:BaseAmount"][0]["_"];
-                    let taxAmount = row["cac:TaxTotal"][0]["cbc:TaxAmount"][0]["_"];
-                    let taxPercent = row["cac:TaxTotal"][0]["cbc:Percent"];
-                    let itemName = row["cac:Item"][0]["cbc:Description"];
-                    let itemId = row["cac:Item"][0]["cbc:Name"];
-                    let itemPrice = row["cac:Price"][0]["cbc:PriceAmount"][0]["_"];
+                // console.log(Invoice.AccountingSupplierParty.Party);
+                // console.log(Invoice.InvoiceLine[0])
+                // console.log(Invoice.InvoiceLine)
 
-                    console.log(quantity + ' Adet     ' + itemName + ' | ' + total_price);
-                });
 
-                // writeJsonFile(__dirname + '/test.json', invoiceJson).then(res => {
+                // ubl['Invoice']['cac:InvoiceLine'].forEach(row => {
+                //     let quantity = row["cbc:InvoicedQuantity"][0]["_"];
+                //     let total_price = row["cbc:LineExtensionAmount"][0]["_"];
+                //     // let currency = row["cbc:LineExtensionAmount"][0]["$"];
+                //     // let discountAmount = row["cac:AllowanceCharge"][0]["cbc:Amount"][0]["_"];
+                //     // let discountValue = row["cac:AllowanceCharge"][0]["cbc:MultiplierFactorNumeric"];
+                //     // let withoutDiscount = row["cac:AllowanceCharge"][0]["cbc:BaseAmount"][0]["_"];
+                //     let taxAmount = row["cac:TaxTotal"][0]["cbc:TaxAmount"][0]["_"];
+                //     let taxPercent = row["cac:TaxTotal"][0]["cbc:Percent"];
+                //     let itemName = row["cac:Item"][0]["cbc:Description"];
+                //     let itemId = row["cac:Item"][0]["cbc:Name"];
+                //     let itemPrice = row["cac:Price"][0]["cbc:PriceAmount"][0]["_"];
+
+                //     let item = {
+                //         quantity: parseInt(quantity),
+                //         name: itemName[0],
+                //         price: parseInt(total_price),
+                //         taxAmount: taxAmount,
+                //         taxPercent: taxPercent,
+                //         total: (parseInt(quantity) * parseInt(total_price)),
+                //     }
+
+                //     productsTable.push(item);
+                // });
+                // console.table(productsTable);
+
+                // writeJsonFile('invoice.json', invoiceJson).then(res => {
                 //     console.log(res);
                 // }).catch(err => {
                 //     console.log(err);
@@ -1134,87 +1214,6 @@ export const lastChanges = () => {
         });
     })
 };
-
-export const reisImport = () => {
-
-    readJsonFile(reisPath + 'product.json').then((res: Array<any>) => {
-
-        // let products = res;
-
-        // products.map(obj => {
-
-        //     delete obj.id;
-        //     delete obj.rev;
-        //     obj.specifies = [];
-        //     obj.description = '';
-        //     obj.status = 1;
-        //     obj.price = parseFloat(obj.price);
-        //     obj.tax_value = parseInt(obj.tax_value);
-        //     obj.db_name = "products";
-        //     obj.db_seq = 0;
-
-        //     return obj;
-        // })
-
-
-        // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
-        //     let db: Database = res.docs[0];
-        //     RemoteDB(db, 'reis-doner-bagcilar-parseller').bulkDocs(products).then(res => {
-        //         console.log('Ürünler Yüklendi');
-        //     }).catch(err => {
-        //         console.log(err);
-        //     })
-        // }).catch(err => {
-        //     console.log(err);
-        // })
-
-
-        // {
-        //     "_id": "01c17ab9-98e2-44fd-b995-626aeba62d9c",
-        //     "_rev": "1-a7fa337b3e313cd0d3487bd52240e563",
-        //     "cat_id": "9592dcb5-cc05-425b-9720-071d20312c63",
-        //     "db_seq": 0,
-        //     "subcat_id": "ec2322e4-71bc-43c2-844a-9acf479ac823",
-        //     "status": 1,
-        //     "barcode": null,
-        //     "db_name": "products",
-        //     "type": "1",
-        //     "price": 25,
-        //     "name": "Bulleit Rye 3cl.",
-        //     "description": null,
-        //     "tax_value": 18,
-        //     "specifies": []
-        //   }
-
-        // let customers = res;
-
-        // customers.map(obj => {
-        //     delete obj['id?'];
-        //     delete obj['rev?'];
-        //     obj.phone_number = parseInt(obj.phone_number)
-        //     obj.timestamp = Date.now();
-        //     obj.type = "1";
-        //     obj.db_name = 'customers';
-        //     obj.db_seq = 0;
-        //     return obj;
-        // })
-
-        // ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
-        //     let db: Database = res.docs[0];
-        //     RemoteDB(db, 'reis-doner-bagcilar-parseller').bulkDocs(customers).then(res => {
-        //         console.log('Müşterileri Yüklendi');
-        //     }).catch(err => {
-        //         console.log(err);
-        //     })
-        // }).catch(err => {
-        //     console.log(err);
-        // })
-
-
-    })
-
-
-}
 
 export const importFromBackup = async (store_id: string) => {
     // let Store = await ManagementDB.Stores.get(store_id);
@@ -1292,62 +1291,48 @@ export const addNotes = () => {
     })
 }
 
-export const makePdf = async (db_name: string, start_date: number, end_date: number) => {
+export const makePdf = async (store_id: string, start_date: number, end_date: number, endDayData?: Array<EndDay>) => {
     try {
+        let StoreEndDays: Array<EndDay>;
+        if (!endDayData) {
+            StoreEndDays = (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' }, limit: 2500 })).docs
+        } else {
+            StoreEndDays = endDayData;
+        }
+        const Store: Store = await ManagementDB.Stores.get(store_id)
+        const PDF = new jsPDF({ orientation: "portrait" });
+        const MonthLabels = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasim", "Aralık"];
+        const ReportDate = MonthLabels[new Date(start_date).getMonth()] + ' ' + new Date(start_date).getFullYear();
 
-        const db = await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } });
-        const enddays: Array<EndDay> = await (await RemoteDB(db.docs[0], db_name).find({ selector: { db_name: 'endday' }, limit: 2500 })).docs;
-        const doc = new jsPDF({ orientation: "portrait" }); // landscape
         const transformPrice = (value: number): string => {
             if (!value) value = 0;
             return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
         }
         const totalProperty = (property: string) => {
-            return transformPrice(data.map(obj => obj[property]).reduce((a, b) => a + b, 0))
+            return transformPrice(filteredDays.map(obj => obj[property]).reduce((a, b) => a + b, 0))
         }
 
-
-        let bodyLink = [];
-        let data = enddays.sort((a, b) => a.timestamp - b.timestamp).filter((day) => day.timestamp > start_date && day.timestamp < end_date)
+        let filteredDays = StoreEndDays.sort((a, b) => a.timestamp - b.timestamp).filter((day) => day.timestamp > start_date && day.timestamp < end_date)
 
         // hitDates.some(function(dateStr) {
         //     var date = new Date(dateStr);
         //     return date >= startDate && date <= endDate
         // });
 
-        data.forEach((end, index) => {
-            let data = [new Date(end.timestamp).toLocaleDateString('tr', { year: 'numeric', month: '2-digit', day: '2-digit' }), transformPrice(end.total_income), transformPrice(end.cash_total), transformPrice(end.card_total), transformPrice(end.coupon_total), transformPrice(end.free_total), transformPrice(end.canceled_total), transformPrice(end.discount_total)];
-            bodyLink.push(data);
+        let tableBodyData = [];
+        filteredDays.forEach((day, index) => {
+            let data = [new Date(day.timestamp).toLocaleDateString('tr', { year: 'numeric', month: '2-digit', day: '2-digit' }), transformPrice(day.total_income), transformPrice(day.cash_total), transformPrice(day.card_total), transformPrice(day.coupon_total), transformPrice(day.free_total), transformPrice(day.canceled_total), transformPrice(day.discount_total)];
+            tableBodyData.push(data);
         });
-        // const imgData = 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0ia2F0bWFuXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNTk1LjMgMjgwLjQiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDU5NS4zIDI4MC40OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KCS5zdDB7ZmlsbDojRkZGRkZGO30NCgkuc3Qxe2ZpbGw6I0UzMDYxMzt9DQo8L3N0eWxlPg0KPGcgaWQ9IlhNTElEXzNfIj4NCgk8ZyBpZD0iWE1MSURfMzY0NDZfIj4NCgkJPHBhdGggaWQ9IlhNTElEXzc2XyIgY2xhc3M9InN0MCIgZD0iTTE2Ni4xLDgxYzAsMzMuNC0yNiw2MC42LTU4LDYwLjZjLTMyLjIsMC01OC4yLTI3LjItNTguMi02MC42YzAtMzMuNiwyNi02MC44LDU4LjItNjAuOA0KCQkJQzE0MC4xLDIwLjIsMTY2LjEsNDcuNCwxNjYuMSw4MXogTTE1OS40LDgxYzAtMjkuMS0yMy41LTUyLjktNTEuNC01Mi45Yy0yOCwwLTUxLDIzLjktNTEsNTIuOWMwLDI4LjksMjMsNTIuOSw1MSw1Mi45DQoJCQlDMTM1LjksMTM0LDE1OS40LDEwOS45LDE1OS40LDgxeiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NjBfIiBjbGFzcz0ic3QwIiBkPSJNMTc3LjUsMTAwLjVjLTAuMy0yLjgtMC4yLTQuNSwwLjItNDUuOGg2LjZ2NDYuOWMxLjcsMTguNSwxOC42LDMzLjEsMzQuNSwzMy4xDQoJCQljMTUuNywwLDMwLjctMTEuOCwzNC4zLTI5LjhWNTQuN2g2LjZ2ODcuMWgtNi42di0xOC42YzAsMC00LjksNS45LTkuNCw5LjZjLTcuMSw1LjctMTUuOCw5LjEtMjQuOSw5LjFjLTE0LjMsMC0yNy4zLTcuOC0zNS0yMS4xDQoJCQlDMTgwLjMsMTE0LjYsMTc4LjEsMTA3LjcsMTc3LjUsMTAwLjV6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1N18iIGNsYXNzPSJzdDAiIGQ9Ik0yNzAuOSwyNC4zYzAtMi4zLDEuOS00LDQtNGMyLjMsMCw0LDEuNyw0LDRjMCwyLjEtMS43LDMuOC00LDMuOA0KCQkJQzI3Mi44LDI4LjEsMjcwLjksMjYuMywyNzAuOSwyNC4zeiBNMjc3LjksNTQuOXY4Ny40aC03VjU0LjlIMjc3Ljl6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1NV8iIGNsYXNzPSJzdDAiIGQ9Ik0zNTYuNCw2MC43bC0zLjMsNi42Yy01LjktMy44LTEyLjctNS43LTE5LjktNS43Yy0yMC4yLDAtMzYuNiwxNi40LTM2LjYsMzYuNg0KCQkJYzAsMjAsMTYuNCwzNi42LDM2LjYsMzYuNmM3LjEsMCwxNC4xLTIuMSwyMC02LjFsMy4xLDYuOGMtNyw0LjQtMTUsNi42LTIzLjIsNi42Yy0yNC4yLDAtNDMuOS0xOS43LTQzLjktNDMuOQ0KCQkJYzAtMjQuNCwxOS43LTQ0LjEsNDMuOS00NC4xQzM0MS40LDU0LDM0OS41LDU2LjMsMzU2LjQsNjAuN3oiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzM2NDUzXyIgY2xhc3M9InN0MCIgZD0iTTM5NC40LDkxLjdsNDAuMSw1MC4zaC03LjNsLTM2LjktNDUuMWwtMTQuNiwxNy44VjE0MmgtNy4xVjExLjVoNy4xdjkxLjZsNDAuNi00OC4yDQoJCQlsOS42LTAuMkwzOTQuNCw5MS43eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NTFfIiBjbGFzcz0ic3QwIiBkPSJNNDU0LjgsMTAuOHYxMzFoLTcuNXYtMTMxSDQ1NC44eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NDlfIiBjbGFzcz0ic3QwIiBkPSJNNTExLjEsMTMxLjdsLTIzLjMsNTQuM2gtNy44bDIxLjktNTFMNDY3LDU0LjloNy44bDMwLjcsNjkuOGwzMC44LTY5LjhoNy43TDUxMS4xLDEzMS43eiINCgkJCS8+DQoJCTxwYXRoIGlkPSJYTUxJRF83NV8iIGNsYXNzPSJzdDAiIGQ9Ik0xMzkuNSwxODAuMWMxLjEsMS45LDAuMywzLjgtMC4zLDUuNmMtMS4yLDMuNi0yLjQsNy4yLTMuNiwxMC44Yy0xLjIsMy41LTIuMyw2LjktMy41LDEwLjQNCgkJCWMtMS40LDQuMi0yLjgsOC41LTQuMiwxMi43Yy0xLjMsNC0yLjcsOC00LDEyYy0xLjIsMy42LTIuNCw3LjItMy42LDEwLjhjLTEuMiwzLjUtMi4zLDYuOS0zLjUsMTAuNGMtMS40LDQuMS0yLjgsOC4zLTQuMSwxMi41DQoJCQljLTAuMywxLTAuNywyLjEtMS4xLDMuMWMtMC42LDEuNi0yLDIuNC00LDIuNGMtMS41LDAtMi44LTEtMy4zLTIuNWMtMS4zLTMuOC0yLjUtNy41LTMuOC0xMS4zYy0xLjItMy42LTIuNC03LjItMy42LTEwLjkNCgkJCWMtMS4zLTQtMi42LTcuOS00LTExLjljLTEuNC00LjEtMi44LTguMy00LjItMTIuNGMtMS4zLTQtMi43LTguMS00LTEyLjFjLTEuNC00LjEtMi43LTguMi00LjEtMTIuM2MtMS4yLTMuNS0yLjMtNy0zLjUtMTAuNQ0KCQkJYy0wLjMtMC44LTAuNS0xLjYtMC44LTIuM2MtMC42LTEuNS0wLjctMywwLjItNC40YzAuMy0wLjMsMC43LTAuNywxLTFjMi43LTEuMyw0LjItMC41LDUuOSwxLjJjOCw4LDE2LDE2LDI0LDI0DQoJCQljMC42LDAuNiwwLjYsMC42LDEuMywwYzcuNi03LjYsMTUuMi0xNS4yLDIyLjgtMjIuOGMwLjctMC43LDEuNC0xLjQsMi4xLTJjMC40LTAuMywwLjktMC42LDEuNC0wLjhjMS4yLTAuNSwyLjQtMC4xLDMuNSwwLjUNCgkJCUMxMzguOCwxNzkuNCwxMzkuMiwxNzkuNywxMzkuNSwxODAuMXoiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzc0XyIgY2xhc3M9InN0MSIgZD0iTTE2Mi42LDE2MS4yYy01LjIsNS45LTExLjgsOC45LTE4LjYsOC45Yy0xNy44LDAuMi0yMi44LTIwLjktMzYuNC0yMS4xDQoJCQljLTUuMiwwLTEwLjEsMi40LTE0LjEsNy4zbC00LjItNS40YzUuMi02LjEsMTEuNy05LjQsMTguMy05LjRjMTYuNywwLDIxLjgsMjEuMSwzNi40LDIwLjljNS40LDAsMTAuNS0yLjYsMTQuMy03LjFMMTYyLjYsMTYxLjJ6Ig0KCQkJLz4NCgk8L2c+DQo8L2c+DQo8L3N2Zz4NCg==';
-        // const imgData = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0ia2F0bWFuXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNTk1LjMgMjgwLjQiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDU5NS4zIDI4MC40OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KCS5zdDB7ZmlsbDojRkZGRkZGO30NCgkuc3Qxe2ZpbGw6I0UzMDYxMzt9DQo8L3N0eWxlPg0KPGcgaWQ9IlhNTElEXzNfIj4NCgk8ZyBpZD0iWE1MSURfMzY0NDZfIj4NCgkJPHBhdGggaWQ9IlhNTElEXzc2XyIgY2xhc3M9InN0MCIgZD0iTTE2Ni4xLDgxYzAsMzMuNC0yNiw2MC42LTU4LDYwLjZjLTMyLjIsMC01OC4yLTI3LjItNTguMi02MC42YzAtMzMuNiwyNi02MC44LDU4LjItNjAuOA0KCQkJQzE0MC4xLDIwLjIsMTY2LjEsNDcuNCwxNjYuMSw4MXogTTE1OS40LDgxYzAtMjkuMS0yMy41LTUyLjktNTEuNC01Mi45Yy0yOCwwLTUxLDIzLjktNTEsNTIuOWMwLDI4LjksMjMsNTIuOSw1MSw1Mi45DQoJCQlDMTM1LjksMTM0LDE1OS40LDEwOS45LDE1OS40LDgxeiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NjBfIiBjbGFzcz0ic3QwIiBkPSJNMTc3LjUsMTAwLjVjLTAuMy0yLjgtMC4yLTQuNSwwLjItNDUuOGg2LjZ2NDYuOWMxLjcsMTguNSwxOC42LDMzLjEsMzQuNSwzMy4xDQoJCQljMTUuNywwLDMwLjctMTEuOCwzNC4zLTI5LjhWNTQuN2g2LjZ2ODcuMWgtNi42di0xOC42YzAsMC00LjksNS45LTkuNCw5LjZjLTcuMSw1LjctMTUuOCw5LjEtMjQuOSw5LjFjLTE0LjMsMC0yNy4zLTcuOC0zNS0yMS4xDQoJCQlDMTgwLjMsMTE0LjYsMTc4LjEsMTA3LjcsMTc3LjUsMTAwLjV6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1N18iIGNsYXNzPSJzdDAiIGQ9Ik0yNzAuOSwyNC4zYzAtMi4zLDEuOS00LDQtNGMyLjMsMCw0LDEuNyw0LDRjMCwyLjEtMS43LDMuOC00LDMuOA0KCQkJQzI3Mi44LDI4LjEsMjcwLjksMjYuMywyNzAuOSwyNC4zeiBNMjc3LjksNTQuOXY4Ny40aC03VjU0LjlIMjc3Ljl6Ii8+DQoJCTxwYXRoIGlkPSJYTUxJRF8zNjQ1NV8iIGNsYXNzPSJzdDAiIGQ9Ik0zNTYuNCw2MC43bC0zLjMsNi42Yy01LjktMy44LTEyLjctNS43LTE5LjktNS43Yy0yMC4yLDAtMzYuNiwxNi40LTM2LjYsMzYuNg0KCQkJYzAsMjAsMTYuNCwzNi42LDM2LjYsMzYuNmM3LjEsMCwxNC4xLTIuMSwyMC02LjFsMy4xLDYuOGMtNyw0LjQtMTUsNi42LTIzLjIsNi42Yy0yNC4yLDAtNDMuOS0xOS43LTQzLjktNDMuOQ0KCQkJYzAtMjQuNCwxOS43LTQ0LjEsNDMuOS00NC4xQzM0MS40LDU0LDM0OS41LDU2LjMsMzU2LjQsNjAuN3oiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzM2NDUzXyIgY2xhc3M9InN0MCIgZD0iTTM5NC40LDkxLjdsNDAuMSw1MC4zaC03LjNsLTM2LjktNDUuMWwtMTQuNiwxNy44VjE0MmgtNy4xVjExLjVoNy4xdjkxLjZsNDAuNi00OC4yDQoJCQlsOS42LTAuMkwzOTQuNCw5MS43eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NTFfIiBjbGFzcz0ic3QwIiBkPSJNNDU0LjgsMTAuOHYxMzFoLTcuNXYtMTMxSDQ1NC44eiIvPg0KCQk8cGF0aCBpZD0iWE1MSURfMzY0NDlfIiBjbGFzcz0ic3QwIiBkPSJNNTExLjEsMTMxLjdsLTIzLjMsNTQuM2gtNy44bDIxLjktNTFMNDY3LDU0LjloNy44bDMwLjcsNjkuOGwzMC44LTY5LjhoNy43TDUxMS4xLDEzMS43eiINCgkJCS8+DQoJCTxwYXRoIGlkPSJYTUxJRF83NV8iIGNsYXNzPSJzdDAiIGQ9Ik0xMzkuNSwxODAuMWMxLjEsMS45LDAuMywzLjgtMC4zLDUuNmMtMS4yLDMuNi0yLjQsNy4yLTMuNiwxMC44Yy0xLjIsMy41LTIuMyw2LjktMy41LDEwLjQNCgkJCWMtMS40LDQuMi0yLjgsOC41LTQuMiwxMi43Yy0xLjMsNC0yLjcsOC00LDEyYy0xLjIsMy42LTIuNCw3LjItMy42LDEwLjhjLTEuMiwzLjUtMi4zLDYuOS0zLjUsMTAuNGMtMS40LDQuMS0yLjgsOC4zLTQuMSwxMi41DQoJCQljLTAuMywxLTAuNywyLjEtMS4xLDMuMWMtMC42LDEuNi0yLDIuNC00LDIuNGMtMS41LDAtMi44LTEtMy4zLTIuNWMtMS4zLTMuOC0yLjUtNy41LTMuOC0xMS4zYy0xLjItMy42LTIuNC03LjItMy42LTEwLjkNCgkJCWMtMS4zLTQtMi42LTcuOS00LTExLjljLTEuNC00LjEtMi44LTguMy00LjItMTIuNGMtMS4zLTQtMi43LTguMS00LTEyLjFjLTEuNC00LjEtMi43LTguMi00LjEtMTIuM2MtMS4yLTMuNS0yLjMtNy0zLjUtMTAuNQ0KCQkJYy0wLjMtMC44LTAuNS0xLjYtMC44LTIuM2MtMC42LTEuNS0wLjctMywwLjItNC40YzAuMy0wLjMsMC43LTAuNywxLTFjMi43LTEuMyw0LjItMC41LDUuOSwxLjJjOCw4LDE2LDE2LDI0LDI0DQoJCQljMC42LDAuNiwwLjYsMC42LDEuMywwYzcuNi03LjYsMTUuMi0xNS4yLDIyLjgtMjIuOGMwLjctMC43LDEuNC0xLjQsMi4xLTJjMC40LTAuMywwLjktMC42LDEuNC0wLjhjMS4yLTAuNSwyLjQtMC4xLDMuNSwwLjUNCgkJCUMxMzguOCwxNzkuNCwxMzkuMiwxNzkuNywxMzkuNSwxODAuMXoiLz4NCgkJPHBhdGggaWQ9IlhNTElEXzc0XyIgY2xhc3M9InN0MSIgZD0iTTE2Mi42LDE2MS4yYy01LjIsNS45LTExLjgsOC45LTE4LjYsOC45Yy0xNy44LDAuMi0yMi44LTIwLjktMzYuNC0yMS4xDQoJCQljLTUuMiwwLTEwLjEsMi40LTE0LjEsNy4zbC00LjItNS40YzUuMi02LjEsMTEuNy05LjQsMTguMy05LjRjMTYuNywwLDIxLjgsMjEuMSwzNi40LDIwLjljNS40LDAsMTAuNS0yLjYsMTQuMy03LjFMMTYyLjYsMTYxLjJ6Ig0KCQkJLz4NCgk8L2c+DQo8L2c+DQo8L3N2Zz4NCg=='
+        let tableHeadData = [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']]
+        let tableFootData = [['Genel Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]]
 
-        const imgData =
-            `
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="katman_1" x="0px" y="0px" viewBox="0 0 595.3 280.4" style="enable-background:new 0 0 595.3 280.4;" xml:space="preserve">
-        <style type="text/css">
-            .st0{fill:#FFFFFF;}
-            .st1{fill:#E30613;}
-        </style>
-        <g id="XMLID_3_">
-            <g id="XMLID_36446_">
-                <path id="XMLID_76_" class="st0" d="M166.1,81c0,33.4-26,60.6-58,60.6c-32.2,0-58.2-27.2-58.2-60.6c0-33.6,26-60.8,58.2-60.8    C140.1,20.2,166.1,47.4,166.1,81z M159.4,81c0-29.1-23.5-52.9-51.4-52.9c-28,0-51,23.9-51,52.9c0,28.9,23,52.9,51,52.9    C135.9,134,159.4,109.9,159.4,81z"/>
-                <path id="XMLID_36460_" class="st0" d="M177.5,100.5c-0.3-2.8-0.2-4.5,0.2-45.8h6.6v46.9c1.7,18.5,18.6,33.1,34.5,33.1    c15.7,0,30.7-11.8,34.3-29.8V54.7h6.6v87.1h-6.6v-18.6c0,0-4.9,5.9-9.4,9.6c-7.1,5.7-15.8,9.1-24.9,9.1c-14.3,0-27.3-7.8-35-21.1    C180.3,114.6,178.1,107.7,177.5,100.5z"/>
-                <path id="XMLID_36457_" class="st0" d="M270.9,24.3c0-2.3,1.9-4,4-4c2.3,0,4,1.7,4,4c0,2.1-1.7,3.8-4,3.8    C272.8,28.1,270.9,26.3,270.9,24.3z M277.9,54.9v87.4h-7V54.9H277.9z"/>
-                <path id="XMLID_36455_" class="st0" d="M356.4,60.7l-3.3,6.6c-5.9-3.8-12.7-5.7-19.9-5.7c-20.2,0-36.6,16.4-36.6,36.6    c0,20,16.4,36.6,36.6,36.6c7.1,0,14.1-2.1,20-6.1l3.1,6.8c-7,4.4-15,6.6-23.2,6.6c-24.2,0-43.9-19.7-43.9-43.9    c0-24.4,19.7-44.1,43.9-44.1C341.4,54,349.5,56.3,356.4,60.7z"/>
-                <path id="XMLID_36453_" class="st0" d="M394.4,91.7l40.1,50.3h-7.3l-36.9-45.1l-14.6,17.8V142h-7.1V11.5h7.1v91.6l40.6-48.2    l9.6-0.2L394.4,91.7z"/>
-                <path id="XMLID_36451_" class="st0" d="M454.8,10.8v131h-7.5v-131H454.8z"/>
-                <path id="XMLID_36449_" class="st0" d="M511.1,131.7l-23.3,54.3h-7.8l21.9-51L467,54.9h7.8l30.7,69.8l30.8-69.8h7.7L511.1,131.7z"/>
-                <path id="XMLID_75_" class="st0" d="M139.5,180.1c1.1,1.9,0.3,3.8-0.3,5.6c-1.2,3.6-2.4,7.2-3.6,10.8c-1.2,3.5-2.3,6.9-3.5,10.4    c-1.4,4.2-2.8,8.5-4.2,12.7c-1.3,4-2.7,8-4,12c-1.2,3.6-2.4,7.2-3.6,10.8c-1.2,3.5-2.3,6.9-3.5,10.4c-1.4,4.1-2.8,8.3-4.1,12.5    c-0.3,1-0.7,2.1-1.1,3.1c-0.6,1.6-2,2.4-4,2.4c-1.5,0-2.8-1-3.3-2.5c-1.3-3.8-2.5-7.5-3.8-11.3c-1.2-3.6-2.4-7.2-3.6-10.9    c-1.3-4-2.6-7.9-4-11.9c-1.4-4.1-2.8-8.3-4.2-12.4c-1.3-4-2.7-8.1-4-12.1c-1.4-4.1-2.7-8.2-4.1-12.3c-1.2-3.5-2.3-7-3.5-10.5    c-0.3-0.8-0.5-1.6-0.8-2.3c-0.6-1.5-0.7-3,0.2-4.4c0.3-0.3,0.7-0.7,1-1c2.7-1.3,4.2-0.5,5.9,1.2c8,8,16,16,24,24    c0.6,0.6,0.6,0.6,1.3,0c7.6-7.6,15.2-15.2,22.8-22.8c0.7-0.7,1.4-1.4,2.1-2c0.4-0.3,0.9-0.6,1.4-0.8c1.2-0.5,2.4-0.1,3.5,0.5    C138.8,179.4,139.2,179.7,139.5,180.1z"/>
-                <path id="XMLID_74_" class="st1" d="M162.6,161.2c-5.2,5.9-11.8,8.9-18.6,8.9c-17.8,0.2-22.8-20.9-36.4-21.1    c-5.2,0-10.1,2.4-14.1,7.3l-4.2-5.4c5.2-6.1,11.7-9.4,18.3-9.4c16.7,0,21.8,21.1,36.4,20.9c5.4,0,10.5-2.6,14.3-7.1L162.6,161.2z"/>
-            </g>
-        </g>
-        </svg>
-        `;
+        PDF.setLanguage('tr')
+        PDF.text(Store.name + ' - ' + ReportDate + ' Raporu', 40, 16.5);
+        PDF.addImage(Store.logo, 'PNG', 5, 0, 30, 30);
 
-        // doc.addSvgAsImage(imgData,10,10,200,100);
-        doc.setLanguage('tr')
-        autoTable(doc, {
+        autoTable(PDF, {
+            startY: 30,
             styles: {
                 // cellPadding: 5,
                 // fontSize: 10,
@@ -1360,19 +1345,17 @@ export const makePdf = async (db_name: string, start_date: number, end_date: num
                 // textColor: 20,
                 halign: 'right', // left, center, right
                 valign: 'middle', // top, middle, bottom
-
                 // fillStyle: 'F', // 'S', 'F' or 'DF' (stroke, fill or fill then stroke)
                 // rowHeight: 20,
                 // columnWidth: 'auto' // 'auto', 'wrap' or a number
             },
-            head: [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']],
-            foot: [['Genel Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]],
-            body: bodyLink,
+            head: tableHeadData,
+            foot: tableFootData,
+            body: tableBodyData,
             theme: 'plain',
             margin: { vertical: 0, horizontal: 0 },
             headStyles: { halign: "center", fillColor: [43, 62, 80], textColor: 255 },
             footStyles: { halign: "right", minCellHeight: 10, fillColor: [255, 255, 255], textColor: 0 },
-
             columnStyles: {
                 0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'normal' },
                 1: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'normal' },
@@ -1384,7 +1367,14 @@ export const makePdf = async (db_name: string, start_date: number, end_date: num
                 7: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'normal' },
             },
         })
-        doc.save('table.pdf');
+
+        const xlsxData = [].concat(tableHeadData, tableBodyData, tableFootData);
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(xlsxData);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, ReportDate);
+
+        XLSX.writeFile(wb, Store.name + '-' + ReportDate + '.xlsx');
+        PDF.save(Store.name + '-' + ReportDate + '.pdf');
     } catch (err) {
         console.log(err);
     }
@@ -1426,18 +1416,18 @@ export const menuChanger = () => {
 
 }
 
-
 export const clearStoreProducts = async (store_id: string) => {
 
-    const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
     const StoreDatabase = await StoreDB(store_id);
 
-    let products = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit: 2000 })).docs;
-    let categories = (await StoreDatabase.find({ selector: { db_name: 'categories', limit: 2000 } })).docs;
-    let sub_categories = (await StoreDatabase.find({ selector: { db_name: 'sub_categories', limit: 2000 } })).docs;
-    let reports = (await StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product', limit: 2000 } })).docs;
+    const products = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit: 2000 })).docs;
+    const categories = (await StoreDatabase.find({ selector: { db_name: 'categories' }, limit: 2000 })).docs;
+    const sub_categories = (await StoreDatabase.find({ selector: { db_name: 'sub_categories' }, limit: 2000 })).docs;
+    const reports = (await StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product' }, limit: 2000 })).docs;
 
-    let docsWillRemove = [...products, ...categories, ...sub_categories, ...reports];
+    let docsWillRemove = [].concat(products, categories, sub_categories, reports);
+
+    console.log(docsWillRemove);
 
     docsWillRemove.map(obj => obj._deleted = true);
 
@@ -1780,7 +1770,9 @@ export const menuToTerminal2 = async (store_id: string) => {
 
         const Menu: any = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
 
-        Menu.categories.forEach((category, index) => {
+        let selectedCategories = Menu.categories.filter(obj => obj.name == 'Meyve ');
+        console.log(selectedCategories);
+        selectedCategories.forEach((category, index) => {
             let newCategory: any = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
             StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
                 console.log('+ Kategori Eklendi', newCategory.name);
@@ -1792,7 +1784,7 @@ export const menuToTerminal2 = async (store_id: string) => {
                             sub_cat.id = sub_cat_res.id;
                             console.log('+ Alt Kategori Eklendi', newCategory.name);
                             sub_cat.items.forEach(item => {
-                                if (item.price) {
+                                if (!item.options || item.options.length == 0) {
                                     let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
                                     StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                         item.product_id = product_res.id;
@@ -1849,7 +1841,7 @@ export const menuToTerminal2 = async (store_id: string) => {
                     });
                 } else {
                     category.items.forEach(item => {
-                        if (item.price) {
+                        if (!item.options || item.options.length == 0) {
                             let newProduct: any = { name: item.name, description: item.description, type: 0, status: 0, price: parseInt(item.price), barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                 console.log('+ Ürün Eklendi', newCategory.name);
@@ -1945,7 +1937,6 @@ export const storesInfo2 = async () => {
 
 }
 
-
 export const reportsTest = async (store_id: string) => {
     // const t0 = performance.now();
 
@@ -1958,7 +1949,6 @@ export const reportsTest = async (store_id: string) => {
     // const t1 = performance.now();
     // console.log(`Call took ${t1 - t0} milliseconds.`);
 }
-
 
 export const menuFixer = async () => {
     try {
@@ -2135,7 +2125,6 @@ export const deletedRestore = async (store_id: string) => {
     //    console.log(results);
 }
 
-
 export const creationDateOfStores = () => {
     ManagementDB.Stores.find({ selector: {} }).then(res => {
         let stores = res.docs.sort((a, b) => a.timestamp - b.timestamp);
@@ -2156,8 +2145,7 @@ export const creationDateOfStores = () => {
 
 }
 
-
-export const quicklySellingData = async (year: number) => {
+export const quicklySellingData = async (year: number, month:number) => {
     const monthlyLabels = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
     const Stores = (await ManagementDB.Stores.find({ selector: {} })).docs;
@@ -2169,7 +2157,7 @@ export const quicklySellingData = async (year: number) => {
 
         let storeEndDayData: Array<EndDay> = (await (await StoreDB(store._id)).find({ selector: { db_name: 'endday' }, limit: DatabaseQueryLimit })).docs
 
-        let endDayData = storeEndDayData.filter(obj => new Date(obj.timestamp).getFullYear() == year);
+        let endDayData = storeEndDayData.filter(obj => new Date(obj.timestamp).getFullYear() == year && new Date(obj.timestamp).getMonth() ==  month);
 
         if (endDayData.length > 0) {
 
@@ -2252,7 +2240,6 @@ export const quicklySellingData = async (year: number) => {
 
 }
 
-
 export const generateReportsFor = async (store_id: string, type: reportType) => {
 
     const StoreDatabase = await StoreDB(store_id);
@@ -2289,4 +2276,192 @@ export const clearOrders = async (store_id: string) => {
     console.log(BulkPost);
 }
 
+export const storeDays = async (store_id: string, start_date?: string, end_date?: string) => {
+    let storeBackups: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
+    let storeDays: Array<number> = storeBackups.map(day => parseInt(day)).sort((a, b) => b - a).filter(date => date > parseInt(start_date) && date < parseInt(end_date));
+    let endDayConvertedData: Array<EndDay> = [];
+    for (const date of storeDays) {
+        let fDate = new Date(date);
+        console.log(date, fDate.toLocaleDateString('tr-Tr'), fDate.toLocaleTimeString('tr-Tr'))
+        try {
+            let backupData = await StoreReport(store_id, (date - 10).toString(), (date + 10).toString());
+            let salesReport = StoreSalesReport(backupData.find(data => data.database = 'closed_checks').docs);
+            let endDayObj: any = {
+                total_income: (salesReport.cash + salesReport.card + salesReport.coupon),
+                canceled_total: salesReport.canceled,
+                card_total: salesReport.card,
+                cash_total: salesReport.cash,
+                check_count: salesReport.checks,
+                coupon_total: salesReport.coupon,
+                data_file: date.toString(),
+                discount_total: salesReport.discount,
+                free_total: salesReport.free,
+                incomes: 0,
+                outcomes: 0,
+                owner: '51819909-9461-4f15-b65e-cc6f903c0de1',
+                timestamp: date - 39_600_000,
+                customers: salesReport.customers,
+                db_name: 'endday',
+                db_seq: 0
+            }
+            endDayConvertedData = endDayConvertedData.filter(obj => obj.total_income !== 0);
+            endDayConvertedData.push(endDayObj);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    let test = (await StoreDB(store_id)).bulkDocs(endDayConvertedData);
+    console.log(test);
 
+
+
+    // writeJsonFile('enddays.json',endDayConvertedData);
+    // makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
+}
+
+export const updateStoreDetail = () => {
+
+    ManagementDB.Stores.get('d622f9dd-036b-4775-bbee-911d301c5b77').then((store: Store) => {
+        // store.settings.accesibilty.wifi = { ssid: 'KAPIKARAKOY', password: 'kapikapi' };
+        console.log(store.slug);
+        store.slug = 'kosmos-db15'
+        // doc.phone_number = '2122367255';
+        // store.settings.accesibilty.days = [
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     },
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     },
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     },
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     },
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     },
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     },
+        //     {
+        //         is_open: true,
+        //         opening: '20:00',
+        //         closing: '00:00'
+        //     }]
+        ManagementDB.Stores.put(store).then(isOK => {
+            console.log(isOK.ok);
+        })
+    }).catch(err => {
+        console.log(err);
+    })
+
+}
+
+export const createInvoiceForStore = async () => {
+    try {
+        let token = await fatura.getToken(eFaturaUserName, eFaturaSecret)
+        const faturaHTML = await fatura.createDraftInvoice(
+            token,
+            {
+                date: "05/11/2021",
+                time: "11:51:30",
+                taxIDOrTRID: "28150785028",
+                taxOffice: "Beyoğlu",
+                title: "",
+                name: "Tevfik Akın",
+                surname: "Timur",
+                fullAddress: "Kemankeş Karamustafa Paşa Mah. Baş Cerrah Sok. No:4/A Beyoğlu - İstanbul",
+                items: [
+                    {
+                        name: "Dijital Menü Hizmeti",
+                        quantity: 1,
+                        unitPrice: 850,
+                        price: 850,
+                        VATRate: 18,
+                        VATAmount: 153
+                    }
+                ],
+                totalVAT: 153,
+                grandTotal: 850.0,
+                grandTotalInclVAT: 1003.0,
+                paymentTotal: 1003.0
+            },
+            // Varsayılan olarak sign: true gönderilir.
+            // { sign: true }
+        )
+
+        console.log(faturaHTML);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const customerCredits = async (store_id: string) => {
+    try {
+        const StoreDatabase = await StoreDB(store_id);
+        const Customers: Customer[] = (await StoreDatabase.find({ selector: { db_name: 'customers' }, limit: 2000 })).docs;
+        const CustomersChecks: Array<Check> = (await StoreDatabase.find({ selector: { db_name: 'credits' }, limit: 2000 })).docs;
+        console.log(Customers.length);
+        console.log(CustomersChecks.length);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const makeProforma = () => {
+    proformaGenerator();
+}
+
+export const TAPDKCheck = (tapdkno: string) => {
+    fetch("http://212.174.130.210/NewTapdk/ViewApp/sorgu.aspx", {
+        "headers": {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "cache-control": "max-age=0",
+            "content-type": "application/x-www-form-urlencoded",
+            "upgrade-insecure-requests": "1",
+            "cookie": "ASP.NET_SessionId=r3p134fzvhxef2ky4iu4agh3",
+            "Referer": "http://212.174.130.210/NewTapdk/ViewApp/sorgu.aspx",
+            "Referrer-Policy": "strict-origin-when-cross-origin"
+        },
+        "body": `__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=%2FwEPDwULLTEwNTEyOTI4MDQPFgQeD0N1cnJlbnRQYWdlRGF0YQIBHg5RdWVyeWZvclNlYXJjaAWgAXNlbGVjdCBST1dfTlVNQkVSKCkgT1ZFUiAoT1JERVIgQlkgSUQgQVNDKSBBUyBSb3cgLCAqIGZyb20gVmlld19WaWV3QXBwX1JlcG9ydDAyICBXaGVyZSBTaWNpbF9ObyBMSUtFICcwMTAxMDU2NVBUJScgQU5EIENPTlZFUlQoSU5ULFNVQlNUUklORyhTaWNpbF9ObywxLDIpKTw5OSAWAgIDD2QWBAIBD2QWAmYPZBYKAgEPZBYEAgEPEA8WAh4LXyFEYXRhQm91bmRnZBAVUghTZcOnaW5pegVBREFOQQhBRElZQU1BTg9BRllPTktBUkFIxLBTQVIFQcSeUkkGQU1BU1lBBkFOS0FSQQdBTlRBTFlBB0FSVFbEsE4FQVlESU4KQkFMSUtFU8SwUglCxLBMRUPEsEsIQsSwTkfDlkwIQsSwVEzEsFMEQk9MVQZCVVJEVVIFQlVSU0EKw4dBTkFLS0FMRQjDh0FOS0lSSQbDh09SVU0JREVOxLBaTMSwC0TEsFlBUkJBS0lSB0VExLBSTkUHRUxBWknEnglFUlrEsE5DQU4HRVJaVVJVTQxFU0vEsMWeRUjEsFIKR0FaxLBBTlRFUAhHxLBSRVNVTgxHw5xNw5zFnkhBTkUISEFLS0FSxLAFSEFUQVkHSVNQQVJUQQdNRVJTxLBOCcSwU1RBTkJVTAfEsFpNxLBSBEtBUlMJS0FTVEFNT05VCEtBWVNFUsSwC0tJUktMQVJFTMSwCktJUsWeRUjEsFIIS09DQUVMxLAFS09OWUEIS8OcVEFIWUEHTUFMQVRZQQdNQU7EsFNBCEsuTUFSQcWeB01BUkTEsE4GTVXEnkxBBE1VxZ4KTkVWxZ5FSMSwUgdOxLDEnkRFBE9SRFUFUsSwWkUHU0FLQVJZQQZTQU1TVU4HU8SwxLBSVAZTxLBOT1AGU8SwVkFTClRFS8SwUkRBxJ4FVE9LQVQHVFJBQlpPTghUVU5DRUzEsArFnkFOTElVUkZBBVXFnkFLA1ZBTgZZT1pHQVQJWk9OR1VMREFLB0FLU0FSQVkHQkFZQlVSVAdLQVJBTUFOCUtJUklLS0FMRQZCQVRNQU4HxZ5JUk5BSwZCQVJUSU4HQVJEQUhBTgZJxJ5ESVIGWUFMT1ZBCEtBUkFCw5xLB0vEsEzEsFMJT1NNQU7EsFlFBkTDnFpDRRVSATABMQEyATMBNAE1ATYBNwE4ATkCMTACMTECMTICMTMCMTQCMTUCMTYCMTcCMTgCMTkCMjACMjECMjICMjMCMjQCMjUCMjYCMjcCMjgCMjkCMzACMzECMzICMzMCMzQCMzUCMzYCMzcCMzgCMzkCNDACNDECNDICNDMCNDQCNDUCNDYCNDcCNDgCNDkCNTACNTECNTICNTMCNTQCNTUCNTYCNTcCNTgCNTkCNjACNjECNjICNjMCNjQCNjUCNjYCNjcCNjgCNjkCNzACNzECNzICNzMCNzQCNzUCNzYCNzcCNzgCNzkCODACODEUKwNSZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZxYBZmQCAw8QDxYCHwJnZBAVAQhTZcOnaW5pehUBATAUKwMBZ2RkAgkPEA8WAh4HVmlzaWJsZWdkZBYBZmQCCw88KwARAwAPFgQfAmceC18hSXRlbUNvdW50AgFkARAWAgICAgYWAjwrAAUBABYCHgpIZWFkZXJUZXh0BQbEsEzDh0U8KwAFAQAWAh8FBRhTQVRJxZ4gWUVSxLBOxLBOIMOcTlZBTkkWAmZmDBQrAAAWAmYPZBYEAgEPZBYUZg8PFgIeBFRleHQFATFkZAIBDw8WAh8GBQVBREFOQWRkAgIPDxYCHwYFBlNFWUhBTmRkAgMPZBYCAgEPDxYCHwYFCjAxMDEwNTY1UFRkZAIEDw8WAh8GBQfFnkVNU8SwZGQCBQ8PFgIfBgUFQUxUSU5kZAIGDw8WAh8GBQZCQUtLQUxkZAIHDw8WAh8GBQZCQUtLQUxkZAIIDw8WAh8GBSFNxLBUSEFUUEHFnkEgTUggNTgyMDAgU09LLk5POjExL0FkZAIJDw8WAh8GBQRGQUFMZGQCAg8PFgIfA2hkZAIND2QWAmYPZBYEZg9kFhwCAQ8PFgIfA2hkZAIDDw8WAh8DaGRkAgUPDxYCHwNoZGQCBw8PFgIfA2hkZAIJDw8WAh8DaGRkAgsPDxYCHwNoZGQCDQ8PFgIfA2hkZAIPDw8WAh8DaGRkAhEPDxYCHwNoZGQCEw8PFgIfA2hkZAIVDw8WAh8DaGRkAhcPDxYCHwNoZGQCGQ8PFgIfA2hkZAIbDw8WAh8DaGRkAgEPZBYCAgEPDxYCHwYFFEzEsFNURURFIFRPUExBTSAgOiAxZGQCDw8PFgIfA2dkZAIFDw9kDxAWAWYWARYCHg5QYXJhbWV0ZXJWYWx1ZQUBMBYBZmRkGAMFHl9fQ29udHJvbHNSZXF1aXJlUG9zdEJhY2tLZXlfXxYFBQ1CdXR0b25fU2VhcmNoBRBCdXR0b25fQ2xlYXJGb3JtBQ5CdXR0b25fR29Tb3JndQUPQnV0dG9uX0dvU29yZ3UyBQxCdXR0b25fUHJpbnQFCk11bHRpVmlldzEPD2RmZAUJR3JpZFZpZXcxDzwrAAwBCAIBZDnbkHFnlhobqjnQ0on7C6R%2BVtZ1%2FcrlJCD6bDwhnQQl&__VIEWSTATEGENERATOR=8E9C732A&__EVENTVALIDATION=%2FwEdAHh4mX9dMAs36N%2FqQ3Eu6YJfbWFZL5UKCljsPGnrU%2BqNjJHtctNbVfC9D0kaXTfZK0Iy4TVOBg%2FztRH1Q9DD3BN1ubqyEMS2dyiIsLCoBQC5nyxSdDFryRIv06%2FclkglGGvXxPE4BNT2KEIXfPsgPfeZRz2gixF2734plCuEcKA5dUxLYXn7Lc6LdRUYBh9w%2F9wicrGZhUouCld3VQNMp%2BbJ8yXoxjlcrZiCBuANNI9b7fvhq5i56PSfRcB7DymwoNv%2FFLYPDRy3XnBJ6ZLbWHNHZpP%2BgE%2Bkayf36dXd7jDvdguO3YHabs5nuPco1HvHVjyEYQK0G71qNiz6pbXNNYEI2MS8vbGlsxkFs8VYgrWjZUtUQcKlHN0uhH0HMVVmH94U2Np5L4ucVzrle0scGv01eMVAwgsUmMW3wvdVmSJjL%2BDJRAhQxY9fCqZxh3gTdCICunO%2FNi0FkNrmAIGy0mL8S%2FJS6RVbWsDPMJdG6Bc%2FXyq5H6EHmVBZ3wVHycz3SnZfasmAQ3Zj3pIKi8Rh4yk5QpxYvdjKthTN6fGW5I5T28bGH7ZoRVEnhj8WTRPpbwlVd%2B%2FbjaZIdvll8NVqJpXWInfqGRS%2Fgt3C0RQl3Qr3SYlWVfbDM1RQv1XLK9hbmLFRkTJHvHOZ7HpRsoeS0I7aYykmIhgxZulvEdVu8kHaeYug0u0VVkAdsXWDyMZOCBRstvNdzlkMH88%2BW2iY2OCXbzPnXr6DG9S0VLACDnns04ctR30sdQc93hx7jJJm3dQQh22u7ga7XTMs1F58Nfxn1L%2FLByHdz3THBGLjwX2SOkwNrTeI8eqV71VhYm96KD%2F3XMoFk7LqhuRMbgEJKZdvw924%2FznZY0EDx%2BMPDbdiVGTDLZJoMluIt1ylGEszWVBX0UKFqkrjm0HK3%2BX17J7vvHpXkwWGnCZMh8PtxG503whGGvSN%2F5WUZW6uPbnZ%2B%2Fu0wWald%2BMA6g5NdKwb%2B%2BUkstmXTM3VUcgAzt5bDuPFantNL%2BQDgz%2B6ZG6Pr4pLcDIIXJ%2FCIcye%2Fai0PGP0KwzTvN9deHTBpPuwkRfuelD2KuIs%2BsCTbPQudM4NiISSGpN8EjoviaMs29guSqbmP0198Uj3OD4pKYraaJiQrf%2B3XyQtQJfIOQBLzrUf7CVV42n3FX94cqOI2P9xBmn0l98oV5W9iQ9DPX%2FWqKhyHeyWKvMOTzZcirQQHzhK3CxMelkyUwbCcgOVV9wPA0oM9FDZNMRLTLR4zL%2BOMrcfZJg2DU5GAToXmz8iIYz%2BOj7MvNS3Z5we7q4d%2F7v6ckEkCUSo4SOOsWeS5Hv0WEfss2wvpmpdiMpMYYfgvj1HObK303%2BP8TDZ0pOe4CLQ6tJpl0sEzjXex%2BIKeN9m3Lm8IfM0g6A1DKBRcaCVPHvIyrBXpOUWHnUfpj%2FT6nnvILauHv4q4KvAmOmzPleI1hb5Y4gTQEpQp9SjYi1%2B1yQanv2IVHXsGpRjUxrZEEZ%2FGAzgQVuxHyUIyp%2BE2J%2B6zGG6C4I9Pk%2BmEdRbOTJOIUKLhSp%2B0xdxpryPoSH%2Fwy0mmyi4LaJDI23BROFYlidjrii9PGjOZMQPNfl7ZNXp7%2BiNGHTNb%2ByOBobvK%2BlkLkEPkDNhPX%2FwsvgKgKGKlUPdQJ2wNVzyXZ0sIs7hb%2BGc0wfNtyBfnyv%2FbAZ%2FiFLO62XrDAjD7gqIVVf%2B%2B393ZWiquIRcm5u%2BT3UeELZVlNkVSewDzsVBxEVPtHy7zSBbmKD%2Bkt1NAzBE4ZkmA7gbEhG0dWYDGDx68pdpNgpMJdpe3YTppqgPEape%2BbJqsL6Q3PEGTk58SZMKjb9rYC2OneO0etge%2BJZsjMJ%2BXtKrV1%2B0J8XFpkc5LxMJcxpcQMX7Lb0oJQr6FEqEheWzIqA6TaxjQ1yvAC06yTip9yrp4lBdeZbPT3teUtMO%2FSisnJdN8IWMp%2FquzZ6S4vfl9c3rk59JnxVNMhEEm0hsD9y6zcwOpv5YgG69IfRuuVDfgveo%2BiEhkwfEkKU5g1RA9FB5XlbnfPzZHZ4TjIMQe8xW5jTwirGQycLOpS89t3Ko6xYde08ZMxGEFeAu7Kk4EJLJ1Bc7qH5popFLz8uGTx4sEYMmtQOmvA4J1LHOZ%2FHeRWUsblbxYz3w9fN6G6fIULktwyKM2oSGimdgFUWQmS%2Fc8ctbZ%2B5gIR8MeGe2ZdRbJYAZt5wE2ffMM%2FyhapmOnnDj%2BaZCBQFdztW0ho4LZAofyI%2FYCfCHT65Amja1dkTTHjj%2B%2FiEnVqDDCUe%2FBxKlNg1lNaxtMq4HswFx4PB6h0hf5vQib2AQ%2F%2Fy1yGjHRGCGUtuoEdGzSwMcT7Wb4%2Fd%2FFBoyKpj2JNW9CAHWntDhoKeIzNpoL7rcPrYuoJE3Xgh0JuUTgrY5ysjrQqK2PoVS1LgKds69zqq4X08%2B1oasDkwwGwyS6dMmZ5a70P7ce5cSIl7Ev7etQLPfNc9H%2BlZXXfUo8RbY%2FGkeclQN%2BCzp8VVq5lj%2FvAiVRxXlflrEEVSgoxBTQmDHgqpd4xxfsPZVpTv03pyiUKXbHWmfoCwDtY%2F%2FD9GA77M9R%2BbHWUGQ8CtejxT8cpx69jTTeUjfa9h0AVMP7zAExb%2FcEafUXQ%3D%3D&dd_il=0&dd_ilce=0&TXT_SICIL=${tapdkno}&TXT_TCK=&TXT_UNVAN=&TXT_ADRES=&TXT_vergino=&TXT_AD=&TXT_SOYAD=&TXT_TEL=&dd_tarih=0&dd_islem=-1&Button_Search.x=31&Button_Search.y=9&DropDownList_CountViewGrid=10`,
+        "method": "POST"
+    }).then(res => {
+        res.text().then(html => {
+            let regexp = new RegExp('Satıcı Bulunamadı.', 'i');
+            if (html.search(regexp) == -1) {
+                let root = parse(html);
+                let table = root.querySelector('#GridView1');
+                let data = {
+                    company:table.querySelector('td:nth-child(7)').childNodes[0].innerText,
+                    city:table.querySelector('td:nth-child(2)').childNodes[0].innerText,
+                    district:table.querySelector('td:nth-child(3)').childNodes[0].innerText,
+                    address:table.querySelector('td:nth-child(9)').childNodes[0].innerText,
+                    type:table.querySelector('td:nth-child(8)').childNodes[0].innerText,
+                    status:table.querySelector('td:nth-child(10)').childNodes[0].innerText
+                } 
+                if(data.status == 'FAAL'){
+                    console.log({ ok: true, message: 'TAPDK Numarası FAAL' ,details:data })
+                }else{
+                    console.log({ ok: false, message: 'TAPDK Numarası ' + data.status })
+                }
+            } else {
+                console.log({ ok: true, message: 'TAPDK Numarası Yanlış ve Kayıtlı İşletme Yok' })
+            }
+        })
+    })
+}

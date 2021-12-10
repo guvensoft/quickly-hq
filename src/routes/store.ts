@@ -10,10 +10,11 @@ import * as StoreReportsController from '../controllers/store/reports';
 import * as StoreMenuController from '../controllers/store/menu';
 import * as StoreOrderController from '../controllers/store/orders';
 import * as StoreReceiptController from '../controllers/store/receipts';
-
 import * as StoreEndofdayController from '../controllers/store/endofday';
+import * as StoreCashboxController from '../controllers/store/cashbox';
 
-import { AuthSchemaSafe } from '../schemas/management'
+import { AuthSchemaSafe } from '../schemas/management';
+import * as StoreSchema from '../schemas/store';
 
 const router = Router();
 
@@ -178,5 +179,39 @@ router.post("/receipt/cancel",
     StoreGuard,
     AccountGuard,
     StoreReceiptController.cancelReceipt);
+
+
+// Store CashboxController
+router.get("/cashbox/:id",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreCashboxController.getCashboxEntry);
+
+router.post("/cashbox",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    SchemaGuard(StoreSchema.CashboxSchema),
+    StoreCashboxController.createCashboxEntry);
+
+router.put("/cashbox/:id",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    SchemaGuard(StoreSchema.CashboxSchemaSafe),
+    StoreCashboxController.updateCashboxEntry);
+
+router.delete("/cashbox/:id",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreCashboxController.deleteCashboxEntry);
+
+router.get("/cashbox",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreCashboxController.queryCashboxEntries);
 
 module.exports = router;

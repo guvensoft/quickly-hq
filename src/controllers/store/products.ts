@@ -15,7 +15,7 @@ export const createProduct = async (req: Request, res: Response) => {
         let Product = await StoresDB.post(ProductWillCreate);
         ProductWillCreate._id = Product.id;
         ProductWillCreate._rev = Product.rev;
-        let ProductReport = { db_name: 'reports', db_seq: 0, ...createReport('Product', ProductWillCreate) }
+        let ProductReport:Report = { db_name: 'reports', db_seq: 0, ...createReport('Product', ProductWillCreate) }
         const isCreated = await StoresDB.post(ProductReport)
         if (isCreated && Product.ok) {
             res.status(ProductMessages.PRODUCT_CREATED.code).json(ProductMessages.PRODUCT_CREATED.response);
@@ -26,7 +26,6 @@ export const createProduct = async (req: Request, res: Response) => {
         res.status(ProductMessages.PRODUCT_NOT_CREATED.code).json(ProductMessages.PRODUCT_NOT_CREATED.response);
     }
 }
-
 
 ////// /product/:id [DELETE]
 export const deleteProduct = async (req: Request, res: Response) => {
@@ -51,9 +50,9 @@ export const updateProduct = async (req: Request, res: Response) => {
         const StoresDB = await StoreDB(StoreID);
         const Product = await StoresDB.get(req.params.id);
         await StoresDB.put({ Product, ...req.body });
-        res.status(ProductMessages.PRODUCT_CREATED.code).json(ProductMessages.PRODUCT_CREATED.response);
+        res.status(ProductMessages.PRODUCT_UPDATED.code).json(ProductMessages.PRODUCT_UPDATED.response);
     } catch (error) {
-        res.status(ProductMessages.PRODUCT_NOT_CREATED.code).json(ProductMessages.PRODUCT_NOT_CREATED.response);
+        res.status(ProductMessages.PRODUCT_NOT_UPDATED.code).json(ProductMessages.PRODUCT_NOT_UPDATED.response);
     }
 
 }
@@ -69,7 +68,6 @@ export const getProduct = async (req: Request, res: Response) => {
         res.status(ProductMessages.PRODUCT_NOT_CREATED.code).json(ProductMessages.PRODUCT_NOT_CREATED.response);
     }
 }
-
 
 ////// /products + QueryString [GET]
 export const queryProducts = async (req: Request, res: Response) => {

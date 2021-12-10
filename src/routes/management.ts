@@ -15,6 +15,10 @@ import * as SupplierController from '../controllers/management/supplier';
 import * as UtilsController from '../controllers/management/utils';
 import * as AddressController from '../controllers/management/address';
 import * as CategoryController from '../controllers/management/category';
+import * as CampaignController from '../controllers/management/campaign';
+import * as InvoiceController from '../controllers/management/invoice';
+import * as CompnayController from '../controllers/management/company';
+
 
 import { AuthenticateGuard, SchemaGuard } from '../middlewares/management';
 import * as ManagementSchema from '../schemas/management';
@@ -288,6 +292,29 @@ router.get("/brands",
     AuthenticateGuard,
     BrandController.queryBrands);
 
+// Campaings
+router.get("/campaign/:id",
+    AuthenticateGuard,
+    CampaignController.getCampaing);
+
+router.post("/campaign",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.CampaingSchemaSafe),
+    CampaignController.createCampaing);
+
+router.put("/campaign/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.CampaingSchema),
+    CampaignController.updateCampaing);
+
+router.delete("/campaign/:id",
+    AuthenticateGuard,
+    CampaignController.deleteCampaing);
+
+router.get("/campaigns",
+    AuthenticateGuard,
+    CampaignController.queryCampaings);
+
 
 // Categories
 router.get("/category/:id",
@@ -360,6 +387,53 @@ router.get("/sessions",
     AuthenticateGuard,
     SessionController.querySessions);
 
+// Invoices
+router.get("/invoice/:id",
+    AuthenticateGuard,
+    InvoiceController.getInvoice);
+
+router.post("/invoice",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.InvoiceSchemaSafe),
+    InvoiceController.createInvoice);
+
+router.put("/invoice/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.InvoiceSchema),
+    InvoiceController.updateInvoice);
+
+router.delete("/invoice/:id",
+    AuthenticateGuard,
+    InvoiceController.deleteInvoice);
+
+router.get("/invoices",
+    AuthenticateGuard,
+    InvoiceController.queryInvoices);
+
+
+// Companies
+router.get("/company/:id",
+    AuthenticateGuard,
+    CompnayController.getCompany);
+
+router.post("/company",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.CompanySchemaSafe),
+    CompnayController.createCompany);
+
+router.put("/company/:id",
+    AuthenticateGuard,
+    SchemaGuard(ManagementSchema.CompanySchema),
+    CompnayController.updateCompany);
+
+router.delete("/company/:id",
+    AuthenticateGuard,
+    CompnayController.deleteCompany);
+
+router.get("/companies",
+    AuthenticateGuard,
+    CompnayController.queryCompanies);
+
 
 // Address
 router.get("/address/:country?/:state?/:province?/:district?",
@@ -381,5 +455,13 @@ router.get("/utils/logs/access",
 router.get("/utils/venues/:text",
     AuthenticateGuard,
     UtilsController.getVenues);
+
+router.get("/utils/currency/:currency?",
+    AuthenticateGuard,
+    UtilsController.getCurrency);
+
+router.get("/utils/tapdk/:id",
+    AuthenticateGuard,
+    UtilsController.getProhibitionStatus);
 
 module.exports = router;

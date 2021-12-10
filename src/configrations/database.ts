@@ -22,7 +22,12 @@ import { Supplier } from '../models/management/supplier';
 import { Producer } from '../models/management/producer';
 import { Product } from '../models/management/product';
 import { Category, SubCategory } from '../models/management/category';
+import { Campaign } from '../models/management/campaing';
 import { Brand } from '../models/management/brand';
+import { Invoice } from '../models/management/invoice';
+import { Company } from '../models/management/company';
+
+import { createIndexesForDatabase } from '../functions/management/database';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBInMemory);
@@ -43,12 +48,15 @@ export const ManagementDB = {
     Accounts: new PouchDB<Account>(databasePath + 'management/accounts', FileSystemConfigration),
     Owners: new PouchDB<Owner>(databasePath + 'management/owners', FileSystemConfigration),
     Stores: new PouchDB<Store>(databasePath + 'management/stores', FileSystemConfigration),
+    Invoices: new PouchDB<Invoice>(databasePath + 'management/invoices', FileSystemConfigration),
+    Companies: new PouchDB<Company>(databasePath + 'management/companies', FileSystemConfigration),
     Suppliers: new PouchDB<Supplier>(databasePath + 'management/suppliers', FileSystemConfigration),
     Producers: new PouchDB<Producer>(databasePath + 'management/producers', FileSystemConfigration),
     Brands: new PouchDB<Brand>(databasePath + 'management/brands', FileSystemConfigration),
     Products: new PouchDB<Product>(databasePath + 'management/products', FileSystemConfigration),
     Categories: new PouchDB<Category>(databasePath + 'management/categories', FileSystemConfigration),
     SubCategories: new PouchDB<SubCategory>(databasePath + 'management/sub_categories', FileSystemConfigration),
+    Campaings: new PouchDB<Campaign>(databasePath + 'management/campaigns', FileSystemConfigration),
     Logs: new PouchDB<Log>(databasePath + 'management/logs', FileSystemConfigration),
     Sessions: new PouchDB<Session>(databasePath + 'management/sessions', FileSystemConfigration)
 }
@@ -112,6 +120,14 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
     try {
         const Database = new OrderDatabase(name);
         const StoreDatabase = await StoreDB(store_id);
+
+        createIndexesForDatabase(Database, { index: { fields: ['db_name','check'] } }).then(res => {
+            console.log('Indexing Finished Succesfully For Order Database');
+        }).catch(err => {
+            console.log('Indexing Throw Error For Products Database');
+            console.error(err);
+        })
+        
         if (sync) {
             StoreDatabase.replicate.to(Database, { selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipts', check: name }] } }).then(isReplicated => {
                 console.log('First Replication Status: ', isReplicated.ok, 'Docs Written: ', isReplicated.docs_written);
@@ -124,9 +140,27 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
             }).catch(err => {
                 console.log(err);
             })
+            StoreDatabase.changes({since: 'now', live: true, doc_ids:[name]}).on('change', (change) => {
+                if(change.deleted){
+                    console.log('Check Closed !')
+                    Database.destroy().then(isClosed => {
+                        console.log('OrderDB closed!')
+                        // Database.destroy().then(isKilled => {
+                        //     console.log('OrderDB destroyed!')
+                        // }).catch(err => {
+                        //     console.log(err);
+                        // });
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                }
+            }).catch(err => {
+                console.log(err);
+            })
         }
-        return Database;
 
+
+        return Database;
     } catch (error) {
         console.log(error);
     }

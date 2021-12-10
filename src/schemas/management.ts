@@ -1,5 +1,10 @@
 import joi from 'joi';
 
+export const AuthSchema = joi.object().keys({
+    username: joi.string(),
+    password: joi.string()
+});
+
 export const AuthSchemaSafe = joi.object().keys({
     username: joi.string().required(),
     password: joi.string().required(),
@@ -174,6 +179,8 @@ export const StoreAuthSchemaSafe = joi.object().keys({
 export const StoreSchemaSafe = joi.object().keys({
     name: joi.string().required(),
     type: joi.number().allow(0, 1, 2).required(),
+    slug: joi.string().required(),
+    company:joi.string().required(),
     category: joi.array().items(joi.number().allow(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)).required(),
     cuisine: joi.array().items(joi.number().allow(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90)).required(),
     address: AdressSchema.required(),
@@ -191,6 +198,8 @@ export const StoreSchemaSafe = joi.object().keys({
 export const StoreSchema = joi.object().keys({
     name: joi.string(),
     type: joi.number().allow(0, 1, 2),
+    slug: joi.string(),
+    company:joi.string(),
     category: joi.array().items(joi.number().allow(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)),
     cuisine: joi.array().items(joi.number().allow(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90)),
     address: AdressSchema,
@@ -211,8 +220,8 @@ export const SupplierSchema = joi.object().keys({
     description: joi.string(),
     address: AdressSchema,
     phone_number: joi.number(),
-    email: joi.string(),
-    web_site: joi.string().uri(),
+    email: joi.string().email({ minDomainAtoms: 2 }),
+    website: joi.string().uri(),
     tax_no: joi.number(),
     account: joi.string(),
     products: joi.array().items(joi.string()),
@@ -226,7 +235,7 @@ export const SupplierSchemaSafe = joi.object().keys({
     address: AdressSchema.required(),
     phone_number: joi.number().required(),
     email: joi.string().required(),
-    web_site: joi.string().uri(),
+    website: joi.string().uri(),
     tax_no: joi.number().required(),
     account: joi.string().required(),
     products: joi.array().items(joi.string()),
@@ -269,6 +278,7 @@ export const BrandSchemaSafe = joi.object().keys({
 export const ProductPackageSchema = joi.object().keys({
     name: joi.string(),
     quantity: joi.number(),
+    barcode: joi.number()
 });
 
 export const ProductSchema = joi.object().keys({
@@ -343,4 +353,94 @@ export const SubCategorySchema = joi.object().keys({
     description: joi.string(),
     image: joi.string(),
     status: joi.number().allow(0, 1, 2)
+});
+
+
+export const CampaingSchemaSafe = joi.object().keys({
+    name: joi.string().trim().required(),
+    description: joi.string().trim().required(),
+    image: joi.string().required(),
+    producer: joi.string().trim(),
+    connection: joi.string().trim(),
+    status: joi.number().allow(0, 1, 2).required()
+});
+
+export const CampaingSchema = joi.object().keys({
+    name: joi.string().trim(),
+    description: joi.string().trim(),
+    image: joi.string(),
+    producer: joi.string().trim(),
+    connection: joi.string().trim(),
+    status: joi.number().allow(0, 1, 2)
+});
+
+export const CompanySchemaSafe = joi.object().keys({
+    name: joi.string().trim(),
+    address: AdressSchema.required(),
+    phone_number: joi.number().required(),
+    email: joi.string().email(),
+    website: joi.string().uri(),
+    tax_no: joi.string().required(),
+    tax_administration: joi.string().required(),
+    supervisor: AuthSchema,
+    type: joi.number().allow(0, 1, 2, 3, 4),
+    status: joi.number().allow(0, 1, 2),
+});
+
+export const CompanySchema = joi.object().keys({
+    name: joi.string().trim(),
+    address: AdressSchema,
+    phone_number: joi.number(),
+    email: joi.string().email(),
+    website: joi.string().uri(),
+    tax_no: joi.string(),
+    tax_administration: joi.string(),
+    supervisor: AuthSchema,
+    type: joi.number().allow(0, 1, 2, 3, 4),
+    status: joi.number().allow(0, 1, 2),
+});
+
+export const CurrencyRateSchema = joi.object().keys({
+    currency: joi.string().allow('TRY', 'USD', 'EUR'),
+    rate: joi.number()
+});
+
+export const InvoiceItemSchema = joi.object().keys({
+    name: joi.string(),
+    description: joi.string(),
+    price: joi.number(),
+    quantity: joi.number(),
+    tax_value: joi.number(),
+    discount: joi.number(),
+    currency: CurrencyRateSchema,
+});
+
+export const InvoiceSchemaSafe = joi.object().keys({
+    from: CompanySchema,
+    to: CompanySchema.required(),
+    items: joi.array().items(InvoiceItemSchema.required()),
+    total: joi.number().required(),
+    sub_total: joi.number().required(),
+    tax_total: joi.number().required(),
+    installment: joi.number().allow(1, 2, 4, 6).required(),
+    currency_rates: joi.array().items(CurrencyRateSchema),
+    type: joi.number().allow(0, 1, 2, 3).required(),
+    status: joi.number().allow(0, 1, 2).required(),
+    timestamp: joi.number().required(),
+    expiry: joi.number().required(),
+});
+
+export const InvoiceSchema = joi.object().keys({
+    from: CompanySchema,
+    to: CompanySchema,
+    items: joi.array().items(InvoiceItemSchema.required()),
+    total: joi.number(),
+    sub_total: joi.number(),
+    tax_total: joi.number(),
+    installment: joi.number().allow(1, 2, 4, 6),
+    currency_rates: joi.array().items(CurrencyRateSchema),
+    type: joi.number().allow(0, 1, 2, 3),
+    status: joi.number().allow(0, 1, 2),
+    timestamp: joi.number(),
+    expiry: joi.number(),
 });

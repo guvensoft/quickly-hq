@@ -2,7 +2,7 @@ import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { defaultSessionTime } from "../../configrations/session";
 import { ManagementDB, StoresDB } from "../../configrations/database";
-import { createSession, isSessionExpired } from "../../functions/session";
+import { createSession, isSessionExpired } from "../../functions/shared/session";
 import { Owner } from "../../models/management/owner";
 import { Session } from "../../models/management/session";
 import { createLog, LogType } from '../../utils/logger';

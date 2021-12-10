@@ -1,6 +1,6 @@
-import { readJsonFile } from './files';
-import { addressesPath } from '../configrations/paths';
-import { AdressDB } from '../configrations/database';
+import { readJsonFile } from '../shared/files';
+import { addressesPath } from '../../configrations/paths';
+import { AdressDB } from '../../configrations/database';
 
 export const importAdress = () => {
     readJsonFile(addressesPath + 'street.json').then((json: Array<any>) => {

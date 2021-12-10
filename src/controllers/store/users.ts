@@ -26,7 +26,6 @@ export const createUser = async (req: Request, res: Response) => {
     }
 }
 
-
 ////// /user/:id [DELETE]
 export const deleteUser = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
@@ -69,7 +68,6 @@ export const getUser = async (req: Request, res: Response) => {
     }
 }
 
-
 ////// /users + QueryString [GET]
 export const queryUsers = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
@@ -85,4 +83,3 @@ export const queryUsers = async (req: Request, res: Response) => {
         res.status(UserMessages.USER_NOT_EXIST.code).json(UserMessages.USER_NOT_EXIST.response);
     }
 }
-

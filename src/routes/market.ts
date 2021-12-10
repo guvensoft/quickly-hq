@@ -5,7 +5,7 @@ import * as ProductController from '../controllers/management/product';
 import * as SupplierController from '../controllers/management/supplier';
 import * as CategoryController from '../controllers/management/category';
 import * as BrandController from '../controllers/management/brand';
-
+import * as CampaignController from '../controllers/management/campaign';
 import * as StockController from '../controllers/market/stock';
 
 import { MarketAccountGuard, MarketStoreGuard } from '../middlewares/market';
@@ -56,6 +56,12 @@ router.get("/brands",
     MarketAccountGuard,
     MarketStoreGuard,
     BrandController.queryBrands);
+
+// Campaigns
+router.get("/campaigns",
+    MarketAccountGuard,
+    MarketStoreGuard,
+    CampaignController.queryCampaings);
 
 
 // Categories

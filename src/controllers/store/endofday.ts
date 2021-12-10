@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { StoreDB } from '../../configrations/database';
 import { backupPath } from '../../configrations/paths';
-import { readDirectory, writeJsonFile } from "../../functions/files";
+import { readDirectory, writeJsonFile } from "../../functions/shared/files";
 import { mkdir } from "fs";
-import { clearStoreDatabase } from "../../functions/database";
+import { clearStoreDatabase } from "../../functions/management/database";
 
 export const uploadBackup = async (req: Request, res: Response) => {
     const Store = req.headers.store;

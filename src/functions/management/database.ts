@@ -1,6 +1,6 @@
-import { Database, DatabaseUser, DatabaseU } from '../models/management/database';
-import { CouchDB, ManagementDB, RemoteCollection, StoreDB } from '../configrations/database';
-import { StoreAuth, Store } from '../models/management/store';
+import { Database, DatabaseUser, DatabaseU } from '../../models/management/database';
+import { CouchDB, ManagementDB, RemoteCollection, StoreDB } from '../../configrations/database';
+import { StoreAuth, Store } from '../../models/management/store';
 
 export const createDatabaseUser = (username: string, password: string): DatabaseU => ({ _id: `org.couchdb.user:${username}`, name: username, password: password, type: 'user', roles: [] })
 

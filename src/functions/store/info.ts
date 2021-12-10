@@ -2,9 +2,10 @@ import { Table, TableStatus } from "../../models/store/table";
 import { Cashbox } from "../../models/store/cashbox";
 import { Check, ClosedCheck, CheckType } from "../../models/store/check";
 import { StoreTablesInfo, StoreChecksInfo, StoreCashboxesInfo, StoreSalesInfo, StoreOrdersInfo, StoreReceiptsInfo } from "../../models/store/info";
-import { Log } from "../../models/store/log";
+import { Log, logType } from "../../models/store/log";
 import { Order, OrderStatus, ReceiptStatus } from "../../models/store/menu";
 import { Receipt } from "../../models/store/menu";
+import { LogType } from "../../utils/logger";
 
 export const storePaymentsInfo = (closed_checks: Array<ClosedCheck>) => {
     let paymentsInfo: StoreSalesInfo = { cash: 0, card: 0, coupon: 0, free: 0, canceled: 0, discount: 0, count: closed_checks.length, customers: { male: 0, female: 0 } };
@@ -70,7 +71,13 @@ export const storeCashboxInfo = (cashboxes: Array<Cashbox>) => {
 }
 
 export const storeLogsInfo = (logs: Array<Log>) => {
-
+    let logsInfo = {
+        discount: logs.filter(obj => obj.status == logType.DISCOUNT).length,
+        canceled_order: logs.filter(obj => obj.status == logType.ORDER_CANCELED).length,
+        canceled_check: logs.filter(obj => obj.status == logType.CHECK_CANCELED).length,
+        cashbox: logs.filter(obj => obj.status == logType.CASHBOX_CREATED).length
+    }
+    return logsInfo;
 
 }
 

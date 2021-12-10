@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { StoreDB, DatabaseQueryLimit } from '../../configrations/database';
 import { CashboxEntryMessages } from '../../utils/messages';
 
-////// /cashbox/new [POST]
+////// /cashbox [POST]
 export const createCashboxEntry = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     try {

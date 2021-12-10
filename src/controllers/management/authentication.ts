@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { ManagementDB } from "../../configrations/database";
-import { createSession } from "../../functions/session";
+import { createSession } from "../../functions/shared/session";
 import { User } from "../../models/management/users";
 import { createLog, LogType } from '../../utils/logger';
 import { SessionMessages } from "../../utils/messages";

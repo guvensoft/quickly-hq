@@ -3,7 +3,7 @@ import { StoresDB, ManagementDB } from '../configrations/database';
 import { createLog, LogType } from '../utils/logger';
 import { SessionMessages } from '../utils/messages';
 import { Session } from '../models/management/session';
-import { isSessionExpired } from '../functions/session';
+import { isSessionExpired } from '../functions/shared/session';
 import { defaultSessionTime } from '../configrations/session';
 import { StoreCategory, StoreType } from '../models/management/store';
 

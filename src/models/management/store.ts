@@ -2,18 +2,22 @@ import { Address } from './locations';
 
 export interface Store {
     name: string,
-    type: StoreType,
-    category: StoreCategory | Array<StoreCategory>,
-    cuisine: StoreCuisine | Array<StoreCuisine>,
+    slug:string,
+    motto: string,
+    description: string,
+    notes:string,
+    logo: string,
+    supervisory:string
     address: Address,
     email: string | Array<string>,
     phone_number: string | Array<string>,
-    motto: string,
-    description: string,
-    logo: string,
     auth: StoreAuth,
     accounts: Array<string>,
+    company:string,
     settings: StoreSettings,
+    category: StoreCategory | Array<StoreCategory>,
+    cuisine: StoreCuisine | Array<StoreCuisine>,
+    type: StoreType,
     status: StoreStatus,
     timestamp: number,
     _id?: string,
@@ -39,7 +43,7 @@ export interface StoreSettings {
 
 export interface StoreAccesibilty {
     days: Array<StoreDaysStatus>,
-    wifi: Array<StoreWifiSettings>,
+    wifi: StoreWifiSettings,
     others: Array<string>
 }
 

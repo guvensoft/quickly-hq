@@ -1131,3 +1131,239 @@ export const MenuMessages = {
         code: 404
     },
 }
+
+export const ReceiptMessages = {
+    RECEIPT_CREATED: {
+        response: {
+            ok: true,
+            message: "Ödeme oluşturuldu.",
+        },
+        code: 201
+    },
+    RECEIPT_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Ödeme oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    RECEIPT_UPDATED: {
+        response: {
+            ok: true,
+            message: "Ödeme Düzenlendi.",
+        },
+        code: 200
+    },
+    RECEIPT_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Ödeme Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    RECEIPT_DELETED: {
+        response: {
+            ok: true,
+            message: "Ödeme Silindi.",
+        },
+        code: 200
+    },
+    RECEIPT_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Ödeme Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    RECEIPT_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Ödeme Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    RECEIPT_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Ödeme Bulunamadı",
+        },
+        code: 404
+    },
+}
+
+export const CampaignMessages = {
+    CAMPAIGN_CREATED: {
+        response: {
+            ok: true,
+            message: "Kampanya oluşturuldu.",
+        },
+        code: 201
+    },
+    CAMPAIGN_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Kampanya oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    CAMPAIGN_UPDATED: {
+        response: {
+            ok: true,
+            message: "Kampanya Düzenlendi.",
+        },
+        code: 200
+    },
+    CAMPAIGN_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Kampanya Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    CAMPAIGN_DELETED: {
+        response: {
+            ok: true,
+            message: "Kampanya Silindi.",
+        },
+        code: 200
+    },
+    CAMPAIGN_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Kampanya Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    CAMPAIGN_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Kampanya Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    CAMPAIGN_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Kampanya Bulunamadı",
+        },
+        code: 404
+    },
+}
+
+export const InvoiceMessages = {
+    INVOICE_CREATED: {
+        response: {
+            ok: true,
+            message: "Fatura oluşturuldu.",
+        },
+        code: 201
+    },
+    INVOICE_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Fatura oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    INVOICE_UPDATED: {
+        response: {
+            ok: true,
+            message: "Fatura Düzenlendi.",
+        },
+        code: 200
+    },
+    INVOICE_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Fatura Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    INVOICE_DELETED: {
+        response: {
+            ok: true,
+            message: "Fatura Silindi.",
+        },
+        code: 200
+    },
+    INVOICE_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Fatura Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    INVOICE_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Fatura Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    INVOICE_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Fatura Bulunamadı",
+        },
+        code: 404
+    },
+}
+
+export const CompanyMessages = {
+    COMPANY_CREATED: {
+        response: {
+            ok: true,
+            message: "Şirket oluşturuldu.",
+        },
+        code: 201
+    },
+    COMPANY_NOT_CREATED: {
+        response: {
+            ok: false,
+            message: "Şirket oluşturulamadı! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    COMPANY_UPDATED: {
+        response: {
+            ok: true,
+            message: "Şirket Düzenlendi.",
+        },
+        code: 200
+    },
+    COMPANY_NOT_UPDATED: {
+        response: {
+            ok: false,
+            message: "Şirket Düzenlenemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    COMPANY_DELETED: {
+        response: {
+            ok: true,
+            message: "Şirket Silindi.",
+        },
+        code: 200
+    },
+    COMPANY_NOT_DELETED: {
+        response: {
+            ok: false,
+            message: "Şirket Silinemedi! Lütfen tekrar deneyin.",
+        },
+        code: 400
+    },
+    COMPANY_EXIST: {
+        response: {
+            ok: false,
+            message: "Girmiş olduğunuz Şirket Adı mevcut. Lütfen farklı bir kullanıcı adı giririniz.",
+        },
+        code: 406
+    },
+    COMPANY_NOT_EXIST: {
+        response: {
+            ok: false,
+            message: "Şirket Bulunamadı",
+        },
+        code: 404
+    },
+}

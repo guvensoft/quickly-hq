@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import { ManagementDB, DatabaseQueryLimit, StoreDB } from "../../configrations/database";
 import { createLog, LogType } from '../../utils/logger';
-import { productToStock } from "../../functions/stocks";
+import { productToStock } from "../../functions/store/stocks";
 import { Stock, StockCategory } from "../../models/store/stocks";
 
 //////  /add_stock/:product_id:/:quantity [POST]

@@ -5,7 +5,82 @@ import { Product } from "../../models/store/product";
 import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
 import { User } from '../../models/store/menu';
 import { createLog, LogType } from "../../utils/logger";
+import { ReceiptMessages } from "../../utils/messages";
 
+////// /receipt [POST]
+export const createReceipt = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    try {
+        const StoresDB = await StoreDB(StoreID);
+        let ReceiptWillCreate: Receipt = { db_name: 'receipts', db_seq: 0, ...req.body };
+        let Receipt = await StoresDB.post(ReceiptWillCreate);
+        if (Receipt.ok) {
+            res.status(ReceiptMessages.RECEIPT_CREATED.code).json(ReceiptMessages.RECEIPT_CREATED.response);
+        } else {
+            res.status(ReceiptMessages.RECEIPT_NOT_CREATED.code).json(ReceiptMessages.RECEIPT_NOT_CREATED.response);
+        }
+    } catch (error) {
+        res.status(ReceiptMessages.RECEIPT_NOT_CREATED.code).json(ReceiptMessages.RECEIPT_NOT_CREATED.response);
+    }
+}
+
+////// /receipt/:id [DELETE]
+export const deleteReceipt = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    try {
+        const StoresDB = await StoreDB(StoreID);
+        const Receipt = await StoresDB.get(req.params.id);
+        StoresDB.remove(Receipt);
+        res.status(ReceiptMessages.RECEIPT_DELETED.code).json(ReceiptMessages.RECEIPT_DELETED.response);
+    } catch (error) {
+        res.status(ReceiptMessages.RECEIPT_NOT_DELETED.code).json(ReceiptMessages.RECEIPT_NOT_DELETED.response);
+    }
+
+}
+
+////// /receipt/:id [PUT]
+export const updateReceipt = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    try {
+        const StoresDB = await StoreDB(StoreID);
+        const Receipt = await StoresDB.get(req.params.id);
+        await StoresDB.put({ Receipt, ...req.body });
+        res.status(ReceiptMessages.RECEIPT_UPDATED.code).json(ReceiptMessages.RECEIPT_UPDATED.response);
+    } catch (error) {
+        res.status(ReceiptMessages.RECEIPT_NOT_UPDATED.code).json(ReceiptMessages.RECEIPT_NOT_UPDATED.response);
+    }
+
+}
+
+////// /receipt/:id [POST]
+export const getReceipt = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    try {
+        const StoresDB = await StoreDB(StoreID);
+        const Receipt = await StoresDB.get(req.params.id);
+        res.json(Receipt);
+    } catch (error) {
+        res.status(ReceiptMessages.RECEIPT_NOT_EXIST.code).json(ReceiptMessages.RECEIPT_NOT_EXIST.response);
+    }
+}
+
+////// /receipts + QueryString [GET]
+export const queryReceipts = async (req: Request, res: Response) => {
+    const StoreID = req.headers.store;
+    let qLimit = req.query.limit || DatabaseQueryLimit;
+    let qSkip = req.query.skip || 0;
+    delete req.query.skip;
+    delete req.query.limit;
+    try {
+        const StoresDB = await StoreDB(StoreID);
+        const Receipts = await StoresDB.find({ selector: { db_name: 'receipts', ...req.query }, limit: qLimit, skip: qSkip });
+        res.json(Receipts.docs);
+    } catch (error) {
+        res.status(ReceiptMessages.RECEIPT_NOT_EXIST.code).json(ReceiptMessages.RECEIPT_NOT_EXIST.response);
+    }
+}
+
+////// /receipt/accept [POST]
 export const acceptReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const StoreDatabase = await StoreDB(StoreID);
@@ -24,12 +99,11 @@ export const acceptReceipt = async (req: Request, res: Response) => {
     // }
 }
 
+////// /receipt/approovee [POST]
 export const approoveReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const StoreDatabase = await StoreDB(StoreID);
-
     let Receipt: Receipt = req.body.receipt;
-
     try {
         const Token = Receipt.check;
         const orderRequestType = await StoreDatabase.get(Token);
@@ -112,6 +186,7 @@ export const approoveReceipt = async (req: Request, res: Response) => {
     }
 }
 
+////// /receipt/cancel [POST]
 export const cancelReceipt = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const StoreDatabase = await StoreDB(StoreID);
@@ -128,5 +203,4 @@ export const cancelReceipt = async (req: Request, res: Response) => {
     // } else {
     //     res.status(404).json({ ok: false, message: 'Ödeme İptal Edildilirken Hata Oluştu!' })
     // }
-
 }

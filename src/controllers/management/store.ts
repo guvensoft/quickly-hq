@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { DatabaseQueryLimit, ManagementDB, StoreDB } from "../../configrations/database";
-import { createStoreDatabase } from '../../functions/database';
+import { createStoreDatabase } from '../../functions/management/database';
 import { Store } from "../../models/management/store";
 import { createLog, LogType } from '../../utils/logger';
 import { StoreMessages } from "../../utils/messages";

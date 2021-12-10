@@ -1,12 +1,19 @@
+import { ManagementDB ,StoreDB } from '../../configrations/database';
 import { backupPath } from '../../configrations/paths';
 import { CheckProduct, CheckType, ClosedCheck } from '../../models/store/check';
-import { BackupData } from '../../models/store/endoftheday';
+import { BackupData, EndDay } from '../../models/store/endoftheday';
 import { Category, Product, SubCategory } from '../../models/store/product';
 import { Activity, Report, reportType, activityType } from '../../models/store/report';
 import { Stock } from '../../models/store/stocks';
 import { Floor, Table } from '../../models/store/table';
 import { User, UserGroup } from '../../models/store/user';
-import { readDirectory, readJsonFile } from '../files';
+import { readDirectory, readJsonFile } from '../shared/files';
+
+//// Third Party
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import XLSX from 'xlsx';
+
 
 interface SalesReport { cash: number; card: number; coupon: number; free: number; canceled: number; discount: number; checks: number; customers: { male: number, female: number } }
 interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }
@@ -289,4 +296,129 @@ export const createReport = (reportType: reportType, reportObj: Product | Table 
         db_name:'reports',
         db_seq:0
     }
+}
+
+export const exportReport = async (store_id: string, start_date: number, end_date: number, endDayData?: Array<EndDay>) => {
+    try {
+        let StoreEndDays: Array<EndDay>;
+        if (!endDayData) {
+            StoreEndDays = (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' }, limit: 2500 })).docs
+        } else {
+            StoreEndDays = endDayData;
+        }
+        const Store = await ManagementDB.Stores.get(store_id)
+        const PDF = new jsPDF({ orientation: "portrait" });
+        const MonthLabels = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasim", "Aralık"];
+        const ReportDate = MonthLabels[new Date(start_date).getMonth()] + ' ' + new Date(start_date).getFullYear();
+
+        const transformPrice = (value: number): string => {
+            if (!value) value = 0;
+            return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
+        }
+        const totalProperty = (property: string) => {
+            return transformPrice(filteredDays.map(obj => obj[property]).reduce((a, b) => a + b, 0))
+        }
+
+        let filteredDays = StoreEndDays.sort((a, b) => a.timestamp - b.timestamp).filter((day) => day.timestamp > start_date && day.timestamp < end_date)
+
+        // hitDates.some(function(dateStr) {
+        //     var date = new Date(dateStr);
+        //     return date >= startDate && date <= endDate
+        // });
+
+        let tableBodyData = [];
+        filteredDays.forEach((day, index) => {
+            let data = [new Date(day.timestamp).toLocaleDateString('tr', { year: 'numeric', month: '2-digit', day: '2-digit' }), transformPrice(day.total_income), transformPrice(day.cash_total), transformPrice(day.card_total), transformPrice(day.coupon_total), transformPrice(day.free_total), transformPrice(day.canceled_total), transformPrice(day.discount_total)];
+            tableBodyData.push(data);
+        });
+        let tableHeadData = [['Tarih', 'Toplam', 'Nakit', 'Kart', 'Kupon', 'Ikram', 'Iptal', 'Indirim']]
+        let tableFootData = [['Genel Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]]
+
+        PDF.setLanguage('tr')
+        PDF.text(Store.name + ' - ' + ReportDate + ' Raporu', 40, 16.5);
+        PDF.addImage(Store.logo, 'PNG', 5, 0, 30, 30);
+
+        autoTable(PDF, {
+            startY: 30,
+            styles: {
+                // cellPadding: 5,
+                // fontSize: 10,
+                font: "helvetica", // helvetica, times, courier
+                lineColor: 200,
+                // lineWidth: 0.1,
+                fontStyle: 'bold', // normal, bold, italic, bolditalic,
+                overflow: 'ellipsize', // visible, hidden, ellipsize or linebreak
+                // fillColor: 255,
+                // textColor: 20,
+                halign: 'right', // left, center, right
+                valign: 'middle', // top, middle, bottom
+                // fillStyle: 'F', // 'S', 'F' or 'DF' (stroke, fill or fill then stroke)
+                // rowHeight: 20,
+                // columnWidth: 'auto' // 'auto', 'wrap' or a number
+            },
+            head: tableHeadData,
+            foot: tableFootData,
+            body: tableBodyData,
+            theme: 'plain',
+            margin: { vertical: 0, horizontal: 0 },
+            headStyles: { halign: "center", fillColor: [43, 62, 80], textColor: 255 },
+            footStyles: { halign: "right", minCellHeight: 10, fillColor: [255, 255, 255], textColor: 0 },
+            columnStyles: {
+                0: { fillColor: [43, 62, 80], textColor: 255, fontStyle: 'normal' },
+                1: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'normal' },
+                2: { fillColor: [28, 40, 48], textColor: [98, 173, 101], fontStyle: 'normal' },
+                3: { fillColor: [28, 40, 48], textColor: [232, 167, 84], fontStyle: 'normal' },
+                4: { fillColor: [28, 40, 48], textColor: [87, 184, 205], fontStyle: 'normal' },
+                5: { fillColor: [28, 40, 48], textColor: [181, 91, 82], fontStyle: 'normal' },
+                6: { fillColor: [28, 40, 48], textColor: [186, 109, 46], fontStyle: 'normal' },
+                7: { fillColor: [28, 40, 48], textColor: 255, fontStyle: 'normal' },
+            },
+        })
+
+        const xlsxData = [].concat(tableHeadData,tableBodyData,tableFootData);
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(xlsxData);
+		const wb: XLSX.WorkBook = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, ReportDate);
+
+		XLSX.writeFile(wb, Store.name + '-' + ReportDate + '.xlsx');
+        PDF.save(Store.name + '-' + ReportDate + '.pdf');
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const exportReportFromDaysData  = async (store_id: string, start_date?: string, end_date?: string) => {
+    let storeBackups: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
+    let storeDays: Array<number> = storeBackups.map(day => parseInt(day)).sort((a, b) => b - a).filter(date => date > parseInt(start_date) && date < parseInt(end_date));
+    let endDayConvertedData: Array<EndDay> = [];
+    for (const date of storeDays) {
+        let fDate = new Date(date);
+        console.log(date, fDate.toLocaleDateString('tr-Tr'), fDate.toLocaleTimeString('tr-Tr'))
+        try {
+            let backupData = await StoreReport(store_id, (date - 10).toString(), (date + 10).toString());
+            let salesReport = StoreSalesReport(backupData.find(data => data.database = 'closed_checks').docs);
+            let endDayObj: any = {
+                total_income: (salesReport.cash + salesReport.card + salesReport.coupon),
+                canceled_total: salesReport.canceled,
+                card_total: salesReport.card,
+                cash_total: salesReport.cash,
+                check_count: salesReport.checks,
+                coupon_total: salesReport.coupon,
+                data_file: date.toString(),
+                discount_total: salesReport.discount,
+                free_total: salesReport.free,
+                incomes: 0,
+                outcomes: 0,
+                owner: '51819909-9461-4f15-b65e-cc6f903c0de1', //// Need To Change
+                timestamp: date - 39_600_000,
+                customers: salesReport.customers,
+                db_name:'endday',
+                db_seq:0
+            }
+            endDayConvertedData.push(endDayObj);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    exportReport(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }

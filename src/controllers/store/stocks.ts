@@ -26,7 +26,6 @@ export const createStock = async (req: Request, res: Response) => {
     }
 }
 
-
 ////// /stock/id [DELETE]
 export const deleteStock = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
@@ -68,7 +67,6 @@ export const getStock = async (req: Request, res: Response) => {
         res.status(StockMessages.STOCK_NOT_CREATED.code).json(StockMessages.STOCK_NOT_CREATED.response);
     }
 }
-
 
 ////// /stocks + QueryString [GET]
 export const queryStocks = async (req: Request, res: Response) => {

@@ -60,7 +60,11 @@ export const queryDocuments = async (req: Request, res: Response) => {
     try {
         const Database = await StoreDB(StoreID);
         const ResponseData = await Database.find({ selector: { ...{ db_name: req.params.db_name }, ...req.query }, limit: qLimit, skip: qSkip });
-        res.json(ResponseData.docs);
+        if(ResponseData.docs.length > 0) {
+            res.json(ResponseData.docs);
+        }else{
+            res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
+        }
     } catch (error) {
         res.status(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code).json(StoreDocumentMessages.DOCUMENT_NOT_EXIST.code);
     }
