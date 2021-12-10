@@ -312,7 +312,7 @@ const addInvoiceTotalTable = () => {
     productTotalColumn[0] = `${productTotalColumn[0].concat(tableSpace) + productTotal.toFixed(2) + ' TL'}`;
     autoTable(PDF, {
         tableWidth: 200,
-        startX: 700,
+        // startX: 700,
         startY: 308 + offsetY,
         pageBreak: 'avoid',
         headStyles: {
@@ -337,7 +337,7 @@ const addInvoiceTotalTable = () => {
     taxRateColumn[0] = `${taxRateColumn[0].concat(tableSpace) + totalTax.toFixed(2) + ' TL'}`;
     autoTable(PDF, {
         tableWidth: 190,
-        startX: 700,
+        // startX: 700,
         startY: 328 + offsetY,
         pageBreak: 'avoid',
         headStyles: {
@@ -362,7 +362,7 @@ const addInvoiceTotalTable = () => {
     totalColumn[0] = `${totalColumn[0].concat(tableSpace) + overallTotal.toFixed(2) + ' TL'}`;
     autoTable(PDF, {
         tableWidth: 190,
-        startX: 700,
+        // startX: 700,
         startY: 348 + offsetY,
         pageBreak: 'avoid',
         headStyles: {
