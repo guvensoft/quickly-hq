@@ -122,7 +122,12 @@ export const approoveReceipt = async (req: Request, res: Response) => {
                 })
 
                 /////////// Check Operations ////////////
+
+                ////// It must be like this...
+                ////// let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj._id).includes(product.order_id));
+                ////// Not This Below...
                 let productsWillPay: Array<CheckProduct> = Check.products.filter(product => userItems.map(obj => obj.timestamp).includes(product.timestamp));
+                //////////////////////////////////////
 
                 let receiptMethod: 'Nakit' | 'Kart' | 'Kupon' | 'İkram' = (Receipt.method == ReceiptMethod.CARD ? 'Kart' : Receipt.method == ReceiptMethod.CASH ? 'Nakit' : Receipt.method == ReceiptMethod.COUPON ? 'Kupon' : 'İkram')
 

@@ -56,6 +56,7 @@ export interface CheckProduct {
     timestamp: number;
     tax_value: number;
     barcode: number;
+    order_id:string;
 }
 
 export enum CheckType {

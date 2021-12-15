@@ -217,3 +217,6 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // blackboard.storeDays('3f5fd0e5-6393-41b2-8df9-a91edd788751','1637369940000','1638925140000')
 
 // blackboard.generateReportsFor('35530049-06c2-4d1e-b1e2-f9550f94aaf4','Product')
+
+// blackboard.allRevisions('quickly-menu-app','joker-no-5')
+// blackboard.getSessions();

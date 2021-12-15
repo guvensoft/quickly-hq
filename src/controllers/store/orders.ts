@@ -42,7 +42,8 @@ export const approoveOrder = async (req: Request, res: Response) => {
                     owner: Order.user.name,
                     timestamp: ApproveTime,
                     tax_value: mappedProduct.tax_value,
-                    barcode: mappedProduct.barcode
+                    barcode: mappedProduct.barcode,
+                    order_id:Order._id
                 };
                 countProductsData(CountData, newProduct.id, newProduct.price)
                 check.total_price = check.total_price + newProduct.price;

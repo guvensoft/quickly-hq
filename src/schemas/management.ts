@@ -193,6 +193,8 @@ export const StoreSchemaSafe = joi.object().keys({
     status: joi.number().allow(0, 1, 2).required(),
     email: joi.string().required().email({ minDomainAtoms: 2 }),
     phone_number: joi.number().required(),
+    notes: joi.string(),
+    supervisory: joi.string()
 });
 
 export const StoreSchema = joi.object().keys({
@@ -206,12 +208,14 @@ export const StoreSchema = joi.object().keys({
     motto: joi.string(),
     description: joi.string(),
     logo: joi.string(),
-    auth: StoreAuthSchemaSafe,
+    auth: StoreAuthSchema,
     settings: StoreSettingsSchema,
     accounts: joi.array().items(joi.string()),
     status: joi.number().allow(0, 1, 2),
     email: joi.string().email({ minDomainAtoms: 2 }),
     phone_number: joi.number(),
+    notes: joi.string(),
+    supervisory: joi.string(),
 });
 
 export const SupplierSchema = joi.object().keys({

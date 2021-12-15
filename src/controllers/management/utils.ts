@@ -140,7 +140,6 @@ export const getCurrency = (req: Request, res: Response) => {
     }).catch(err => {
         res.status(404).json({ ok: false, message: 'Kur Bilgilerine Ulaşılamıyor' })
     })
-
 }
 
 export const getProhibitionStatus = (req: Request, res: Response) => {
