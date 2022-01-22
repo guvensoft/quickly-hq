@@ -1,6 +1,6 @@
 {
   "name": "quickly-hq",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Quickly Management API",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "fetch": "scp -r root@quickly.com.tr:/home/quickly-hq/db /Users/ozgur/Desktop/quickly-hq",
     "fetch:stores": "scp -r root@quickly.com.tr:/home/quickly-hq/db/management/stores /Users/ozgur/Desktop/quickly-hq/db/management",
     "upload:stores": "scp -r /Users/ozgur/Desktop/quickly-hq/db/management/stores root@quickly.com.tr:/home/quickly-hq/db/management",
-    "fetch:backup": "scp -r root@quickly.com.tr:/home/quickly-hq/backup/ /Users/ozgur/Desktop/quickly-hq/",
+    "fetch:backup": "scp -r root@quickly.com.tr:/home/quickly-hq/backup/22d9fc30-e497-48eb-a9e8-484ac50e5d57 /Users/ozgur/Desktop/quickly-hq/backup",
     "upload:backup": "scp -r /Users/ozgur/Desktop/quickly-hq/backup/35530049-06c2-4d1e-b1e2-f9550f94aaf4 root@quickly.com.tr:/home/quickly-hq/backup"
   },
   "author": "KosmosLabs",

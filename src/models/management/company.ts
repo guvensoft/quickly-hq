@@ -1,6 +1,8 @@
+import { Address } from "./locations";
+
 export interface Company {
     name: string,
-    address: string,
+    address: Address,
     phone_number: number | string,
     email: string,
     website: string,

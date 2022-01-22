@@ -114,7 +114,8 @@ export interface Order {
 export enum OrderType {
     INSIDE,
     OUTSIDE,
-    TAKEAWAY
+    TAKEAWAY,
+    EMPLOOYE
 }
 
 export enum OrderStatus {

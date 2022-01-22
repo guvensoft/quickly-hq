@@ -95,7 +95,7 @@ export const getVenues = (req: Request, res: Response) => {
             // })
 
         }
-    });
+    })
 }
 
 export const getErrorLogs = (req: Request, res: Response) => {
@@ -133,9 +133,13 @@ export const getCurrency = (req: Request, res: Response) => {
     const requestedCurrency = req.params.currency;
     axios.get('https://api.genelpara.com/embed/doviz.json').then(ax_res => {
         if (requestedCurrency) {
-            res.status(200).json(ax_res.data[requestedCurrency]);
+            let response:any = ax_res.data[requestedCurrency];
+            response.satis = response.satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "");
+            res.status(200).json(response);
         } else {
-            res.status(200).json(ax_res.data);
+            let response:any = ax_res.data;
+            response['USD'].satis = response['USD'].satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "");
+            res.status(200).json(response);
         }
     }).catch(err => {
         res.status(404).json({ ok: false, message: 'Kur Bilgilerine Ulaşılamıyor' })

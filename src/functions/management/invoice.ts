@@ -2,36 +2,63 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import fs from 'fs';
-import { Invoice, InvoiceType, InvoiceStatus } from '../../models/management/invoice';
+import { Invoice, InvoiceType, InvoiceStatus, InvoiceItem, Currency } from '../../models/management/invoice';
 import { Logo, NormalFont, BoldFont } from '../../utils/blobs';
 import { Company, CompanyStatus, CompanyType } from '../../models/management/company';
 // import XLSX from 'xlsx';
 
 const QuicklyCompany: Company = {
-    name: 'Quickly Yazılım Kurumsal Hizmetler Sanayii ve Dış Tic. Ltd. Şti.',
-    address: 'Vişnezade Mah. Süleyman Seba Cad. No: 85 / 1 Beşiktaş / İstanbul',
-    phone_number: '05422738997',
-    email: 'info@quickly.com.tr',
-    website: 'www.quickly.com.tr',
-    tax_no: '632 072 90 03',
-    tax_administration: 'Beşiktaş',
-    supervisor:null,
-    type:CompanyType.ANONYMOUS,
-    status:CompanyStatus.ACTIVE,
-    timestamp: Date.now()
-}
+    name: "Quickly Yazılım Kurumsal Hizmetler A.Ş.",
+    email: "info@quickly.com.tr",
+    phone_number: "5310856881",
+    website: "https://quickly.com.tr",
+    tax_administration: "Beşiktaş",
+    tax_no: "6320729003",
+    supervisor: {
+      username: "63208717",
+      password: "454043"
+    },
+    type: CompanyType.ANONYMOUS,
+    status: CompanyStatus.ACTIVE,
+    address: {
+      country: "90",
+      state: "34",
+      province: "1183",
+      district: "40214",
+      street: "SÜLEYMAN SEBA",
+      description: "Vişnezade, Süleyman Seba Cd. No:85/1, Beşiktaş/İstanbul, Türkiye",
+      cordinates: {
+        latitude: 41.0426163,
+        longitude: 28.9996227
+      }
+    },
+    timestamp: 1639501500939,
+    _id: "77340a60-11d3-4c7f-97e5-6ddc058ec3a5",
+    _rev: "1-76da240bdc01db5022b3611c55dd93c6"
+  }
 
 const InvoiceCompany: Company = {
     name: 'DorockXL Gıda İşletmeleri Etkinlik Organizasyon A.Ş',
-    address: 'İstiklal Caddesi No:12 Fitaş Pasajı 6. kat (Teras) 34435 Beyoğlu / İstanbul',
+    address: {
+        country: "90",
+        state: "34",
+        province: "1183",
+        district: "40214",
+        street: "SÜLEYMAN SEBA",
+        description: "Vişnezade, Süleyman Seba Cd. No:85/1, Beşiktaş/İstanbul, Türkiye",
+        cordinates: {
+          latitude: 41.0426163,
+          longitude: 28.9996227
+        }
+      },
     phone_number: '05321675440',
     email: 'kurumsal@dorockxl.com',
     website: 'www.dorockxl.com',
     tax_no: '458 658 99 66',
     tax_administration: 'Beyoğlu',
-    supervisor:null,
-    type:CompanyType.ANONYMOUS,
-    status:CompanyStatus.ACTIVE,
+    supervisor: null,
+    type: CompanyType.ANONYMOUS,
+    status: CompanyStatus.ACTIVE,
     timestamp: Date.now()
 }
 
@@ -39,9 +66,19 @@ const invoice: Invoice = {
     from: QuicklyCompany,
     to: InvoiceCompany,
     items: [
-        // { name: 'Okpos Optimus', description: 'Satış Noktası Terminali', price: 420, currency: 'USD', discount: 0, quantity: 1, tax_value: 18 },
-        // { name: 'Jolimark TP-850', description: 'Thermal Yazıcı', price: 90, currency: 'USD', discount: 0, quantity: 1, tax_value: 18 },
-        // { name: 'Qr Dijital Menü Hizmeti', description: 'Yıllık Ücret', price: 1000, currency: 'TRY', discount: 0, quantity: 1, tax_value: 18 }
+        {
+            name: 'Okpos Optimus',
+            description: 'Satış Noktası Terminali',
+            currency: 'USD',
+            price: 450,
+            quantity: 2,
+            discount: 0,
+            tax_value: 18,
+            total_tax: 0,
+            total_price: 0
+        },
+        { name: 'Jolimark TP-850', description: 'Thermal Yazıcı', price: 100, currency: 'USD', discount: 0, quantity: 2, tax_value: 18, total_tax: 0, total_price: 0 },
+        // { name: 'Qr Dijital Menü Hizmeti', description: 'Yıllık Ücret', price: 1000, currency: 'TRY', discount: 0, quantity: 1, tax_value: 18, total_tax: 0, total_price: 0 }
     ],
     total: 0,
     sub_total: 0,
@@ -58,15 +95,15 @@ const ProformaHead = "PROFORMA FATURA";
 
 const headCompanyName = QuicklyCompany.name
 const headCompanyTax = `${QuicklyCompany.tax_administration} Vergi Dairesi - Vergi No: ${QuicklyCompany.tax_no}`;
-const headCompanyAddress = QuicklyCompany.address;
+const headCompanyAddress = QuicklyCompany.address.description;
 const headCompanySocial = `${QuicklyCompany.website} - ${QuicklyCompany.email} - ${QuicklyCompany.phone_number}`;
 
 let customerName = invoice.to.name;
-let customerAddress = invoice.to.address + 'slkdjfkljsdlkfjlksdjflkskldjflksjdlkfjskldjflksdlkfjslkdflksdlkfjskldfkhsdfhjshdfkjshkdjfhsk';
+let customerAddress = invoice.to.address.description;
 let cutomerCompanyTax = `${invoice.to.tax_administration} Vergi Dairesi - Vergi No: ${invoice.to.tax_no}`;
 let customerCompanySocial = `${invoice.to.website} - ${invoice.to.email} - ${invoice.to.phone_number}`;
 
-let currency;
+let selectedCurrency;
 
 // jsPDF Instance
 const PDF = new jsPDF('portrait', 'pt');
@@ -144,7 +181,7 @@ let objectArrayData = [
 let tableColor = '#D9534F';
 
 // Invoice data 
-let invoiceColumns = ["#", "Ürün/Hizmet", "KDV", "Adet", "Birim Fiyat", "Toplam Fiyat "];
+let invoiceColumns = ["#", "Ürün/Hizmet", "Adet", "KDV", "Birim Fiyat", "Toplam Fiyat "];
 // Processed invoice data
 let invoiceData = [];
 
@@ -202,10 +239,11 @@ function calculateTotal() {
     productTotal = overallTotal - totalTax;
 }
 // Get currency request 
-function getCurrency() {
+function getCurrency(currency:Currency) {
     return axios.get('https://api.genelpara.com/embed/doviz.json').then(res => {
-        currency = res.data['USD'].satis;
-        return currency;
+        res.data[currency].satis = res.data[currency].satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "");
+        selectedCurrency = res.data[currency].satis;
+        return selectedCurrency;
     })
 }
 
@@ -263,7 +301,7 @@ const addInvoiceTable = () => {
     autoTable(PDF, {
         margin: { right: 0, left: 20 },
         tableWidth: 1,
-        startY: 240,
+        startY: 250,
         headStyles: {
             fillColor: [255, 255, 255],
             textColor: tableColor,
@@ -278,13 +316,16 @@ const addInvoiceTable = () => {
             textColor: [0, 0, 0]
         },
         head: [invoiceColumns],
-        body: [
-            [1, 'sdf', 2, 4, 5, 6],
-            [1, 'sdf', 2, 4, 5, 6],
-            [1, 'sdf', 2, 4, 5, 6],
-            [1, 'sdf', 2, 4, 5, 6],
-            [1, 'sdf', 2, 4, 5, 6]
-        ],
+        body: invoice.items.map((item, index) => {
+            return [index + 1, item.name + '\n' + item.description,  item.quantity, '% ' +  item.tax_value, item.price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + currencyTransformer(item.currency), priceCalculator(item) ]
+        }),
+        // [
+        //     [1, 'sdf', 2, 4, 5, 6],
+        //     [1, 'sdf', 2, 4, 5, 6],
+        //     [1, 'sdf', 2, 4, 5, 6],
+        //     [1, 'sdf', 2, 4, 5, 6],
+        //     [1, 'sdf', 2, 4, 5, 6]
+        // ],
         tableLineWidth: 0,
         tableLineColor: [0, 0, 0],
         theme: 'grid',
@@ -293,8 +334,29 @@ const addInvoiceTable = () => {
             font: normalFont,
             valign: 'middle',
         },
-        columnStyles: { 0: { cellWidth: 25 }, 1: { cellWidth: 250, halign: 'left' }, 2: { cellWidth: 35 }, 3: { cellWidth: 35 }, 4: { cellWidth: 50 }, 5: { cellWidth: 70 } }
+        columnStyles: { 0: { cellWidth: 25 }, 1: { cellWidth: 240, halign: 'left' }, 2: { cellWidth: 35 }, 3: { cellWidth: 35 }, 4: { cellWidth: 60 }, 5: { cellWidth: 80 } }
     });
+}
+
+const priceCalculator = (item:InvoiceItem) => {
+    if(item.currency !== 'TRY'){
+        return (item.price * item.quantity * selectedCurrency).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL';
+    }else{
+        return (item.price * item.quantity).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'
+    }
+}
+
+const currencyTransformer = (key: string) => {
+    switch (key) {
+        case 'USD':
+            return ' $'
+        case 'EUR':
+            return ' €'
+        case 'TRY':
+            return ' TL'
+        default:
+            return ' TL'
+    }
 }
 
 const addInvoiceTotalTable = () => {
@@ -545,10 +607,10 @@ const addSidebar = () => {
     /// Right bar logo text 
     PDF.setFontSize(10);
     PDF.setTextColor(255, 255, 255);
-    PDF.text(headCompanyName, 540, 750, null, 90);
-    PDF.text(headCompanyTax, 540, 460, null, 90);
-    PDF.text(headCompanyAddress, 560, 750, null, 90);
-    PDF.text(headCompanySocial, 580, 750, null, 90);
+    PDF.text(headCompanyName + '    ' + headCompanyTax, 540, 770, null, 90);
+    // PDF.text(, 540, 480, null, 90);
+    PDF.text(headCompanyAddress, 560, 770, null, 90);
+    PDF.text(headCompanySocial, 580, 770, null, 90);
 }
 // Add footer
 const addFooter = () => {
@@ -578,7 +640,7 @@ const toInvoiceObjectArray = () => {
                     "%" + item.taxAddedValue,
                     item.amount,
                     item.unitPrice + ' $',
-                    (parseInt(item.amount) * (parseInt(item.unitPrice)) * currency).toFixed(2) + ' TL',
+                    (parseInt(item.amount) * (parseInt(item.unitPrice)) * selectedCurrency).toFixed(2) + ' TL',
                     item.installment
                 ]
             } else {
@@ -600,7 +662,7 @@ const toInvoiceObjectArray = () => {
                     "%" + item.taxAddedValue,
                     item.amount,
                     item.unitPrice + ' $',
-                    (parseInt(item.amount) * (parseInt(item.unitPrice)) * currency).toFixed(2) + ' TL',
+                    (parseInt(item.amount) * (parseInt(item.unitPrice)) * selectedCurrency).toFixed(2) + ' TL',
                     item.installment
                 ]
             } else {
@@ -645,14 +707,15 @@ function getNumNotes() {
 }
 
 function mainFunction() {
-    getCurrency().then(curr => {
+    getCurrency('USD').then(curr => {
+        console.log(curr);
         // toInvoiceObjectArray();
         // toInstallmentObjectArray();
         // calculateTotal();
         addProformBody(curr);
         addSidebar();
         addCustomerCompany();
-        // addInvoiceTable();
+        addInvoiceTable();
         // addInvoiceTotalTable();
         // addInstallmentTables();
         // addSupportTables();

@@ -16,7 +16,7 @@ import XLSX from 'xlsx';
 
 
 interface SalesReport { cash: number; card: number; coupon: number; free: number; canceled: number; discount: number; checks: number; customers: { male: number, female: number } }
-interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }
+interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; total:number, name: string; count: number; }
 interface UserSalesReport { product_id: string; owner_id: string; category_id: string; price: number; name: string; count: number; }
 interface TableSalesReport { table_id: string; price: number; discount: number; count: number, customers: { male: number, female: number } };
 
@@ -214,8 +214,9 @@ export const ProductsReport = (checks_to_count: Array<ClosedCheck>): Array<Produ
                 if (contains) {
                     let index = productSalesReport.findIndex(obj => obj.name === product.name);
                     productSalesReport[index].count++;
+                    // productSalesReport[index].total += product.price;
                 } else {
-                    let countObj: ProductSalesReport = { product_id: product.id, owner_id: product.owner, category_id: product.cat_id, price: product.price, name: product.name, count: 1 };
+                    let countObj: ProductSalesReport = { product_id: product.id, owner_id: product.owner, category_id: product.cat_id, price: product.price, total:product.price, name: product.name, count: 1 };
                     productSalesReport.push(countObj);
                 }
             } catch (error) {
@@ -223,6 +224,8 @@ export const ProductsReport = (checks_to_count: Array<ClosedCheck>): Array<Produ
             }
         });
         productSalesReport.sort((a, b) => b.count - a.count);
+        productSalesReport = productSalesReport.filter(obj => obj.name == 'Kafa');
+
         return productSalesReport;
     } catch (error) {
         console.log(error);

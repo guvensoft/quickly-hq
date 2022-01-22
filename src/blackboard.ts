@@ -38,6 +38,7 @@ import { proformaGenerator } from './functions/management/invoice';
 import { parseBooleans, parseNumbers } from 'xml2js/lib/processors';
 import axios from 'axios';
 import { UBL } from './models/external/ubl';
+import { performance } from 'perf_hooks';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -124,16 +125,16 @@ export const fixTables = async (db_name: string) => {
     let checks: Array<Check> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'checks', type: CheckType.NORMAL } })).docs;
     let tables: Array<Table> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'tables', status: TableStatus.OCCUPIED } })).docs;
 
-    // checks.forEach(async (check: Check) => {
-    //     try {
-    //         let tableWillFix: Check = await RemoteDB(db, db_name).get(check.table_id);
-    //         tableWillFix.status = 2;
-    //         let isUpdated = await RemoteDB(db, db_name).put(tableWillFix);
-    //         console.log(isUpdated);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // });
+    checks.forEach(async (check: Check) => {
+        try {
+            let tableWillFix: Check = await RemoteDB(db, db_name).get(check.table_id);
+            tableWillFix.status = 2;
+            let isUpdated = await RemoteDB(db, db_name).put(tableWillFix);
+            console.log(isUpdated);
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
     // tables.forEach(async (table: Table) => {
     //     try {
@@ -148,11 +149,11 @@ export const fixTables = async (db_name: string) => {
     //     }
     // });
 
-    // RemoteDB(db, db_name).bulkDocs(tables).then(res => {
-    //     console.log('Tables Successfuly Reoladed...!');
-    // }).catch(err => {
-    //     console.log(err);
-    // })
+    RemoteDB(db, db_name).bulkDocs(tables).then(res => {
+        console.log('Tables Successfuly Reoladed...!');
+    }).catch(err => {
+        console.log(err);
+    })
 }
 
 export const Logs = () => {
@@ -225,8 +226,8 @@ export const Fixer = (db_name: string) => {
             console.log(new Date(lastDay.timestamp).toDateString());
             return lastDay;
         }).then(lastDay => {
-            let databasesWillFix = ['closed_checks', 'checks', 'logs', 'cashbox', 'orders', 'receipts'];
-            databasesWillFix.forEach(selectedDatabase => {
+            let databasesWillFix = ['closed_checks','checks', 'logs', 'cashbox', 'orders', 'receipts']; // 'checks', 'logs', 'cashbox', 'orders', 'receipts'
+            databasesWillFix.forEach(selectedDatabase => { 
                 RemoteDB(db, db_name).find({ selector: { db_name: selectedDatabase }, limit: 2500 }).then((res: any) => {
                     console.log(selectedDatabase);
                     // // res.docs.forEach(element => {
@@ -247,7 +248,7 @@ export const Fixer = (db_name: string) => {
                     // });
 
                     // let dayThat = lastDay.data_file.split('.')[0];
-                    let dayThat = 1634706042000;
+                    let dayThat = 1642732345000; 
 
                     let newChecks = checks.filter(obj => obj.timestamp > dayThat);
                     let oldChecks = checks.filter(obj => obj.timestamp < dayThat);
@@ -330,15 +331,17 @@ export const DailySalesReport = (store_db_name: string) => {
 
             let checks = res.docs;
 
-            // checks = checks.sort((a, b) => b.timestamp - a.timestamp);
+            checks = checks.sort((a, b) => b.timestamp - a.timestamp);
 
-            // let newChecks = checks.filter(obj => new Date(obj.timestamp).getDay() == 6);
+            let newChecks = checks.filter(obj => new Date(obj.timestamp).getDay() == 1);
+            let oldChecks = checks.filter(obj => new Date(obj.timestamp).getDay() == 0);
+
             // checks = checks.filter(obj => new Date(obj.timestamp).getDay() == new Date().getDay());
 
+            checks = oldChecks;
 
-            // console.log(checks.length);
-            // console.log(oldChecks.length);
-            // console.log(newChecks.length);
+            console.log(oldChecks.length);
+            console.log(newChecks.length);
 
 
             // oldChecks.forEach((check, index) => {
@@ -376,7 +379,12 @@ export const DailySalesReport = (store_db_name: string) => {
             console.log('Kupon:', coupon);
             console.log('İkram:', free);
             console.log('Toplam', cash + card + coupon);
+
+        }).catch(err => {
+            console.log(err);
         })
+    }).catch(err => {
+        console.log(err);
     })
 
 }
@@ -1024,7 +1032,7 @@ export const importDatabase = () => {
 
 export const createProductIndexes = () => {
     console.log('Indexing Started For Products Database');
-    createIndexesForDatabase(ManagementDB.Products, { index: { fields: ['producer_id', 'brand_id'] } }).then(res => {
+    createIndexesForDatabase(ManagementDB.Products, { index: { fields: ['producer_id', 'brand_id', 'category', 'sub_category', 'barcode'] } }).then(res => {
         console.log(res);
         console.log('Indexing Finished Succesfully For Products Database');
     }).catch(err => {
@@ -1437,6 +1445,40 @@ export const clearStoreProducts = async (store_id: string) => {
 
 }
 
+export const loadStoreBackup = async (store_id: string,db_name:string) => {
+    try {
+        const Store = await ManagementDB.Stores.get(store_id);
+
+        // console.log(Store.auth);
+
+        const StoreDatabase = await StoreDB(store_id);
+
+        let backup = await readJsonFile(backupPath + `${store_id}/db.dat`);
+
+        backup = backup.filter(obj => obj.db_name == db_name);
+        console.log(backup.length);
+
+        let storeTables = (await StoreDatabase.find({selector:{db_name:db_name},limit:DatabaseQueryLimit})).docs;
+        console.log(storeTables.length);
+        // backup.forEach(async element => {
+        //     if(storeTables.find(obj => obj.name == element.name)){
+        //         // console.log(element.name);
+        //     }else{
+        //         console.log(element.name);
+        //         let isOk = await StoreDatabase.put(element);
+        //         console.log(isOk);            }
+        // });
+
+        // let isOK = await StoreDatabase.bulkDocs(backup);
+
+        // console.log(isOK)
+
+    } catch (error) {
+        console.log(error)
+        
+    }
+}
+
 export const menuToTerminal = async (store_id: string) => {
     try {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
@@ -1770,7 +1812,8 @@ export const menuToTerminal2 = async (store_id: string) => {
 
         const Menu: any = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
 
-        let selectedCategories = Menu.categories.filter(obj => obj.name == 'Meyve ');
+        let selectedCategories = Menu.categories
+        // .filter(obj => obj.name == 'Kokteyller / Cocktails');
         console.log(selectedCategories);
         selectedCategories.forEach((category, index) => {
             let newCategory: any = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
@@ -1785,7 +1828,7 @@ export const menuToTerminal2 = async (store_id: string) => {
                             console.log('+ Alt Kategori Eklendi', newCategory.name);
                             sub_cat.items.forEach(item => {
                                 if (!item.options || item.options.length == 0) {
-                                    let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
+                                    let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: parseInt(item.price), barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
                                     StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
                                         item.product_id = product_res.id;
                                         console.log('+ Ürün Eklendi', newCategory.name);
@@ -1809,7 +1852,7 @@ export const menuToTerminal2 = async (store_id: string) => {
                                     item.options.forEach(opts => {
                                         let spec: ProductSpecs = {
                                             spec_name: opts.name,
-                                            spec_price: opts.price
+                                            spec_price: parseInt(opts.price)
                                         }
                                         specs.push(spec);
                                     })
@@ -1866,7 +1909,7 @@ export const menuToTerminal2 = async (store_id: string) => {
                             item.options.forEach(opts => {
                                 let spec: ProductSpecs = {
                                     spec_name: opts.name,
-                                    spec_price: opts.price
+                                    spec_price: parseInt(opts.price)
                                 }
                                 specs.push(spec);
                             })
@@ -1899,6 +1942,103 @@ export const menuToTerminal2 = async (store_id: string) => {
         console.log(error);
     }
 
+}
+
+
+export const updateTerminalWithMenu = async (store_id: string) => {
+            try {
+                const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
+                const StoreDatabase = await StoreDB(store_id);
+                const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
+
+                let StoreProducts:Array<Product> = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
+
+                let BulkUpdateDocs:Array<Product> = [];
+        
+                const Menu: Menu = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
+        
+                let selectedCategories = Menu.categories;
+
+
+                selectedCategories.forEach((category, index) => {
+
+                    if(category.items.length > 0){
+                        category.items.forEach(obj => {
+                            let product = StoreProducts.find(product => product.name.toLocaleLowerCase() == obj.name.toLocaleLowerCase());
+                            if(product){
+                                product.price = obj.price;
+                                if(obj?.options && obj?.options.length > 0){
+                                    if(product?.specifies){
+                                        product.specifies = [];
+                                        obj.options.forEach(opt => {
+                                            product.specifies.push({spec_name:opt.name,spec_price:opt.price});
+                                        })
+                                    }else{
+                                        product.specifies = [];
+                                        obj.options.forEach(opt => {
+                                            product.specifies.push({spec_name:opt.name,spec_price:opt.price});
+                                        })
+                                    }
+                                }
+                                BulkUpdateDocs.push(product);
+                            }else{
+                                console.log('newProduct',obj.name,obj.price);
+                                // if(obj?.options && obj?.options.length > 0){
+                                //     if(product?.specifies){
+                                //         product.specifies = [];
+                                //         obj.options.forEach(opt => {
+                                //             product.specifies.push({spec_name:opt.name,spec_price:opt.price});
+                                //         })
+                                //     }else{
+                                //         product.specifies = [];
+                                //         obj.options.forEach(opt => {
+                                //             product.specifies.push({spec_name:opt.name,spec_price:opt.price});
+                                //         })
+                                //     }
+                                // }
+                            }
+                        })
+                    }
+                    if(category.item_groups.length > 0){
+                        category.item_groups.forEach(sub_cat => {
+                            if(sub_cat.items.length > 0){
+                                sub_cat.items.forEach(obj => {
+                                    let product = StoreProducts.find(product => product.name.toLocaleLowerCase() == obj.name.toLocaleLowerCase());
+                                    if(product){
+                                        product.price = obj.price;
+                                        if(obj?.options && obj?.options.length > 0){
+                                            if(product?.specifies){
+                                                product.specifies = [];
+                                                obj.options.forEach(opt => {
+                                                    product.specifies.push({spec_name:opt.name,spec_price:opt.price});
+                                                })
+                                            }else{
+                                                product.specifies = [];
+                                                obj.options.forEach(opt => {
+                                                    product.specifies.push({spec_name:opt.name,spec_price:opt.price});
+                                                })
+                                            }
+                                        }
+                                        BulkUpdateDocs.push(product);
+                                    }else{
+                                        console.log('newProduct',obj.name,obj.price);
+                                        // if(obj?.options && obj?.options.length > 0){
+
+                                        // }
+                                    }
+                                })
+                            }
+                        });
+                    }
+                })
+
+                console.log(BulkUpdateDocs.length);
+
+                // let updateOps = await StoreDatabase.bulkDocs(BulkUpdateDocs);
+                // console.log(updateOps.length);
+            } catch (error) {
+                console.log(error);
+            }
 }
 
 export const storesInfo2 = async () => {
@@ -1938,16 +2078,17 @@ export const storesInfo2 = async () => {
 }
 
 export const reportsTest = async (store_id: string) => {
-    // const t0 = performance.now();
+    const t0 = performance.now();
 
     const Days: Array<EndDay> = (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' } })).docs.sort((a, b) => a.timestamp - b.timestamp);
-    const BackupData: Array<BackupData> = await StoreReport(store_id, Days[0].timestamp.toString(), Days[Days.length - 1].timestamp.toString());
+    const BackupData: Array<BackupData> = await StoreReport(store_id,'1641938574500') // await StoreReport(store_id, Days[0].timestamp.toString(), Days[Days.length - 1].timestamp.toString());
     const Checks: Array<ClosedCheck> = BackupData.find(backup => backup.database == 'closed_checks').docs;
-    const Sales = StoreSalesReport(Checks);
+    const Sales = ProductsReport(Checks);
     console.log(Sales);
 
-    // const t1 = performance.now();
-    // console.log(`Call took ${t1 - t0} milliseconds.`);
+
+    const t1 = performance.now();
+    console.log(`Call took ${t1 - t0} milliseconds.`);
 }
 
 export const menuFixer = async () => {
@@ -2256,24 +2397,21 @@ export const generateReportsFor = async (store_id: string, type: reportType) => 
 }
 
 export const clearOrders = async (store_id: string) => {
+    try {
+        const StoreDatabase = await StoreDB(store_id);
+        let Documents = await StoreDatabase.find({ selector: { db_name: 'orders' }, limit: 40000 })
+        console.log(Documents.docs.length);
+    
+        Documents.docs.map(obj => {
+            obj._deleted = true;
+            return obj
+        })
+        const BulkPost = await StoreDatabase.bulkDocs(Documents.docs);
+        console.log(BulkPost);
+    } catch (error) {
+        console.log(error)
+    }
 
-    const StoreDatabase = await StoreDB(store_id);
-    let Documents = await StoreDatabase.find({ selector: { db_name: 'orders' }, limit: 40000 })
-    console.log(Documents.docs.length);
-
-    Documents.docs.map(obj => {
-        obj._deleted = true;
-        return obj
-    })
-
-    // for (const document of Documents.docs) {
-
-    //     const Response = await StoreDatabase.remove(document);
-    //     console.log(Response);
-    // }
-
-    const BulkPost = await StoreDatabase.bulkDocs(Documents.docs);
-    console.log(BulkPost);
 }
 
 export const storeDays = async (store_id: string, start_date?: string, end_date?: string) => {
@@ -2305,27 +2443,30 @@ export const storeDays = async (store_id: string, start_date?: string, end_date?
                 db_seq: 0
             }
             endDayConvertedData = endDayConvertedData.filter(obj => obj.total_income !== 0);
-            endDayConvertedData.push(endDayObj);
+            endDayConvertedData = endDayConvertedData.filter(obj => obj.total_income !== 11090);
+       
+            if(!endDayConvertedData.includes(endDayObj)){
+                endDayConvertedData.push(endDayObj);
+            }
         } catch (error) {
             console.log(error);
         }
     }
-    let test = (await StoreDB(store_id)).bulkDocs(endDayConvertedData);
-    console.log(test);
+    // let test = (await StoreDB(store_id)).bulkDocs(endDayConvertedData);
+
+    writeJsonFile('enddays.json',endDayConvertedData);
 
 
-
-    // writeJsonFile('enddays.json',endDayConvertedData);
     // makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }
 
 export const updateStoreDetail = () => {
 
-    ManagementDB.Stores.get('d622f9dd-036b-4775-bbee-911d301c5b77').then((store: Store) => {
-        // store.settings.accesibilty.wifi = { ssid: 'KAPIKARAKOY', password: 'kapikapi' };
+    ManagementDB.Stores.get('9bc2c532-634e-433e-ba97-224fdf4fa0d5').then((store: Store) => {
+        store.settings.accesibilty.wifi = { ssid: 'Kallavi', password: 'kallavikervansaray' };
         console.log(store.slug);
-        store.slug = 'kosmos-db15'
-        // doc.phone_number = '2122367255';
+        store.slug = 'kallavi-besiktas'
+        store.phone_number = '2122361900';
         // store.settings.accesibilty.days = [
         //     {
         //         is_open: true,

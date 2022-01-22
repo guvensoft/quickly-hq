@@ -15,8 +15,8 @@ export const addStock = async (req: Request, res: Response) => {
         const Product = await ManagementDB.Products.get(ProductID);
         const StockSubCategory = await ManagementDB.SubCategories.get(Product.sub_category);
 
-        const isAlreadyAdded: Stock = (await StoreDatabase.find({ selector: { db_name: 'stocks', product: ProductID } })).docs[0];
-        const isStockHaveCategory: StockCategory = (await StoreDatabase.find({ selector: { db_name: 'stocks_cat', name: StockSubCategory.name } })).docs[0];
+        const isAlreadyAdded: Stock = (await StoreDatabase.find({ selector: { db_name: 'stocks', product: ProductID } ,limit:DatabaseQueryLimit })).docs[0];
+        const isStockHaveCategory: StockCategory = (await StoreDatabase.find({ selector: { db_name: 'stocks_cat', name: StockSubCategory.name }, limit:DatabaseQueryLimit })).docs[0];
 
         if (isAlreadyAdded) {
             StoreDatabase.upsert(isAlreadyAdded._id, (stock: Stock) => {

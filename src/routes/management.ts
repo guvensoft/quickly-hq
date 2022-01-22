@@ -441,7 +441,7 @@ router.get("/address/:country?/:state?/:province?/:district?",
 
 // Utils
 router.get("/utils/images/:text",
-    AuthenticateGuard,
+    // AuthenticateGuard,
     UtilsController.getImage);
 
 router.get("/utils/logs/errors",
@@ -457,7 +457,7 @@ router.get("/utils/venues/:text",
     UtilsController.getVenues);
 
 router.get("/utils/currency/:currency?",
-    AuthenticateGuard,
+    // AuthenticateGuard,
     UtilsController.getCurrency);
 
 router.get("/utils/tapdk/:id",
