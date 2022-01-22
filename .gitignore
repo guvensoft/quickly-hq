@@ -7,6 +7,6 @@
 /products
 /documents
 /reis
-package-lock.json
+# package-lock.json
 log.txt
 .DS_Store
