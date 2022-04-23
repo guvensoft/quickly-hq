@@ -6,14 +6,16 @@ import { Stock } from '../../models/store/stocks';
 
 export const dailyStockExpense = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
-        let db: Database = res.docs[0];
-        let store_db = RemoteDB(db, 'kosmos-db15');
-        store_db.find({ selector: { db_name: 'products' }, limit: 2500 }).then(res => {
+        const DB: Database = res.docs[0];
+        const StoreDatabase = RemoteDB(DB, 'order-test');
+
+
+        StoreDatabase.find({ selector: { db_name: 'products' }, limit: 2500 }).then(res => {
             console.log(res.docs.length);
             return res.docs;
         }).then((productsArray: any) => {
-            let sold_products = store_db.find({ selector: { db_name: 'reports', type: 'Product' }, limit: 2500 }).then((res: any) => {
-                let today = 4;
+            StoreDatabase.find({ selector: { db_name: 'reports', type: 'Product' }, limit: 2500 }).then((res: any) => {
+                let today = 1;
                 let sold_products: Array<Report> = res.docs.filter(obj => obj.weekly_count[today] > 0).sort((a, b) => b.weekly_count[today] - a.weekly_count[today]);
                 sold_products.forEach(element => {
                     let product = productsArray.find(obj => obj._id == element.connection_id);

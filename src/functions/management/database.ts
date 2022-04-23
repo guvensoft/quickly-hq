@@ -92,6 +92,7 @@ export const clearStoreDatabase = async (store_id: string) => {
         console.log(StoreDocuments[0])
         console.log('Docs Count:', StoreDocuments.length);
         return purgeDatabase(Store.auth).then(res => {
+            console.log('Purge is OK');
             StoreDatabase.bulkDocs(StoreDocuments).then(docs => {
                 let isAnyConflict = docs.some(doc => doc.hasOwnProperty('error'));
                 if(isAnyConflict){

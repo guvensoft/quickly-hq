@@ -10,5 +10,10 @@ export const nestPayCustomer: string = '390108385';
 export const eFaturaUserName : string = '63208717';
 export const eFaturaSecret:string = '454043';
 
+export const netGsmUsername: string = '8503055352';
+export const netGsmPassword: string = '68F64.3';
+export const netGsmBrand: string = 'QUICKLY';
+
+
 
 /// Şube Kodu 1080 Ticari Hesap Numarası 3226713 ISBN 904_035_661

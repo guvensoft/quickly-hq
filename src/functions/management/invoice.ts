@@ -3,9 +3,12 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import fs from 'fs';
 import { Invoice, InvoiceType, InvoiceStatus, InvoiceItem, Currency } from '../../models/management/invoice';
-import { Logo, NormalFont, BoldFont } from '../../utils/blobs';
+import { Logo, Icon, NormalFont, BoldFont } from '../../utils/blobs';
 import { Company, CompanyStatus, CompanyType } from '../../models/management/company';
 // import XLSX from 'xlsx';
+
+
+var invoice, customerName, customerAddress, cutomerCompanyTax, customerCompanySocial, selectedCurrency
 
 const QuicklyCompany: Company = {
     name: "Quickly Yazılım Kurumsal Hizmetler A.Ş.",
@@ -15,30 +18,11 @@ const QuicklyCompany: Company = {
     tax_administration: "Beşiktaş",
     tax_no: "6320729003",
     supervisor: {
-      username: "63208717",
-      password: "454043"
+        username: "63208717",
+        password: "454043"
     },
     type: CompanyType.ANONYMOUS,
     status: CompanyStatus.ACTIVE,
-    address: {
-      country: "90",
-      state: "34",
-      province: "1183",
-      district: "40214",
-      street: "SÜLEYMAN SEBA",
-      description: "Vişnezade, Süleyman Seba Cd. No:85/1, Beşiktaş/İstanbul, Türkiye",
-      cordinates: {
-        latitude: 41.0426163,
-        longitude: 28.9996227
-      }
-    },
-    timestamp: 1639501500939,
-    _id: "77340a60-11d3-4c7f-97e5-6ddc058ec3a5",
-    _rev: "1-76da240bdc01db5022b3611c55dd93c6"
-  }
-
-const InvoiceCompany: Company = {
-    name: 'DorockXL Gıda İşletmeleri Etkinlik Organizasyon A.Ş',
     address: {
         country: "90",
         state: "34",
@@ -47,48 +31,13 @@ const InvoiceCompany: Company = {
         street: "SÜLEYMAN SEBA",
         description: "Vişnezade, Süleyman Seba Cd. No:85/1, Beşiktaş/İstanbul, Türkiye",
         cordinates: {
-          latitude: 41.0426163,
-          longitude: 28.9996227
+            latitude: 41.0426163,
+            longitude: 28.9996227
         }
-      },
-    phone_number: '05321675440',
-    email: 'kurumsal@dorockxl.com',
-    website: 'www.dorockxl.com',
-    tax_no: '458 658 99 66',
-    tax_administration: 'Beyoğlu',
-    supervisor: null,
-    type: CompanyType.ANONYMOUS,
-    status: CompanyStatus.ACTIVE,
-    timestamp: Date.now()
-}
-
-const invoice: Invoice = {
-    from: QuicklyCompany,
-    to: InvoiceCompany,
-    items: [
-        {
-            name: 'Okpos Optimus',
-            description: 'Satış Noktası Terminali',
-            currency: 'USD',
-            price: 450,
-            quantity: 2,
-            discount: 0,
-            tax_value: 18,
-            total_tax: 0,
-            total_price: 0
-        },
-        { name: 'Jolimark TP-850', description: 'Thermal Yazıcı', price: 100, currency: 'USD', discount: 0, quantity: 2, tax_value: 18, total_tax: 0, total_price: 0 },
-        // { name: 'Qr Dijital Menü Hizmeti', description: 'Yıllık Ücret', price: 1000, currency: 'TRY', discount: 0, quantity: 1, tax_value: 18, total_tax: 0, total_price: 0 }
-    ],
-    total: 0,
-    sub_total: 0,
-    tax_total: 0,
-    installment: 4,
-    currency_rates: [],
-    status: InvoiceStatus.WAITING,
-    type: InvoiceType.OPEN,
-    timestamp: 163716152000,
-    expiry: 1639753520000
+    },
+    timestamp: 1639501500939,
+    _id: "77340a60-11d3-4c7f-97e5-6ddc058ec3a5",
+    _rev: "1-76da240bdc01db5022b3611c55dd93c6"
 }
 
 const ProformaHead = "PROFORMA FATURA";
@@ -97,13 +46,6 @@ const headCompanyName = QuicklyCompany.name
 const headCompanyTax = `${QuicklyCompany.tax_administration} Vergi Dairesi - Vergi No: ${QuicklyCompany.tax_no}`;
 const headCompanyAddress = QuicklyCompany.address.description;
 const headCompanySocial = `${QuicklyCompany.website} - ${QuicklyCompany.email} - ${QuicklyCompany.phone_number}`;
-
-let customerName = invoice.to.name;
-let customerAddress = invoice.to.address.description;
-let cutomerCompanyTax = `${invoice.to.tax_administration} Vergi Dairesi - Vergi No: ${invoice.to.tax_no}`;
-let customerCompanySocial = `${invoice.to.website} - ${invoice.to.email} - ${invoice.to.phone_number}`;
-
-let selectedCurrency;
 
 // jsPDF Instance
 const PDF = new jsPDF('portrait', 'pt');
@@ -115,6 +57,7 @@ const normalFont = "Normal";
 PDF.addFileToVFS("Bold.ttf", BoldFont);
 PDF.addFont("Bold.ttf", "Bold", "bold");
 const boldFont = "Bold"
+
 PDF.setFont("Normal");
 
 
@@ -186,15 +129,15 @@ let invoiceColumns = ["#", "Ürün/Hizmet", "Adet", "KDV", "Birim Fiyat", "Topla
 let invoiceData = [];
 
 // Invoice total data - no columns
-let productTotalColumn = ["Ürün/Hizmet Toplam                 :"];
-let taxRateColumn = ["KDV(%18)                                   :"];
-let totalColumn = ["Genel Toplam                           :"];
+let productTotalColumn = ["Ürün/Hizmet Toplam                    :"];
+let taxRateColumn = ["KDV (%18)                                     :"];
+let totalColumn = ["Genel Toplam                               :"];
 let productTotalRow = [];
 let taxRateRow = [];
 let totalRow = [];
-let productTotal = 0; // product/service total
-let overallTotal = 0; // overall total 
-let totalTax = 0; // total tax 
+let productTotal = '14.501,65'; // product/service total
+let totalTax = '  2.610,30';    // total tax 
+let overallTotal = '17.111,95'; // overall total 
 let tableSpace = "           "; // Invoice total table row space
 
 // Table final y values
@@ -236,10 +179,10 @@ function calculateTotal() {
         totalTax += (tax * 18) / 100;
         overallTotal += price;
     });
-    productTotal = overallTotal - totalTax;
+    // productTotal = overallTotal - totalTax;
 }
 // Get currency request 
-function getCurrency(currency:Currency) {
+function getCurrency(currency: Currency) {
     return axios.get('https://api.genelpara.com/embed/doviz.json').then(res => {
         res.data[currency].satis = res.data[currency].satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "");
         selectedCurrency = res.data[currency].satis;
@@ -274,6 +217,8 @@ const addProformBody = (curr) => {
     PDF.text(day + '/' + month + '/' + year + ' ' + dayLong, 355, 200);
     // Currency and time
     PDF.text("Dolar: " + parseFloat(curr).toFixed(2) + " TRY", 356, 215);
+    // PDF.text("Euro : " + parseFloat(curr).toFixed(2) + " TRY", 356, 215);
+
     PDF.setTextColor(0, 0, 255);
     PDF.setFontSize(9);
     PDF.text(hour + ":" + minute + " UTC", 440, 215);
@@ -317,15 +262,8 @@ const addInvoiceTable = () => {
         },
         head: [invoiceColumns],
         body: invoice.items.map((item, index) => {
-            return [index + 1, item.name + '\n' + item.description,  item.quantity, '% ' +  item.tax_value, item.price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + currencyTransformer(item.currency), priceCalculator(item) ]
+            return [index + 1, item.name + '\n' + item.description, item.quantity, '% ' + item.tax_value, item.price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + currencyTransformer(item.currency), priceCalculator(item)]
         }),
-        // [
-        //     [1, 'sdf', 2, 4, 5, 6],
-        //     [1, 'sdf', 2, 4, 5, 6],
-        //     [1, 'sdf', 2, 4, 5, 6],
-        //     [1, 'sdf', 2, 4, 5, 6],
-        //     [1, 'sdf', 2, 4, 5, 6]
-        // ],
         tableLineWidth: 0,
         tableLineColor: [0, 0, 0],
         theme: 'grid',
@@ -338,10 +276,10 @@ const addInvoiceTable = () => {
     });
 }
 
-const priceCalculator = (item:InvoiceItem) => {
-    if(item.currency !== 'TRY'){
+const priceCalculator = (item: InvoiceItem) => {
+    if (item.currency !== 'TRY') {
         return (item.price * item.quantity * selectedCurrency).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL';
-    }else{
+    } else {
         return (item.price * item.quantity).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'
     }
 }
@@ -360,22 +298,25 @@ const currencyTransformer = (key: string) => {
 }
 
 const addInvoiceTotalTable = () => {
-    let offsetY = 0;
+    const offset = 250;
+    let offsetY = 22 + (invoice.items.length * 30) - (invoice.items.length * 2);
 
-    if (getInvoiceDataLength(invoiceData) < 5) {
-        offsetY = ((getInvoiceDataLength(invoiceData) + 1) * 19) + ((getNumNotes()) / 2 * 17);
-    } else {
-        offsetY = ((getInvoiceDataLength(invoiceData) + 1) * 19) + ((getNumNotes()) / 2 * 18);
-    }
+    // if (getInvoiceDataLength(invoiceData) < 5) {
+    //     offsetY = ((getInvoiceDataLength(invoiceData) + 1) * 19) + ((getNumNotes()) / 2 * 17);
+    // } else {
+    //     offsetY = ((getInvoiceDataLength(invoiceData) + 1) * 19) + ((getNumNotes()) / 2 * 18);
+    // }
+
+    console.log(offsetY);
     // Y table offset
     // let offsetY = ((getInvoiceDataLength(invoiceData) + 1) * 19) + ((getNumNotes()) / 2 * 18);
 
     // Invoice total table
-    productTotalColumn[0] = `${productTotalColumn[0].concat(tableSpace) + productTotal.toFixed(2) + ' TL'}`;
+    productTotalColumn[0] = `${productTotalColumn[0] + tableSpace + invoice.sub_total.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'}`;
     autoTable(PDF, {
-        tableWidth: 200,
+        // tableWidth: 300,
         // startX: 700,
-        startY: 308 + offsetY,
+        startY: offset + offsetY,
         pageBreak: 'avoid',
         headStyles: {
             fillColor: tableColor,
@@ -383,24 +324,26 @@ const addInvoiceTotalTable = () => {
             halign: 'left',
             lineWidth: 1,
             lineColor: [0, 0, 0],
+            cellWidth: 210
+
         },
         head: [productTotalColumn],
-        body: [productTotalRow],
-        margin: { left: 295 },
+        // body: [productTotalColumn],
+        margin: { left: 285 },
         theme: 'grid',
         styles: {
             fontSize: 8,
             font: boldFont,
         },
-        columnStyles: { 0: { cellWidth: 155 } }
+        columnStyles: { 0: { cellWidth: 210 } }
     });
 
     // Tax table
-    taxRateColumn[0] = `${taxRateColumn[0].concat(tableSpace) + totalTax.toFixed(2) + ' TL'}`;
+    taxRateColumn[0] = `${taxRateColumn[0].concat(tableSpace) + invoice.tax_total.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'}`;
     autoTable(PDF, {
-        tableWidth: 190,
+        // tableWidth: 190,
         // startX: 700,
-        startY: 328 + offsetY,
+        startY: offset + 19 + offsetY,
         pageBreak: 'avoid',
         headStyles: {
             fillColor: tableColor,
@@ -408,52 +351,44 @@ const addInvoiceTotalTable = () => {
             halign: 'left',
             lineWidth: 1,
             lineColor: [0, 0, 0],
+            cellWidth: 210
         },
         head: [taxRateColumn],
-        body: [taxRateRow],
-        margin: { left: 295 },
+        // body: [taxRateRow],
+        margin: { left: 285 },
         theme: 'grid',
         styles: {
             fontSize: 8,
             font: boldFont,
         },
-        columnStyles: { 0: { cellWidth: 155 } }
+        columnStyles: { 0: { cellWidth: 0 } }
     });
 
     //  Total table
-    totalColumn[0] = `${totalColumn[0].concat(tableSpace) + overallTotal.toFixed(2) + ' TL'}`;
+    totalColumn[0] = `${totalColumn[0].concat(tableSpace) + invoice.total.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'}`;
     autoTable(PDF, {
-        tableWidth: 190,
+        // tableWidth: 190,
         // startX: 700,
-        startY: 348 + offsetY,
+        startY: offset + 38 + offsetY,
         pageBreak: 'avoid',
         headStyles: {
-            fillColor: [255, 255, 255],
-            textColor: tableColor,
+            fillColor: tableColor,
+            textColor: [255, 255, 255],
             halign: 'left',
             lineWidth: 1,
             lineColor: [0, 0, 0],
+            cellWidth: 210
+
         },
         head: [totalColumn],
-        body: [totalRow],
-        bodyStyles: {
-            textColor: [0, 0, 0]
-        },
-        margin: { left: 295 },
+        // body: [totalRow],
+        margin: { left: 285 },
         theme: 'grid',
         styles: {
             fontSize: 8,
             font: boldFont,
         },
-        columnStyles: { 0: { cellWidth: 155 } },
-        didDrawCell: (data) => {
-            for (const key in data) {
-                if (Object.hasOwnProperty.call(data, key)) {
-                    const element = data["row"];
-                    invoiceTotalFinalY = element.cells[0].y + element.height;
-                }
-            }
-        }
+        columnStyles: { 0: { cellWidth: 210 } }
     });
 }
 
@@ -604,6 +539,9 @@ const addSidebar = () => {
     PDF.setFillColor('#2B3E50');
     PDF.setDrawColor('#2B3E50');
     PDF.rect(520, 0, 75, 845, 'FD');
+
+    PDF.addImage(Icon, 'PNG', 600, 760, 87, 87, null, null, 90);
+
     /// Right bar logo text 
     PDF.setFontSize(10);
     PDF.setTextColor(255, 255, 255);
@@ -706,8 +644,14 @@ function getNumNotes() {
     return count;
 }
 
-function mainFunction() {
-    getCurrency('USD').then(curr => {
+export async function generateInvoicePDF(invoiceData: Invoice) {
+    try {
+        invoice = invoiceData;
+        customerName = invoice.to.name;
+        customerAddress = invoice.to.address.description;
+        cutomerCompanyTax = `${invoice.to.tax_administration} Vergi Dairesi - Vergi No: ${invoice.to.tax_no}`;
+        customerCompanySocial = `${invoice.to.website} - ${invoice.to.email} - ${invoice.to.phone_number}`;
+        const curr = await getCurrency('USD');
         console.log(curr);
         // toInvoiceObjectArray();
         // toInstallmentObjectArray();
@@ -716,14 +660,17 @@ function mainFunction() {
         addSidebar();
         addCustomerCompany();
         addInvoiceTable();
-        // addInvoiceTotalTable();
+        addInvoiceTotalTable();
         // addInstallmentTables();
         // addSupportTables();
         // addFooter();
-        PDF.save('invoice.pdf');
-    });
+        PDF.save(Date.now() + '.pdf');
+        return PDF.output('arraybuffer');
+    } catch (err) {
+        console.log(err);
+    }
+
 }
 
 export const proformaGenerator = () => {
-    mainFunction();
 }

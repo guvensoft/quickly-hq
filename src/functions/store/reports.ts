@@ -7,7 +7,7 @@ import { Activity, Report, reportType, activityType } from '../../models/store/r
 import { Stock } from '../../models/store/stocks';
 import { Floor, Table } from '../../models/store/table';
 import { User, UserGroup } from '../../models/store/user';
-import { readDirectory, readJsonFile } from '../shared/files';
+import { readDirectory, readJsonFile, writeJsonFile } from '../shared/files';
 
 //// Third Party
 import jsPDF from 'jspdf';
@@ -224,8 +224,6 @@ export const ProductsReport = (checks_to_count: Array<ClosedCheck>): Array<Produ
             }
         });
         productSalesReport.sort((a, b) => b.count - a.count);
-        productSalesReport = productSalesReport.filter(obj => obj.name == 'Kafa');
-
         return productSalesReport;
     } catch (error) {
         console.log(error);
@@ -308,6 +306,8 @@ export const exportReport = async (store_id: string, start_date: number, end_dat
             StoreEndDays = (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' }, limit: 2500 })).docs
         } else {
             StoreEndDays = endDayData;
+        writeJsonFile('endday.json',endDayData);
+
         }
         const Store = await ManagementDB.Stores.get(store_id)
         const PDF = new jsPDF({ orientation: "portrait" });
@@ -394,6 +394,7 @@ export const exportReportFromDaysData  = async (store_id: string, start_date?: s
     let storeBackups: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
     let storeDays: Array<number> = storeBackups.map(day => parseInt(day)).sort((a, b) => b - a).filter(date => date > parseInt(start_date) && date < parseInt(end_date));
     let endDayConvertedData: Array<EndDay> = [];
+    console.log(storeDays);
     for (const date of storeDays) {
         let fDate = new Date(date);
         console.log(date, fDate.toLocaleDateString('tr-Tr'), fDate.toLocaleTimeString('tr-Tr'))
@@ -419,9 +420,10 @@ export const exportReportFromDaysData  = async (store_id: string, start_date?: s
                 db_seq:0
             }
             endDayConvertedData.push(endDayObj);
+            console.log(endDayObj)
         } catch (error) {
             console.log(error);
         }
     }
-    exportReport(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
+    // exportReport(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }

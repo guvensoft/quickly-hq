@@ -1,17 +1,30 @@
 import { Request, Response } from "express";
+import { generateInvoicePDF } from "../../functions/management/invoice";
 import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
 import { Invoice } from "../../models/management/invoice";
 import { createLog, LogType } from '../../utils/logger';
 import { InvoiceMessages } from "../../utils/messages";
+import { createReadStream } from "fs";
 
 //////  /invoice [POST]
 export const createInvoice = (req: Request, res: Response) => {
     let newInvoice: Invoice = req.body;
     ManagementDB.Invoices.post(newInvoice).then(() => {
-        res.status(InvoiceMessages.INVOICE_CREATED.code).json(InvoiceMessages.INVOICE_CREATED.response);
+        generateInvoicePDF(newInvoice).then(buffer => {
+            const PDF = Buffer.from(buffer) //Buffer.from(buffer)
+            res.status(InvoiceMessages.INVOICE_CREATED.code)
+            // res.setHeader('Content-Length',buffer.length);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
+            res.type('pdf')
+            res.send(PDF)
+        }).catch(err => {
+            console.log(err);
+            res.status(InvoiceMessages.INVOICE_NOT_CREATED.code).json(InvoiceMessages.INVOICE_NOT_CREATED.response);
+            createLog(req, LogType.INNER_LIBRARY_ERROR, err);
+        })
     }).catch((err) => {
-        res.status(InvoiceMessages.INVOICE_NOT_CREATED.code).json(InvoiceMessages.INVOICE_NOT_CREATED.response);
-        createLog(req, LogType.DATABASE_ERROR, err);
+        console.log(err)
     })
 };
 
@@ -71,4 +84,27 @@ export const queryInvoices = (req: Request, res: Response) => {
         res.status(InvoiceMessages.INVOICE_NOT_EXIST.code).json(InvoiceMessages.INVOICE_NOT_EXIST.response);
         createLog(req, LogType.DATABASE_ERROR, err);
     });
+};
+
+export const showInvoice = (req: Request, res: Response) => {
+    let invoiceId: string = req.params.id;
+
+    ManagementDB.Invoices.get(invoiceId).then((invoice:Invoice) => {
+        generateInvoicePDF(invoice).then(buffer => {
+            const PDF = Buffer.from(buffer) 
+            res.status(InvoiceMessages.INVOICE_CREATED.code)
+            res.setHeader('Content-Length',PDF.length);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
+            res.type('pdf')
+            res.send(PDF)
+        }).catch(err => {
+            console.log(err);
+            res.status(InvoiceMessages.INVOICE_NOT_CREATED.code).json(InvoiceMessages.INVOICE_NOT_CREATED.response);
+            createLog(req, LogType.INNER_LIBRARY_ERROR, err);
+        })
+    }).catch((err) => {
+        res.status(InvoiceMessages.INVOICE_NOT_CREATED.code).json(InvoiceMessages.INVOICE_NOT_CREATED.response);
+        createLog(req, LogType.INNER_LIBRARY_ERROR, err);
+    })
 };

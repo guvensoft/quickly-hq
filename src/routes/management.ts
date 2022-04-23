@@ -392,6 +392,11 @@ router.get("/invoice/:id",
     AuthenticateGuard,
     InvoiceController.getInvoice);
 
+
+router.get("/invoice/pdf/:id",
+    // AuthenticateGuard,
+    InvoiceController.showInvoice);
+
 router.post("/invoice",
     AuthenticateGuard,
     SchemaGuard(ManagementSchema.InvoiceSchemaSafe),

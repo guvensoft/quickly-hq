@@ -251,6 +251,7 @@ export const ProducerSchema = joi.object().keys({
     description: joi.string(),
     account: joi.string(),
     logo: joi.string(),
+    suppliers:joi.array().items(joi.string()),
     status: joi.number().allow(0, 1, 2)
 });
 
@@ -259,6 +260,7 @@ export const ProducerSchemaSafe = joi.object().keys({
     description: joi.string().required(),
     account: joi.string().required(),
     logo: joi.string().required(),
+    suppliers:joi.array().items(joi.string()).required(),
     status: joi.number().allow(0, 1, 2).required()
 });
 
@@ -402,6 +404,7 @@ export const CompanySchema = joi.object().keys({
     supervisor: AuthSchema,
     type: joi.number().allow(0, 1, 2, 3, 4),
     status: joi.number().allow(0, 1, 2),
+
 });
 
 export const CurrencyRateSchema = joi.object().keys({
@@ -420,9 +423,9 @@ export const InvoiceItemSchema = joi.object().keys({
 });
 
 export const InvoiceSchemaSafe = joi.object().keys({
-    from: CompanySchema,
-    to: CompanySchema.required(),
-    items: joi.array().items(InvoiceItemSchema.required()),
+    from: joi.object(),
+    to: joi.object(),
+    items: joi.array(),
     total: joi.number().required(),
     sub_total: joi.number().required(),
     tax_total: joi.number().required(),
