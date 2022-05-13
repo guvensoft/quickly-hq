@@ -9,7 +9,7 @@ if (isMainThread) {
     let Stores: Array<Store> = [];
     let Databases: Array<Database> = [];
 
-    const storesPromise = ManagementDB.Stores.find({ selector: {} }).then(res => {
+    const storesPromise = ManagementDB.Stores.find({ selector: {}, limit:1000 }).then(res => {
         Stores = res.docs;
     }).catch(err => {
         console.log(err);
@@ -22,7 +22,7 @@ if (isMainThread) {
 
     Promise.all([storesPromise, databasePromises]).then(res => {
         const worker = new Worker(__filename, { workerData: { databases: Databases, stores: Stores } });
-        worker.on('message', (updatedTable: Table) => {
+        worker.on('message', (activity: Table) => {
             // SocialDB.Tables.get(updatedTable._id).then(res => {
             //     SocialDB.Tables.put({ res, ...updatedTable }).catch(err => {
             //         //// Update Error
@@ -32,7 +32,7 @@ if (isMainThread) {
             //         //// Post Error
             //     })
             // })
-            console.log(updatedTable);
+            console.log(activity);
         });
         worker.on('error', (error) => {
 

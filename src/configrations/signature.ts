@@ -4,13 +4,13 @@ import pcsc from "pcsclite";
 const signature = pcsc();
 
 signature.on('reader', function(reader) {
- 
+
     console.log('New reader detected', reader.name);
- 
+
     reader.on('error', function(err) {
         console.log('Error(', this.name, '):', err.message);
     });
- 
+    
     reader.on('status', function(status) {
         console.log('Status(', this.name, '):', status);
         /* check what has changed */

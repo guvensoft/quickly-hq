@@ -34,7 +34,6 @@ import { getSession } from './controllers/management/session';
 import fatura from 'fatura';
 import { eFaturaSecret, eFaturaUserName } from './configrations/secrets';
 import { Customer } from './models/store/customer';
-import { proformaGenerator } from './functions/management/invoice';
 import { parseBooleans, parseNumbers } from 'xml2js/lib/processors';
 import axios from 'axios';
 import { UBL } from './models/external/ubl';
@@ -127,18 +126,17 @@ export const fixTables = async (db_name: string) => {
     let tables: Array<Table> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'tables', status: TableStatus.OCCUPIED }, limit: DatabaseQueryLimit })).docs;
     let products: Array<Product> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
 
-    checks.forEach(async (check: Check) => {
-        try {
-            let tableWillFix: Table = await RemoteDB(db, db_name).get(check.table_id);
-            tableWillFix.status = 2;
-            tableWillFix.timestamp = check.products.pop().timestamp;
-            let isUpdated = await RemoteDB(db, db_name).put(tableWillFix);
-            console.log(isUpdated);
-        } catch (error) {
-            console.log(error);
-        }
-    });
-
+    // checks.forEach(async (check: Check) => {
+    //     try {
+    //         let tableWillFix: Table = await RemoteDB(db, db_name).get(check.table_id);
+    //         tableWillFix.status = 2;
+    //         tableWillFix.timestamp = check.products.pop().timestamp;
+    //         let isUpdated = await RemoteDB(db, db_name).put(tableWillFix);
+    //         console.log(isUpdated);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // });
 
 
 
@@ -261,7 +259,7 @@ export const Fixer = (db_name: string) => {
                     // });
 
                     // let dayThat = lastDay.data_file.split('.')[0];
-                    let dayThat = 1650518554000;
+                    let dayThat = 1652455872000;
 
                     let newChecks = checks.filter(obj => obj.timestamp > dayThat);
                     let oldChecks = checks.filter(obj => obj.timestamp < dayThat);
@@ -585,14 +583,14 @@ export const allOrders = (db_name: string, check_id: string) => {
             let tableData = []
             // orders.map(order => order.items )
             orders.forEach(order => {
-                // console.log(order) 
-
+                // console.log(); 
                 tableData = tableData.concat(order.items)
-
             });
             console.table(tableData);
             console.log('Toplam:        ', tableData.map(data => data.price).reduce((a, b) => a + b, 0));
 
+        }).catch(err => {
+            console.log('-------------------------------------')
         })
 
     }).catch(err => {
@@ -634,10 +632,12 @@ export const allRevisions = (db_name: string, doc_id: string) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         const db: Database = res.docs[0];
         RemoteDB(db, db_name).get(doc_id, { revs_info: true }).then(res => {
+            console.log(res);
             res._revs_info.filter(rev => rev.status == "available").forEach((obj, index) => {
                 console.log(obj);
-                RemoteDB(db, db_name).get(doc_id, { rev: obj.rev }).then((res: any) => {
-                    writeJsonFile('data' + index + '.json', res)
+                RemoteDB(db, db_name).get(doc_id, { rev: obj.rev }).then((doc: any) => {
+                    console.log(doc)
+                    // writeJsonFile('data' + index + '.json', res)
                 });
             })
         }).catch(err => {
@@ -646,6 +646,74 @@ export const allRevisions = (db_name: string, doc_id: string) => {
     }).catch(err => {
         console.log(err);
     })
+}
+
+export const deletedStoreDocs = async (store_id: string, deletedDocsIds?: Array<string>) => {
+    try {
+        const db = await StoreDB(store_id);
+        if(deletedDocsIds){
+            console.log(deletedDocsIds.length, ' Deleted Documents!')
+            // Promise.all(deletedDocsIds.map(id => db.get(id, { revs: true, open_revs: 'all' }).then(doc => {
+            //     console.log(doc);
+            //     const revs = (doc[0].ok as any)._revisions;
+            //     const lastRev = (revs.start - 1) + '-' + revs.ids[1];
+            //     db.get(id, { rev: lastRev }).then(isDocAvailable => {
+            //         console.log(isDocAvailable);
+            //     }).catch(err => {
+            //         console.log(err);
+            //     })
+            // }).catch(err => {
+            //     console.log(err);
+            // })
+            // )).catch(err => {
+            //     console.log(err);
+            // });
+        }else{
+            const docs: string[] = [];
+            db.changes({ filter: d => d._deleted})
+                .on('change', c => {
+                    console.log(c.id);
+                    docs.push(c.id)
+                })
+                .on('error', e => console.log(e))
+                .on('complete', () => {
+
+                    docs.forEach(doc_id => {
+                        db.get(doc_id, { revs_info: true }).then(res => {
+                            console.log(res);
+                            res._revs_info.filter(rev => rev.status == "available").forEach((obj, index) => {
+                                console.log(obj);
+                                // db.get(doc_id, { rev: obj.rev }).then((doc: any) => {
+                                //     console.log(doc)
+                                //     // writeJsonFile('data' + index + '.json', res)
+                                // });
+                            })
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    })
+           
+                    // console.log(docs.length, ' Deleted Documents found!')
+                    // Promise.all(docs.map(id => db.get(id, { revs: true, open_revs: 'all' }).then(doc => {
+                    //     console.log(doc);
+                    //     const revs = (doc[0].ok as any)._revisions;
+                    //     const lastRev = (revs.start - 1) + '-' + revs.ids[1];
+                    //     db.get(id, { rev: lastRev }).then(isDocAvailable => {
+                    //         console.log(isDocAvailable);
+                    //     }).catch(err => {
+                    //         console.log(err);
+                    //     })
+                    // }).catch(err => {
+                    //     console.log(err);
+                    // })
+                    // )).catch(err => {
+                    //     console.log(err);
+                    // });
+                });
+        }
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 export const databaseLogs = (db_name: string, search: string) => {
@@ -1269,6 +1337,7 @@ export const clearDatabase = async (store_id: string) => {
         console.log(error);
     }
 }
+
 export const backupStoreDatabase = async (store_id: string) => {
     try {
         let documents = (await (await StoreDB(store_id)).find({ selector: {}, limit: 10000 })).docs.filter(obj => obj.db_name !== 'logs' || obj.db_name !== 'orders' || obj.db_name !== 'prints',);
@@ -1319,8 +1388,6 @@ export const addNotes = () => {
         })
     })
 }
-
-
 
 export const makePdf = async (store_id: string, start_date: number, end_date: number, endDayData?: Array<EndDay>) => {
     try {
@@ -1457,9 +1524,6 @@ export const menuChanger = () => {
 
 
 }
-
-
-
 
 export const findDuplicates = async (store_id: string) => {
 
@@ -2014,7 +2078,6 @@ export const menuToTerminal2 = async (store_id: string) => {
 
 }
 
-
 export const updateTerminalWithMenu = async (store_id: string) => {
     try {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
@@ -2452,7 +2515,6 @@ export const quicklySellingData = async (year: number, month: number) => {
 }
 
 export const generateReportsFor = async (store_id: string, type: reportType) => {
-
     const StoreDatabase = await StoreDB(store_id);
     const Documents = await StoreDatabase.find({ selector: { db_name: type.toLowerCase() + 's' }, limit: DatabaseQueryLimit })
     console.log(Documents.docs[10]);
@@ -2550,7 +2612,7 @@ export const storeDays = async (store_id: string, start_date?: string, end_date?
             }
 
             endDayConvertedData = endDayConvertedData.filter(obj => obj.total_income !== 0);
-            endDayConvertedData = endDayConvertedData.filter(obj => obj.total_income !== 11090);
+            // endDayConvertedData = endDayConvertedData.filter(obj => obj.total_income !== 11090);
 
             if (!endDayConvertedData.includes(endDayObj)) {
                 endDayConvertedData.push(endDayObj);
@@ -2568,9 +2630,9 @@ export const storeDays = async (store_id: string, start_date?: string, end_date?
 
 
 
-    // writeJsonFile('enddays',endDayConvertedData);
+    writeJsonFile('enddays', endDayConvertedData);
 
-    // makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
+    makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }
 
 export const storeProductSales = async (store_id: string, start_date?: string, end_date?: string) => {
@@ -2591,9 +2653,9 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
         }
         const categoryName = (cat_id: string): string => {
             let category = categories.find(obj => obj._id == cat_id);
-            if(category){
-                return category.name;
-            }else{
+            if (category) {
+                return category.name.toUpperCase();
+            } else {
                 return '';
             }
         }
@@ -2601,7 +2663,7 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
 
         let tableBodyData = [];
 
-        salesReport = salesReport.sort((a,b) => (b.count * b.price) - (a.count * a.price));
+        salesReport = salesReport.sort((a, b) => (b.count * b.price) - (a.count * a.price));
         salesReport.forEach((product, index) => {
             let data = [product.name.toUpperCase(), categoryName(product.category_id), transformPrice(product.price), product.count, transformPrice(product.price * product.count)];
             tableBodyData.push(data);
@@ -2612,7 +2674,7 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
         const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(xlsxData);
         const wb: XLSX.WorkBook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, ReportDate);
-    
+
         XLSX.writeFile(wb, Store.name + '-' + ReportDate + '-Ürün Satış' + '.xlsx');
 
     } catch (error) {
@@ -2620,7 +2682,7 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
     }
     // let tableFootData = [['Genel Toplam', totalProperty('total_income'), totalProperty('cash_total'), totalProperty('card_total'), totalProperty('coupon_total'), totalProperty('free_total'), totalProperty('canceled_total'), totalProperty('discount_total')]]
     //#region PDF
-     // const PDF = new jsPDF({ orientation: "portrait" });
+    // const PDF = new jsPDF({ orientation: "portrait" });
     // PDF.setLanguage('tr')
     // PDF.addFileToVFS("Normal.ttf", NormalFont);
     // PDF.addFileToVFS("Bold.ttf", BoldFont);
@@ -2771,10 +2833,6 @@ export const customerCredits = async (store_id: string) => {
     } catch (error) {
         console.log(error);
     }
-}
-
-export const makeProforma = () => {
-    proformaGenerator();
 }
 
 export const TAPDKCheck = (tapdkno: string) => {

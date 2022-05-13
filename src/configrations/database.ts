@@ -15,7 +15,7 @@ import { databasePath } from './paths';
 import { Account } from '../models/management/account';
 import { Session } from '../models/management/session';
 import { Database } from '../models/management/database';
-import { Owner } from '../models/management/owner';
+import { Owner, OwnerSubscriptions, SafeCard } from '../models/management/owner';
 import { Group, User } from '../models/management/users';
 import { Store, StoreSettings } from '../models/management/store';
 import { Supplier } from '../models/management/supplier';
@@ -57,6 +57,8 @@ export const ManagementDB = {
     Categories: new PouchDB<Category>(databasePath + 'management/categories', FileSystemConfigration),
     SubCategories: new PouchDB<SubCategory>(databasePath + 'management/sub_categories', FileSystemConfigration),
     Campaings: new PouchDB<Campaign>(databasePath + 'management/campaigns', FileSystemConfigration),
+    Subscriptions: new PouchDB<OwnerSubscriptions>(databasePath + 'management/subscriptions', FileSystemConfigration),
+    Cards: new PouchDB<SafeCard>(databasePath + 'management/cards', FileSystemConfigration),
     Logs: new PouchDB<Log>(databasePath + 'management/logs', FileSystemConfigration),
     Sessions: new PouchDB<Session>(databasePath + 'management/sessions', FileSystemConfigration)
 }
@@ -120,14 +122,12 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
     try {
         const Database = new OrderDatabase(name);
         const StoreDatabase = await StoreDB(store_id);
-
         createIndexesForDatabase(Database, { index: { fields: ['db_name','check'] } }).then(res => {
             console.log('Indexing Finished Succesfully For Order Database');
         }).catch(err => {
             console.log('Indexing Throw Error For Products Database');
             console.error(err);
         })
-        
         if (sync) {
             StoreDatabase.replicate.to(Database, { selector: { $or: [{ db_name: 'orders', check: name }, { db_name: 'receipts', check: name }] } }).then(isReplicated => {
                 console.log('First Replication Status: ', isReplicated.ok, 'Docs Written: ', isReplicated.docs_written);
@@ -144,7 +144,7 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
                 if(change.deleted){
                     console.log('Check Closed !')
                     Database.destroy().then(isClosed => {
-                        console.log('OrderDB closed!')
+                        console.log('OrderDB closed!',isClosed)
                         // Database.destroy().then(isKilled => {
                         //     console.log('OrderDB destroyed!')
                         // }).catch(err => {
@@ -158,8 +158,6 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
                 console.log(err);
             })
         }
-
-
         return Database;
     } catch (error) {
         console.log(error);

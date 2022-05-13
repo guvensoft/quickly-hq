@@ -4,6 +4,7 @@ import { ManagementDB, DatabaseQueryLimit } from "../../configrations/database";
 import { OwnerMessages } from '../../utils/messages';
 import { createLog, LogType } from '../../utils/logger';
 import { Owner } from "../../models/management/owner";
+import { sendSms } from "../../configrations/sms";
 
 
 //////  /owner [POST]
@@ -13,6 +14,7 @@ export const createOwner = (req: Request, res: Response) => {
 		if (user.docs.length > 0) {
 			res.status(OwnerMessages.OWNER_EXIST.code).json(OwnerMessages.OWNER_EXIST.response);
 		} else {
+			sendSms(newOwner.phone_number.toString(),`Kullanıcı Adı: ${newOwner.username}                              Şifre: ${newOwner.password}                              ---------------------------`)
 			bcrypt.genSalt(10, (err, salt) => {
 				if (!err) {
 					bcrypt.hash(newOwner.password, salt, (err, hashedPassword) => {
