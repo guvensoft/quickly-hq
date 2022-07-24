@@ -259,7 +259,7 @@ export const Fixer = (db_name: string) => {
                     // });
 
                     // let dayThat = lastDay.data_file.split('.')[0];
-                    let dayThat = 1652455872000;
+                    let dayThat = 1655228516464;
 
                     let newChecks = checks.filter(obj => obj.timestamp > dayThat);
                     let oldChecks = checks.filter(obj => obj.timestamp < dayThat);
@@ -574,9 +574,12 @@ export const dayDetail = (store_id: string, day_file: string) => {
     // })
 }
 
-export const allOrders = (db_name: string, check_id: string) => {
+export const allOrders = async (db_name: string, check_id: string) => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' }, limit: 5000 }).then((res: any) => {
         const db: Database = res.docs[0];
+        RemoteDB(db, db_name).get(check_id).then(check => {
+            console.log(check.total_price);
+        })
         RemoteDB(db, db_name).find({ selector: { db_name: 'orders', check: check_id } }).then(res => {
 
             let orders: Order[] = res.docs.sort((a, b) => b.timestamp - a.timestamp);
@@ -637,7 +640,7 @@ export const allRevisions = (db_name: string, doc_id: string) => {
                 console.log(obj);
                 RemoteDB(db, db_name).get(doc_id, { rev: obj.rev }).then((doc: any) => {
                     console.log(doc)
-                    // writeJsonFile('data' + index + '.json', res)
+                    writeJsonFile('data' + index, res)
                 });
             })
         }).catch(err => {
@@ -651,7 +654,7 @@ export const allRevisions = (db_name: string, doc_id: string) => {
 export const deletedStoreDocs = async (store_id: string, deletedDocsIds?: Array<string>) => {
     try {
         const db = await StoreDB(store_id);
-        if(deletedDocsIds){
+        if (deletedDocsIds) {
             console.log(deletedDocsIds.length, ' Deleted Documents!')
             // Promise.all(deletedDocsIds.map(id => db.get(id, { revs: true, open_revs: 'all' }).then(doc => {
             //     console.log(doc);
@@ -668,9 +671,9 @@ export const deletedStoreDocs = async (store_id: string, deletedDocsIds?: Array<
             // )).catch(err => {
             //     console.log(err);
             // });
-        }else{
+        } else {
             const docs: string[] = [];
-            db.changes({ filter: d => d._deleted})
+            db.changes({ filter: d => d._deleted })
                 .on('change', c => {
                     console.log(c.id);
                     docs.push(c.id)
@@ -692,7 +695,7 @@ export const deletedStoreDocs = async (store_id: string, deletedDocsIds?: Array<
                             console.log(err);
                         });
                     })
-           
+
                     // console.log(docs.length, ' Deleted Documents found!')
                     // Promise.all(docs.map(id => db.get(id, { revs: true, open_revs: 'all' }).then(doc => {
                     //     console.log(doc);
@@ -1306,8 +1309,12 @@ export const lastChanges = () => {
 
 export const importFromBackup = async (store_id: string) => {
     // let Store = await ManagementDB.Stores.get(store_id);
-    let backupFile: Array<BackupData> = await readJsonFile(backupPath + `${store_id}/db.dat`);
-    let bulkResponse = await (await StoreDB(store_id)).bulkDocs(backupFile);
+    console.log('Importing Started !')
+    let backupFile: Array<any> = await readJsonFile(backupPath + `${store_id}/db.dat`);
+
+    let docs = backupFile.filter(obj =>  obj.db_name == 'products');
+
+    let bulkResponse = await (await StoreDB(store_id)).bulkDocs(docs);
     console.log(bulkResponse);
 };
 
@@ -1321,18 +1328,23 @@ export const clearDatabase = async (store_id: string) => {
         });
         console.log(StoreDocuments[0])
         console.log('Docs Count:', StoreDocuments.length);
-        purgeDatabase(Store.auth).then(res => {
-            StoreDatabase.bulkDocs(StoreDocuments).then(docs => {
-                let isAnyConflict = docs.some(doc => doc.hasOwnProperty('error'));
-                if (isAnyConflict) {
-                    console.log('There Are Some Conflicts')
-                } else {
-                    console.log('Looks Great')
-                }
+        writeJsonFile('db-backup', StoreDocuments).then(isOK => {
+            purgeDatabase(Store.auth).then(res => {
+                StoreDatabase.bulkDocs(StoreDocuments).then(docs => {
+                    let isAnyConflict = docs.some(doc => doc.hasOwnProperty('error'));
+                    if (isAnyConflict) {
+                        console.log('There Are Some Conflicts')
+                    } else {
+                        console.log('Looks Great')
+                    }
+                })
+            }).catch(err => {
+                console.log(err);
             })
         }).catch(err => {
-            console.log(err);
+
         })
+
     } catch (error) {
         console.log(error);
     }
@@ -1370,10 +1382,10 @@ export const recrateDatabase = (store_id: string) => {
 export const addNotes = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-        RemoteDB(db, 'kallavi-besiktas').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
-            return res.docs.map(object => {
+        RemoteDB(db, 'boaz-yalikavak').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
+            return res.docs.filter(obj => obj.cat_id !== 'e4f2dd26-bd45-4151-abcb-d8fc0b89226a').map(object => {
                 try {
-                    object.notes = 'Tam Yağlı,Yarım Yağlı,Laktozsuz,Sade,Az Şekerli,Orta Şekerli,Şekerli,Bol Şekerli,Limon Dilimli,Buzlu,Tuzsuz,Sütlü';
+                    object.notes = 'Redbull,Cola,Soda,Sek,Portakal,Vişne,Elma,Buzlu,Buzsuz,Nane,Tonik';
                 } catch (error) {
                     console.log(object.name);
                 }
@@ -1382,7 +1394,7 @@ export const addNotes = () => {
             });
         }).then(stocks => {
             console.log(stocks);
-            RemoteDB(db, 'kallavi-besiktas').bulkDocs(stocks).then(res => {
+            RemoteDB(db, 'boaz-yalikavak').bulkDocs(stocks).then(res => {
                 console.log('Property Added Successfuly');
             })
         })
@@ -1593,15 +1605,16 @@ export const loadStoreBackup = async (store_id: string, db_name: string) => {
 
         let storeTables = (await StoreDatabase.find({ selector: { db_name: db_name }, limit: DatabaseQueryLimit })).docs;
 
-        console.log(storeTables.length);
-        // backup.forEach(async element => {
-        //     if(storeTables.find(obj => obj.name == element.name)){
-        //         // console.log(element.name);
-        //     }else{
-        //         console.log(element.name);
-        //         let isOk = await StoreDatabase.put(element);
-        //         console.log(isOk);            }
-        // });
+        // console.log(storeTables.length);
+        backup.forEach(async element => {
+            if(storeTables.find(obj => obj.name == element.name)){
+                // console.log(element.name);
+            }else{
+                console.log(element.name);
+                let isOk = await StoreDatabase.put(element);
+                console.log(isOk);            
+            }
+        });
 
         // let isOK = await StoreDatabase.bulkDocs(backup);
 
@@ -2626,13 +2639,15 @@ export const storeDays = async (store_id: string, start_date?: string, end_date?
 
     // pushServer.then(res => {
     //     console.log(res);
+    // }).catch(err => {
+    //     console.log(err);
     // })
 
 
 
-    writeJsonFile('enddays', endDayConvertedData);
+    // writeJsonFile('enddays', endDayConvertedData);
 
-    makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
+    // makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }
 
 export const storeProductSales = async (store_id: string, start_date?: string, end_date?: string) => {
@@ -2732,13 +2747,57 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
 
 }
 
+export const storeProductExport = async (store_id: string) => {
+    try {
+        const Store: Store = await ManagementDB.Stores.get(store_id)
+
+        let products: Product[] = (await (await StoreDB(store_id)).find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
+        let categories = (await (await StoreDB(store_id)).find({ selector: { db_name: 'categories' }, limit: DatabaseQueryLimit })).docs;
+
+
+        const transformPrice = (value: number): string => {
+            if (!value) value = 0;
+            return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
+        }
+        const categoryName = (cat_id: string): string => {
+            let category = categories.find(obj => obj._id == cat_id);
+            if (category) {
+                return category.name.toUpperCase();
+            } else {
+                return '';
+            }
+        }
+
+        let tableBodyData = [];
+        products.sort((a,b) => a.cat_id.localeCompare(b.cat_id));
+
+
+        products.forEach((product, index) => {
+            let data = [product.name.toUpperCase(), categoryName(product.cat_id), transformPrice(product.price)];
+            tableBodyData.push(data);
+        });
+        let tableHeadData = [['Ürün Adı', 'Kategori', 'Birim Fiyat']]
+
+        const xlsxData = [].concat(tableHeadData, tableBodyData);
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(xlsxData);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws);
+
+        XLSX.writeFile(wb, Store.name + '-Ürün Listesi' + '.xlsx');
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 export const updateStoreDetail = () => {
 
-    ManagementDB.Stores.get('1bb2057c-42f8-4df3-8a08-a32ea86cd88e').then((store: Store) => {
+    ManagementDB.Stores.get('d622f9dd-036b-4775-bbee-911d301c5b77').then((store: Store) => {
         // store.settings.accesibilty.wifi = { ssid: 'Kallavi', password: 'kallavikervansaray' };
-        console.log(store.slug);
+        // console.log(store.slug);
         // store.slug = 'timothys-cafe';
-        store.phone_number = '5336535668';
+        // store.phone_number = '5336535668';
+        store.auth = { database_id: 'ac1a0e21-1a04-421b-b295-418e4dca52e5', database_name: 'kosmos-besiktas', database_user: '$2b$10$78hdWumi3j4g0AMPt70HRe', database_password: '$2b$10$FZXSZbxf9uRJ9dttyA.40usCM1tLZXVEPIuna3edNAqF/.PYO1aRi' }
         // store.settings.accesibilty.days = [
         //     {
         //         is_open: true,
@@ -2782,6 +2841,31 @@ export const updateStoreDetail = () => {
         console.log(err);
     })
 
+}
+
+export const updateStoresDetails = () => {
+    ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit }).then((stores) => {
+        const Stores = stores.docs.filter(store => store._id !== 'd622f9dd-036b-4775-bbee-911d301c5b77');
+        Stores.forEach((store: Store) => {
+            store.auth.database_id = 'ac1a0e21-1a04-421b-b295-418e4dca52e5';
+            ManagementDB.Stores.put(store).then(isOK => {
+                console.log(isOK.ok);
+            });
+        })
+    }).catch(err => {
+        console.log(err);
+    })
+}
+
+export const recreateAllStoreDB = () => {
+    ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit }).then((stores) => {
+        const Stores = stores.docs.filter(store => store._id !== 'd622f9dd-036b-4775-bbee-911d301c5b77');
+        Stores.forEach((store: Store) => {
+            recrateDatabase(store._id);
+        })
+    }).catch(err => {
+        console.log(err);
+    })
 }
 
 export const createInvoiceForStore = async () => {
@@ -2873,4 +2957,64 @@ export const TAPDKCheck = (tapdkno: string) => {
             }
         })
     })
+}
+
+export const replaceProductsName = async (store_id: string) => {
+    try {
+        let kadeh = '🥃';
+        let sise = '🍾';
+        const StoreDatabase = await StoreDB(store_id);
+        const Products: Product[] = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit: 4000 })).docs;
+        let UpdatedVersion = [];
+
+        // let replacing = JSON.stringify(Products).replaceAll('🥃','Kadeh').replaceAll('🍾','Şişe');
+        // let UpdatedProducts = JSON.parse(replacing);
+
+
+
+        // for (const product of UpdatedProducts) {
+        //     if(product.specifies.length > 0) {
+        //         for (let spec of product.specifies) {
+        //             console.log(spec.spec_name);
+        //         }
+        //         // UpdatedVersion.push(updatedProduct);
+        //     }
+        // }
+
+        Products.forEach(product => {
+            if (product.specifies.length > 0) {
+                product.specifies.forEach(spec => {
+                    if (spec.spec_name.includes(sise)) {
+                        console.log(product)
+                        spec.spec_name = spec.spec_name.replace(kadeh, 'Kadeh').replace(sise, 'Sise').replace('🍷', 'Kadeh');
+                        console.log(spec.spec_name);
+                        StoreDatabase.put(product).then(obj => {
+                            console.log(obj);
+                        }).catch(err => {
+                            console.log(err);
+                        })
+                    }
+                    // spec.spec_name = spec.spec_name.replace(kadeh,'Kadeh').replace(sise,'Sise').replace('🍷','Kadeh');
+                    // console.log(spec.spec_name);
+                    // StoreDatabase.put(product).then(obj => {
+                    //     console.log(obj);
+                    // }).catch(err => {
+                    //     console.log(err);
+                    // })
+                })
+            }
+        })
+
+        // for (const product of Products) {
+        //     let updatedProduct = product
+        //     if(updatedProduct.specifies.length > 0) {
+        //         for (let spec of updatedProduct.specifies) {
+        //             spec.spec_name.replace(kadeh,'Kadeh').replace(sise,'Sise');
+        //         }
+        //         UpdatedVersion.push(updatedProduct);
+        //     }
+        // }
+    } catch (error) {
+        console.log(error);
+    }
 }

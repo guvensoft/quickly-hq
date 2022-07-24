@@ -12,13 +12,17 @@
     "pkg": "pkg . --target=latest-linux-x64",
     "watch-node": "nodemon dist/server.js",
     "watch-ts": "tsc -w",
-    "fetch": "scp -r root@quickly.com.tr:/home/quickly-hq/db /Users/ozgur/Desktop/quickly-hq",
+    "fetch": "rsync -avz --ignore-existing -r root@quickly.com.tr:/home/quickly-hq/db /Users/ozgur/Desktop/quickly-hq",
     "fetch:stores": "scp -r root@quickly.com.tr:/home/quickly-hq/db/management/stores /Users/ozgur/Desktop/quickly-hq/db/management",
     "upload:stores": "scp -r /Users/ozgur/Desktop/quickly-hq/db/management/stores root@quickly.com.tr:/home/quickly-hq/db/management",
-    "fetch:backup": "scp -r root@quickly.com.tr:/home/quickly-hq/backup/d675d07a-671a-4623-b953-6bf0e55745a1 /Users/ozgur/Desktop/quickly-hq/backup",
-    "upload:backup": "scp -r /Users/ozgur/Desktop/quickly-hq/backup/22d9fc30-e497-48eb-a9e8-484ac50e5d57 root@quickly.com.tr:/home/quickly-hq/backup"
+    "fetch:backup": "rsync -avz --ignore-existing -r root@quickly.com.tr:/home/quickly-hq/backup /Users/ozgur/Desktop/quickly-hq/backup",
+    "fetch:couch": "rsync -avz --ignore-existing root@quickly.com.tr:/var/lib/couchdb /Users/ozgur/Desktop/quickly-hq/couch",
+    "upload:backup": "scp -r /Users/ozgur/Desktop/quickly-hq/backup/* root@quickly.com.tr:/home/quickly-hq/backup",
+    "upload:couch": "scp -r /Users/ozgur/Desktop/quickly-hq/couch/couchdb/* root@quickly.com.tr:/var/lib/couchdb"
+
   },
   "author": "KosmosLabs",
+  
   "license": "ISC",
   "dependencies": {
     "apn": "^1.6.2",

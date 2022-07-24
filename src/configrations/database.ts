@@ -92,6 +92,10 @@ export const SocialDB = {
     Sessions: new PouchDB(databasePath + 'social/sessions', FileSystemConfigration),
 }
 
+// export const MenuDB = () => {
+
+// }
+
 
 export const CouchDB = (database: Database) => {
     return Nano(`http://${database.username}:${database.password}@${database.host}:${database.port}`);
@@ -125,7 +129,7 @@ export const OrderDB = async (store_id: string | string[], name: string, sync: b
         createIndexesForDatabase(Database, { index: { fields: ['db_name','check'] } }).then(res => {
             console.log('Indexing Finished Succesfully For Order Database');
         }).catch(err => {
-            console.log('Indexing Throw Error For Products Database');
+            console.log('Indexing Throw Error For Order Database');
             console.error(err);
         })
         if (sync) {

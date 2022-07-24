@@ -134,11 +134,11 @@ export const getCurrency = (req: Request, res: Response) => {
     axios.get('https://api.genelpara.com/embed/doviz.json').then(ax_res => {
         if (requestedCurrency) {
             let response:any = ax_res.data[requestedCurrency];
-            response.satis = response.satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "");
+            response.satis = response.satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "").replace("<span style=\"float:left;overflow:hidden;height:0;width:0;\">Kur fiyatları <a href=\"https://www.genelpara.com/\">GenelPara</a> tarafından sağlanmaktadır.</span>","");
             res.status(200).json(response);
         } else {
             let response:any = ax_res.data;
-            response['USD'].satis = response['USD'].satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "");
+            response['USD'].satis = response['USD'].satis.replace("<a href=https://www.genelpara.com/doviz/dolar/ style=display:none;>Dolar kaç tl</a>", "").replace("<span style=\"float:left;overflow:hidden;height:0;width:0;\">Kur fiyatları <a href=\"https://www.genelpara.com/\">GenelPara</a> tarafından sağlanmaktadır.</span>","");
             res.status(200).json(response);
         }
     }).catch(err => {

@@ -426,7 +426,7 @@ export const InvoiceSchemaSafe = joi.object().keys({
     from: joi.object(),
     to: joi.object(),
     items: joi.array(),
-    total: joi.number().required(),
+    total: joi.number(),
     sub_total: joi.number().required(),
     tax_total: joi.number().required(),
     installment: joi.number().allow(1, 2, 4, 6).required(),

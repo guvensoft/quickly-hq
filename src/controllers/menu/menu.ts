@@ -8,7 +8,6 @@ import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
 
 import { processPurchase } from "../../configrations/payments";
 import axios from "axios";
-import fetch from "node-fetch";
 
 export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;
