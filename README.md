@@ -1,6 +1,6 @@
 ![](https://kurumsal.quickly.com.tr/assets/client-dark.png)
 ***
-# Quickly Headquarters API (v1.2.5)
+# Quickly Headquarters API (v1.2.6)
 
 https://hq.quickly.com.tr - https://www.quickly.com.tr
 
