@@ -47,7 +47,6 @@
     "node-html-parser": "^5.1.0",
     "node-nestpay": "^1.0.4",
     "nodemailer": "^6.7.0",
-    "pcsclite": "^1.0.0",
     "pouchdb-adapter-http": "^7.0.0",
     "pouchdb-adapter-leveldb": "^7.1.1",
     "pouchdb-adapter-memory": "^7.1.1",
