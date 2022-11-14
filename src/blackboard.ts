@@ -1,44 +1,47 @@
+import { readFile } from 'fs';
+import { parse } from 'node-html-parser';
 import path from 'path';
-import { writeFile, readFile, readFileSync } from 'fs';
-import { CouchDB, ManagementDB, RemoteDB, StoresDB, StoreDB, DatabaseQueryLimit, RemoteCollection } from './configrations/database';
+import { CouchDB, DatabaseQueryLimit, ManagementDB, RemoteDB, StoreDB, StoresDB } from './configrations/database';
+import { backupPath, documentsPath } from './configrations/paths';
+import { createIndexesForDatabase, createStoreDatabase, purgeDatabase } from './functions/management/database';
+import { readDirectory, readJsonFile, writeJsonFile } from './functions/shared/files';
 import { Database } from './models/management/database';
 import { Store } from './models/management/store';
-import { Stock } from './models/store/stocks';
-import { backupPath, documentsPath } from './configrations/paths';
-import { BackupData, EndDay } from './models/store/endoftheday';
-import { Report, reportType } from './models/store/report';
 import { Cashbox } from './models/store/cashbox';
-import { ClosedCheck, CheckProduct, Check, CheckType } from './models/store/check';
-import { Log, logType } from './models/store/log';
-import { readJsonFile, writeJsonFile, readDirectory } from './functions/shared/files';
-import { createIndexesForDatabase, purgeDatabase, createStoreDatabase } from './functions/management/database';
-import { parse } from 'node-html-parser';
+import { Check, CheckProduct, CheckType, ClosedCheck } from './models/store/check';
+import { BackupData, EndDay } from './models/store/endoftheday';
+import { Log } from './models/store/log';
+import { Report, reportType } from './models/store/report';
+import { Stock } from './models/store/stocks';
 
 import fetch from 'node-fetch';
 
-import { OptionsV2, Parser, processors } from 'xml2js';
 import XLSX from 'xlsx';
+import { OptionsV2, Parser, processors } from 'xml2js';
 import { Table, TableStatus } from './models/store/table';
 
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
+import { productToStock } from './functions/store/stocks';
 import { Menu, MenuStatus, Order } from './models/store/menu';
 import { Category, Product, ProductSpecs, SubCategory } from './models/store/product';
-import { productToStock } from './functions/store/stocks';
-import { endDayProcess } from './controllers/store/endofday';
 
-import { StoreReport, ProductsReport, UsersReport, UserProductSalesReport, TablesReport, StoreSalesReport, createReport, ProductSalesReport } from './functions/store/reports';
-import { getSession } from './controllers/management/session';
+import { createReport, ProductsReport, StoreReport, StoreSalesReport } from './functions/store/reports';
 
 import fatura from 'fatura';
-import { eFaturaSecret, eFaturaUserName } from './configrations/secrets';
-import { Customer } from './models/store/customer';
-import { parseBooleans, parseNumbers } from 'xml2js/lib/processors';
-import axios from 'axios';
-import { UBL } from './models/external/ubl';
 import { performance } from 'perf_hooks';
+import { parseBooleans, parseNumbers } from 'xml2js/lib/processors';
+import { eFaturaSecret, eFaturaUserName } from './configrations/secrets';
+import { UBL } from './models/external/ubl';
+import { Company, CompanyStatus, CompanyType } from './models/management/company';
+import { Invoice, InvoiceItem, InvoiceStatus, InvoiceType } from './models/management/invoice';
+import { Customer } from './models/store/customer';
 import { BoldFont, NormalFont } from './utils/blobs';
+
+import * as soap from "soap";
+import * as isnet from './integration/isnet';
+import * as uyumsoft from './integration/uyumsoft';
 
 export const TableWorker = () => {
     ManagementDB.Databases.find({ selector: {} }).then((databases: any) => {
@@ -1175,87 +1178,164 @@ export const productFinder = (product_name: string) => {
     });
 }
 
-export const invoiceReader = () => {
+export const invoiceReader = (store_id: string, invoice_id?: string) => {
     const parserOpts: OptionsV2 = { ignoreAttrs: true, explicitArray: false, tagNameProcessors: [processors.stripPrefix], valueProcessors: [parseNumbers, parseBooleans] };
     const xmlParser = new Parser(parserOpts);
-    const invoicePath = path.join(__dirname, '../', '/backup/fatura/f3.xml');
-    readFile(invoicePath, (err, buffer) => {
-        if (!err) {
-            let data = buffer.toString('utf8');
-            let productsTable = [];
-            xmlParser.parseStringPromise(data).then((ubl: UBL) => {
 
-                const Invoice = ubl.Invoice;
+    readDirectory(path.join(__dirname, '../', '/backup/' + store_id + '/invoices/')).then(invoices => {
+        let total = 0;
 
-                console.log('       ')
-                console.log(Invoice.UUID + ' ' + Invoice.ID);
-                console.log('       ');
-                console.log(Invoice.IssueDate + ' ' + Invoice.IssueTime);
-                console.log('       ')
-                console.log(Invoice.AccountingSupplierParty.Party.PartyName.Name);
-                console.log('VD:  ' + Invoice.AccountingSupplierParty.Party.PartyTaxScheme.TaxScheme.Name);
-                console.log('VN:  ' + Invoice.AccountingSupplierParty.Party.PartyIdentification[0].ID);
-                console.log('       ')
-                console.log(Invoice.AccountingCustomerParty.Party.PartyName.Name);
-                console.log('VD:  ' + Invoice.AccountingCustomerParty.Party.PartyTaxScheme.TaxScheme.Name);
-                console.log('VN:  ' + Invoice.AccountingCustomerParty.Party.PartyIdentification.ID);
-                console.log('       ');
-                // console.log('Ürün Toplamı:      ' + Invoice.LegalMonetaryTotal.LineExtensionAmount);
-                // console.log('KDV siz Toplam:    ' + Invoice.LegalMonetaryTotal.TaxExclusiveAmount);
-                // console.log('KDV li Toplam:     ' + Invoice.LegalMonetaryTotal.TaxInclusiveAmount);
+        invoices.forEach(invoice => {
+            const invoicePath = path.join(__dirname, '../', '/backup/' + store_id + '/invoices/' + invoice);
+            readFile(invoicePath, (err, buffer) => {
+                if (!err) {
+                    let data = buffer.toString('utf8');
+                    xmlParser.parseStringPromise(data).then((ubl: UBL) => {
 
-                console.table(Invoice.InvoiceLine.map(obj => [obj.Item.Name, obj.InvoicedQuantity, obj.Price.PriceAmount, obj.TaxTotal.TaxAmount, obj.LineExtensionAmount]));
+                        const UBL = ubl.Invoice;
 
-                console.log('       ');
-                console.log('Ara Toplam:        ' + Invoice.LegalMonetaryTotal.TaxExclusiveAmount);
-                console.log('KDV Toplamı:       ' + Invoice.TaxTotal.TaxAmount)
-                console.log('Genel Toplam:      ' + Invoice.LegalMonetaryTotal.PayableAmount);
+                        let fromCompany: Company = {
+                            name: UBL.AccountingSupplierParty.Party.PartyName.Name,
+                            tax_no: (UBL.AccountingSupplierParty.Party.PartyIdentification.ID || UBL.AccountingSupplierParty.Party.PartyIdentification[0].ID),
+                            tax_administration: UBL.AccountingSupplierParty.Party.PartyTaxScheme.TaxScheme.Name,
+                            address: {
+                                country: UBL.AccountingSupplierParty.Party.PostalAddress.Country.Name,
+                                state: UBL.AccountingSupplierParty.Party.PostalAddress.District,
+                                province: UBL.AccountingSupplierParty.Party.PostalAddress.CityName,
+                                district: UBL.AccountingSupplierParty.Party.PostalAddress.CitySubdivisionName,
+                                street: UBL.AccountingSupplierParty.Party.PostalAddress.StreetName,
+                                description: (UBL.AccountingSupplierParty.Party.PostalAddress.StreetName + ' ' + UBL.AccountingSupplierParty.Party.PostalAddress.PostalZone + ', ' + UBL.AccountingSupplierParty.Party.PostalAddress.CitySubdivisionName + '/' + UBL.AccountingSupplierParty.Party.PostalAddress.CityName + ', ' + UBL.AccountingSupplierParty.Party.PostalAddress.Country.Name).replace('undefined', '').replace('undefined', ' ').replace('undefined', ' '),
+                                cordinates: null
+                            },
+                            email: UBL.AccountingSupplierParty.Party.Contact?.ElectronicMail,
+                            phone_number: UBL.AccountingSupplierParty.Party.Contact?.Telephone,
+                            type: CompanyType.ANONYMOUS,
+                            status: CompanyStatus.ACTIVE,
+                            supervisor: null,
+                            timestamp: Date.now(),
+                            website: UBL.AccountingSupplierParty.Party?.WebsiteURI,
+                        }
+                        let toCompany: Company = {
+                            name: UBL.AccountingCustomerParty.Party.PartyName.Name,
+                            tax_no: (UBL.AccountingCustomerParty.Party.PartyIdentification.ID || UBL.AccountingCustomerParty.Party.PartyIdentification[0].ID),
+                            tax_administration: UBL.AccountingCustomerParty.Party?.PartyTaxScheme?.TaxScheme.Name,
+                            address: {
+                                country: UBL.AccountingCustomerParty.Party.PostalAddress.Country.Name,
+                                state: UBL.AccountingCustomerParty.Party.PostalAddress.District,
+                                province: UBL.AccountingCustomerParty.Party.PostalAddress.CityName,
+                                district: UBL.AccountingCustomerParty.Party.PostalAddress.CitySubdivisionName,
+                                street: UBL.AccountingCustomerParty.Party.PostalAddress.StreetName,
+                                description: (UBL.AccountingCustomerParty.Party.PostalAddress.StreetName + ' ' + UBL.AccountingCustomerParty.Party.PostalAddress.PostalZone + ', ' + UBL.AccountingCustomerParty.Party.PostalAddress.CitySubdivisionName + '/' + UBL.AccountingCustomerParty.Party.PostalAddress.CityName + ', ' + UBL.AccountingCustomerParty.Party.PostalAddress.Country.Name).replace('undefined', '').replace('undefined', ' ').replace('undefined', ' ').trim(),
+                                cordinates: null
+                            },
+                            email: UBL.AccountingCustomerParty.Party.Contact?.ElectronicMail,
+                            phone_number: UBL.AccountingCustomerParty.Party.Contact?.Telephone,
+                            type: CompanyType.ANONYMOUS,
+                            status: CompanyStatus.ACTIVE,
+                            supervisor: null,
+                            timestamp: Date.now(),
+                            website: UBL.AccountingCustomerParty.Party?.WebsiteURI,
+                        }
+                        let Invoice: Invoice = {
+                            store: store_id,
+                            from: fromCompany,
+                            to: toCompany,
+                            items: [],
+                            total: UBL.LegalMonetaryTotal.PayableAmount,
+                            sub_total: UBL.LegalMonetaryTotal.TaxExclusiveAmount,
+                            tax_total: UBL.TaxTotal.TaxAmount,
+                            discount_total: (UBL?.AllowanceCharge?.Amount | 0),
+                            installment: 1,
+                            currency_rates: [],
+                            status: InvoiceStatus.WAITING,
+                            type: InvoiceType.SELLING,
+                            timestamp: new Date(UBL.IssueDate + ' ' + UBL.IssueTime).getTime(),
+                            expiry: new Date(UBL.IssueDate + ' ' + UBL.IssueTime).getTime() + 60 * 60 * 1000,
+                            ettn: UBL.UUID,
+                            inid: UBL.ID,
+                            notes: UBL.Note.toString()
+                        }
+
+                        if (Array.isArray(UBL.InvoiceLine)) {
+
+                            UBL.InvoiceLine.map(obj => {
+                                let InvoiceItem: InvoiceItem = {
+                                    name: obj.Item.Name,
+                                    description: obj.Item?.Note,
+                                    sku: obj.Item?.SellersItemIdentification?.ID,
+                                    price: obj.Price.PriceAmount,
+                                    quantity: obj.InvoicedQuantity,
+                                    tax_value: obj.TaxTotal?.TaxSubtotal?.Percent,
+                                    discount: (obj?.AllowanceCharge?.Amount | 0),
+                                    currency: 'TRY',
+                                    total_tax: obj.TaxTotal?.TaxAmount,
+                                    total_price: obj.LineExtensionAmount
+                                }
+                                Invoice.items.push(InvoiceItem)
+                            })
+                        } else {
+                            let obj: any = UBL.InvoiceLine;
+
+                            let InvoiceItem: InvoiceItem = {
+                                name: obj.Item.Name,
+                                description: obj.Item?.Note,
+                                sku: obj.Item?.SellersItemIdentification?.ID,
+                                price: obj.Price.PriceAmount,
+                                quantity: obj.InvoicedQuantity,
+                                tax_value: obj.TaxTotal?.TaxSubtotal?.Percent,
+                                discount: (obj?.AllowanceCharge?.Amount | 0),
+                                currency: 'TRY',
+                                total_tax: obj.TaxTotal?.TaxAmount,
+                                total_price: obj.LineExtensionAmount
+                            }
+                            Invoice.items.push(InvoiceItem)
+                        }
 
 
-                // console.log(Invoice.AccountingSupplierParty.Party);
-                // console.log(Invoice.InvoiceLine[0])
-                // console.log(Invoice.InvoiceLine)
 
 
-                // ubl['Invoice']['cac:InvoiceLine'].forEach(row => {
-                //     let quantity = row["cbc:InvoicedQuantity"][0]["_"];
-                //     let total_price = row["cbc:LineExtensionAmount"][0]["_"];
-                //     // let currency = row["cbc:LineExtensionAmount"][0]["$"];
-                //     // let discountAmount = row["cac:AllowanceCharge"][0]["cbc:Amount"][0]["_"];
-                //     // let discountValue = row["cac:AllowanceCharge"][0]["cbc:MultiplierFactorNumeric"];
-                //     // let withoutDiscount = row["cac:AllowanceCharge"][0]["cbc:BaseAmount"][0]["_"];
-                //     let taxAmount = row["cac:TaxTotal"][0]["cbc:TaxAmount"][0]["_"];
-                //     let taxPercent = row["cac:TaxTotal"][0]["cbc:Percent"];
-                //     let itemName = row["cac:Item"][0]["cbc:Description"];
-                //     let itemId = row["cac:Item"][0]["cbc:Name"];
-                //     let itemPrice = row["cac:Price"][0]["cbc:PriceAmount"][0]["_"];
+                        // StoresDB.Invoices.post(Invoice).then(isOk => {
+                        //     console.log(isOk);
+                        // }).catch(err => {
+                        //     console.log(err);
+                        // })
 
-                //     let item = {
-                //         quantity: parseInt(quantity),
-                //         name: itemName[0],
-                //         price: parseInt(total_price),
-                //         taxAmount: taxAmount,
-                //         taxPercent: taxPercent,
-                //         total: (parseInt(quantity) * parseInt(total_price)),
-                //     }
+                        if (Invoice.inid == invoice_id) {
+                            // console.log(UBL);
+                            console.log(Invoice)
 
-                //     productsTable.push(item);
-                // });
-                // console.table(productsTable);
+                            // let buff = Buffer.from(UBL.AdditionalDocumentReference.Attachment.EmbeddedDocumentBinaryObject);
+                            // let decoded = buff.toString('utf-8');
+                            // xmlParser.parseStringPromise(decoded).then(obj => { 
+                            //     console.log(obj);
 
-                // writeJsonFile('invoice.json', invoiceJson).then(res => {
-                //     console.log(res);
-                // }).catch(err => {
-                //     console.log(err);
-                // })
+                            // })
+                        }
 
-            }).catch(err => {
-                console.log(err);
-            })
-        } else {
-            console.log(err);
-        }
+
+                    }).catch(err => {
+                        console.log('HATA 1', err);
+                    })
+                } else {
+                    console.log('HATA 2', err);
+                }
+            });
+        })
+
+    }).catch(err => {
+        console.log(err);
     });
+}
+
+export const invoiceViewer = (store_id: string, invoice_id?: string) => {
+    const invoicePath = path.join(__dirname, '../', '/backup/' + store_id + '/invoices/' + invoice_id + '.xml');
+
+    // readFile(invoicePath, (err,file) => {
+
+
+
+    // })
+
 }
 
 export const productToStockApi = async (product_id: string, quantity: number, store_id: string) => {
@@ -1312,7 +1392,7 @@ export const importFromBackup = async (store_id: string) => {
     console.log('Importing Started !')
     let backupFile: Array<any> = await readJsonFile(backupPath + `${store_id}/db.dat`);
 
-    let docs = backupFile.filter(obj =>  obj.db_name == 'products');
+    let docs = backupFile.filter(obj => obj.db_name == 'products');
 
     let bulkResponse = await (await StoreDB(store_id)).bulkDocs(docs);
     console.log(bulkResponse);
@@ -1382,19 +1462,24 @@ export const recrateDatabase = (store_id: string) => {
 export const addNotes = () => {
     ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } }).then((res: any) => {
         let db: Database = res.docs[0];
-        RemoteDB(db, 'boaz-yalikavak').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
-            return res.docs.filter(obj => obj.cat_id !== 'e4f2dd26-bd45-4151-abcb-d8fc0b89226a').map(object => {
-                try {
-                    object.notes = 'Redbull,Cola,Soda,Sek,Portakal,Vişne,Elma,Buzlu,Buzsuz,Nane,Tonik';
-                } catch (error) {
-                    console.log(object.name);
-                }
-                // console.log(object.name, object.position);
-                return object;
-            });
-        }).then(stocks => {
-            console.log(stocks);
-            RemoteDB(db, 'boaz-yalikavak').bulkDocs(stocks).then(res => {
+        RemoteDB(db, 'mansion-cafe-restaurant-4b24').find({ selector: { db_name: 'products' }, limit: 2500 }).then((res: any) => {
+            // return res.docs.filter(obj => obj.cat_id !== 'e4f2dd26-bd45-4151-abcb-d8fc0b89226a').map(object => {
+            //     try {
+            //         object.notes = 'Redbull,Cola,Soda,Sek,Portakal,Vişne,Elma,Buzlu,Buzsuz,Nane,Tonik';
+            //     } catch (error) {
+            //         console.log(object.name);
+            //     }
+            //     // console.log(object.name, object.position);
+            //     return object;
+            // });
+
+            return res.docs.map(obj => {
+                obj.extras = [];
+                return obj;
+            })
+        }).then(products => {
+            console.log(products[10]);
+            RemoteDB(db, 'mansion-cafe-restaurant-4b24').bulkDocs(products).then(res => {
                 console.log('Property Added Successfuly');
             })
         })
@@ -1607,12 +1692,12 @@ export const loadStoreBackup = async (store_id: string, db_name: string) => {
 
         // console.log(storeTables.length);
         backup.forEach(async element => {
-            if(storeTables.find(obj => obj.name == element.name)){
+            if (storeTables.find(obj => obj.name == element.name)) {
                 // console.log(element.name);
-            }else{
+            } else {
                 console.log(element.name);
                 let isOk = await StoreDatabase.put(element);
-                console.log(isOk);            
+                console.log(isOk);
             }
         });
 
@@ -2544,7 +2629,7 @@ export const generateReportsFor = async (store_id: string, type: reportType) => 
 export const clearOrders = async (store_id: string) => {
     try {
         const StoreDatabase = await StoreDB(store_id);
-        let Documents = await StoreDatabase.find({ selector: { db_name: 'prints' }, limit: 40000 })
+        let Documents = await StoreDatabase.find({ selector: { db_name: 'logs' }, limit: 40000 })
         console.log(Documents.docs.length);
 
         Documents.docs.map(obj => {
@@ -2645,9 +2730,9 @@ export const storeDays = async (store_id: string, start_date?: string, end_date?
 
 
 
-    // writeJsonFile('enddays', endDayConvertedData);
+    writeJsonFile('enddays', endDayConvertedData);
 
-    // makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
+    makePdf(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }
 
 export const storeProductSales = async (store_id: string, start_date?: string, end_date?: string) => {
@@ -2658,8 +2743,12 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
 
 
         let categories = (await (await StoreDB(store_id)).find({ selector: { db_name: 'categories' }, limit: DatabaseQueryLimit })).docs;
+        let credits = (await (await StoreDB(store_id)).find({ selector: { db_name: 'credits' }, limit: DatabaseQueryLimit })).docs;
+
         let backupData = await StoreReport(store_id, start_date, end_date);
-        let salesReport = ProductsReport(backupData.find(data => data.database = 'closed_checks').docs);
+
+        let productsChecks = backupData.find(data => data.database = 'closed_checks').docs.concat(credits)
+        let salesReport = ProductsReport(productsChecks);
 
 
         const transformPrice = (value: number): string => {
@@ -2680,7 +2769,7 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
 
         salesReport = salesReport.sort((a, b) => (b.count * b.price) - (a.count * a.price));
         salesReport.forEach((product, index) => {
-            let data = [product.name.toUpperCase(), categoryName(product.category_id), transformPrice(product.price), product.count, transformPrice(product.price * product.count)];
+            let data = [product.name.toUpperCase(), categoryName(product.category_id), transformPrice(product.price), product.count, transformPrice(product.total)];
             tableBodyData.push(data);
         });
         let tableHeadData = [['Ürün Adı', 'Kategori', 'Birim Fiyat', 'Satış Adedi', 'Toplam Satış']]
@@ -2769,7 +2858,7 @@ export const storeProductExport = async (store_id: string) => {
         }
 
         let tableBodyData = [];
-        products.sort((a,b) => a.cat_id.localeCompare(b.cat_id));
+        products.sort((a, b) => a.cat_id.localeCompare(b.cat_id));
 
 
         products.forEach((product, index) => {
@@ -3017,4 +3106,286 @@ export const replaceProductsName = async (store_id: string) => {
     } catch (error) {
         console.log(error);
     }
+}
+
+
+export const getStoresLogos = async () => {
+    try {
+        let stores = (await ManagementDB.Stores.allDocs({ include_docs: true })).rows;
+        for (const store of stores) {
+            var base64Data = store.doc.logo.replace(/^data:image\/png;base64,/, "");
+            require("fs").writeFile(store.doc.slug + '.png', base64Data, 'base64', function (err) {
+                console.log(err);
+            });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const uyumsoftInvoice = () => {
+
+    const UYUMSOFT_WSDL_URL = "https://efatura-test.uyumsoft.com.tr/Services/Integration?wsdl";
+    const UYUMSOFT_USERNAME = "Uyumsoft";
+    const UYUMSOFT_PASSWORD = "Uyumsoft";
+
+    function createSoapClient(wsdlUrl, username, password) {
+        return new Promise((resolve, reject) => {
+            soap.createClient(wsdlUrl, {}, (err, client) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                const wsSecurity = new soap.WSSecurity(username, password);
+                client.setSecurity(wsSecurity);
+                resolve(client);
+            });
+        });
+    }
+
+    async function getInboxInvoices(client) {
+        const { GetInboxInvoices } = client;
+        const { result, envelope, soapHeader } = await GetInboxInvoices({
+            query: {
+                PageIndex: 0,
+                PageSize: 20,
+                ExecutionStartDate: null,
+                ExecutionEndDate: null,
+                //  InvoiceIds: [],
+                //  InvoiceNumbers: [],
+                SetTaken: false,
+                OnlyNewestInvoices: false,
+            },
+        });
+
+        if (result?.GetInboxInvoicesResult?.$attributes?.IsSucceded !== "true") {
+            return undefined;
+        }
+
+        return result.GetInboxInvoicesResult.Value;
+    }
+
+    async function main() {
+        console.log("Creating SOAP client...");
+        const client = await createSoapClient(
+            UYUMSOFT_WSDL_URL,
+            UYUMSOFT_USERNAME,
+            UYUMSOFT_PASSWORD
+        );
+
+        console.log(Object.keys(client));
+
+        console.log("Fetching invoice list...");
+        const invoiceList = await getInboxInvoices(client);
+        if (invoiceList == null) {
+            console.error("Invoice list cannot be fetched");
+            return;
+        }
+
+        const invoiceSummaryList = invoiceList.Items.map((item) => {
+            const {
+                IssueDate,
+                AccountingSupplierParty,
+                AccountingCustomerParty,
+                LegalMonetaryTotal: { PayableAmount },
+            } = item.Invoice;
+
+            return {
+                "Issue Date": IssueDate,
+                "Accounting Supplier Party": AccountingSupplierParty.Party.PartyName.Name,
+                "Accounting Customer Party": AccountingCustomerParty.Party.PartyName.Name,
+                Amount: `${PayableAmount.$value} ${PayableAmount.$attributes.currencyID}`,
+            };
+        });
+
+        console.log("Invoices:");
+        console.table(invoiceSummaryList);
+        console.log("Done.");
+    }
+
+    main();
+}
+
+export const soapTEST = () => {
+    fetch("https://nettefatura.isnet.net.tr/IncomingInvoice/AllIncomingInvoiceByFilter", {
+        "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "x-requested-with": "XMLHttpRequest",
+            "cookie": "_ga=GA1.3.1753555352.1666362530; Login=VknTckn=16867951058; cookieconsent_status=dismiss; _gid=GA1.3.1560305061.1667316988; NSC_wt_ofuufgbuvsb.jtofu.ofu.us=30dfa3db535567a582f5a6f1a29def41c1f46c1489d232caebb91c7edf5c05a9deb38c6c; __RequestVerificationToken=SZu54480yuqsMrQg3KI9rN0xYLeLNapzqp2NJQTXuRQzZU-38crNSyb1fFYdiXxz0HZ71rHWbA2V8h0asaWi1ilElRV_zYfm7-FYjL4gSGA1; ASP.NET_SessionId=ot3y502pr5tf1egjbomhpss5; .ASPXFORMSAUTH=610E171DB437B6F781386F3E080F1A4315A203E85D09D8D42AED3654055DB0119889E76104AF62A6ADB1E123271702839FCFAAA725F619D9FED56E120620A9E0AAAB5E48FE673290B4CC88FB796F2510374C5E1D5A94FC2AD7DBD83174AFBF650F0435476C856225B6BAA8E283CB21BAC2D0DCCCB21E2D83614C5A2375B2BF582F2D8FFF6D0C0B11541DB5E332238AEB3367C571035F10D4307FC105010D4AB54C028CEFE72D626796234F72C64B92A9526133E67B88389E2B5FC116BB6810EDAF5DFF2EA0B5924EF030DA141E30D62EF23CF739A6C4D9AFB1DB203F1640A727E5FD995962EDD867276FE08FB01EE83F876568182616F37175B4B532B91F79283B9C58F126913A97254A552332B0FB2AFE22489657BE09C5E6BE2032BC1EB38B40D3BD11D6B2E10656F9A144D6A86B7B8979F395A51F4A8BD9B25684BEDC3538375501C2BB17C54191CA5997474BA43EC94AF348B61B47BCD22BE3BF88BDE0E282203786029CCF1DCDB778DFAB98808FF941D8B52C298FF1850BA28D48186106D007FFE480E36F4683292A3353CD22C48BB43E47361BE25EDCCB798A33EFA3B4ED896A2AE9DD8E822EA1E7B59BA46E79CBFCF78293967ECDBABC2D3D4AE2D05752BD0004654610B0B38989CE4096D58C149A6D2612FBE7D853888653BAFBDA25C0CE03E08A25414E1661BCE0E3166F4D7162C61C8BDF14AB362094E1D53F65A3113ACED8E02FA2853D32B19AD7C51251910D5C06A07F3998309BCFA81A0BC3F106A2005555D359638132AD440D8A6E54C46693ACDA81834662FA38D5052A2CD7F70CCF0FD71FA065E5EBE10ADBA874DB4318400870E657EA5880B56B6A430D125E0ECC59916BBF4A5D1DB8218FFBE3D610E2031AB00DF078A0E3A3E391CA4116B2AE2656E44E83B879FE9C5E780C7E41E0C399B988C6F02EE2C9C87D1484D2157BA8A578FABF455A07BB3F31A69469BCF29EA96300555EA8A2014ED01BB4224D5999D19D11D8FFF3813F9150D9B421DA9404F49BD35918D6C74264620B1BE8CF046240F3307E82C6E77A36D1F038E91DA4C8F420CEB1E33F76C3171E801DAB990C5B180529024626930D8D603CEF47606C98CA1F56DC08BC89FFE7E735573F467D5C849FCB74AD19E22B3A7919511FBB37D7D3B39919D7805F1E573681AB4F5D2311C59AE35851B545F795341030A752A9D501D216DF636B9B9F02687203AD6495E77951BC1A4C829B758AC5862A16D2FDFA89031EF514EE73BF0D7265B73104A7D7A655BCAB28DE01F3158C3E0B7BEB3F7AB629E47C2DF1321F4F1D4857AE4F4EE1DB06F1C6C9C2CA8A2B622CA37621; citrix_ns_id=HQ5a+GWNqe3egBKNbulKSDi9sqA0002",
+            "Referer": "https://nettefatura.isnet.net.tr/IncomingInvoice/IncomingInvoiceList",
+            "Referrer-Policy": "strict-origin-when-cross-origin"
+        },
+        "body": "draw=3&columns%5B0%5D%5Bdata%5D=IdFaturaGelen&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=ActionButtons&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=AliciAdi&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=true&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=FaturaNo&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=Ettn&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=FaturaTarihiFormated&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=OdenecekTutarFormatted&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=GelisTarihiFormated&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=true&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=SenaryoAdi&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=true&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=FaturaTipiAdi&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=true&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B10%5D%5Bdata%5D=DurumAdi&columns%5B10%5D%5Bname%5D=&columns%5B10%5D%5Bsearchable%5D=true&columns%5B10%5D%5Borderable%5D=true&columns%5B10%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B10%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B11%5D%5Bdata%5D=OdemeSonucFormatted&columns%5B11%5D%5Bname%5D=&columns%5B11%5D%5Bsearchable%5D=true&columns%5B11%5D%5Borderable%5D=true&columns%5B11%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B11%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B12%5D%5Bdata%5D=IadeFaturaNo&columns%5B12%5D%5Bname%5D=&columns%5B12%5D%5Bsearchable%5D=true&columns%5B12%5D%5Borderable%5D=true&columns%5B12%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B12%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B13%5D%5Bdata%5D=IdFaturaGelenEk&columns%5B13%5D%5Bname%5D=&columns%5B13%5D%5Bsearchable%5D=true&columns%5B13%5D%5Borderable%5D=true&columns%5B13%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B13%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B14%5D%5Bdata%5D=14&columns%5B14%5D%5Bname%5D=&columns%5B14%5D%5Bsearchable%5D=true&columns%5B14%5D%5Borderable%5D=true&columns%5B14%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B14%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=7&order%5B0%5D%5Bdir%5D=desc&start=0&length=50&search%5Bvalue%5D=&search%5Bregex%5D=false&FaturaNo=&CompanyIdFilter=109263&VKNTCKN=&AliciAdi=&SenaryoId=&IlkTarih=&SonTarih=&FaturaIlkTarihi=Haziran+1%2C+2022&FaturaSonTarihi=Kas%C4%B1m+2%2C+2022++23%3A59%3A59&MinCost=&MaxCost=&AliciId=0&FaturaDurumu=-1&FaturaOnayDurumu=&FaturaTipiId=&OnlyUnReadedInvoice=false",
+        "method": "POST"
+    }).then(res => {
+        // console.log(res.body);
+
+
+        res.json().then(ok => {
+            console.log(ok.data)
+        })
+
+    }).catch(err => {
+        console.log(err)
+    })
+
+}
+
+export const uyumsoftTest = async () => {
+
+    const UYUMSOFT_WSDL_URL = "https://efatura-test.uyumsoft.com.tr/Services/Integration?wsdl";
+    const UYUMSOFT_WSDL_PATH = path.join(__dirname, '../src/integration/uyumsoft.wsdl');;
+
+    const UYUMSOFT_USERNAME = "Uyumsoft";
+    const UYUMSOFT_PASSWORD = "Uyumsoft";
+
+    console.log('WSDL Client Initialize Path: ', UYUMSOFT_WSDL_PATH);
+
+    const parserOpts: OptionsV2 = { ignoreAttrs: true, explicitArray: false, tagNameProcessors: [processors.stripPrefix], valueProcessors: [parseNumbers, parseBooleans] };
+    const xmlParser = new Parser(parserOpts);
+
+    try {
+
+        const security = new soap.WSSecurity(UYUMSOFT_USERNAME, UYUMSOFT_PASSWORD)
+        const client = await uyumsoft.createClientAsync(UYUMSOFT_WSDL_PATH);
+        client.setSecurity(security);
+
+        const { GetInboxInvoicesAsync, GetSummaryReportAsync, GetInboxInvoiceAsync, } = client;
+
+        const [result,raw] = await GetInboxInvoicesAsync({
+            query: {
+                ExecutionStartDate: null,
+                ExecutionEndDate: null,
+                //  InvoiceIds: [],
+                //  InvoiceNumbers: [],
+            }
+        });
+
+        let parsedResult = await xmlParser.parseStringPromise(raw);
+
+        let Invoices: Array<UBL> = parsedResult.Envelope.Body.GetInboxInvoicesResponse.GetInboxInvoicesResult.Value.Items;
+
+
+       
+
+
+
+
+        
+
+        // let invoices = result.GetInboxInvoicesResult.Value.Items;
+
+        // console.log(invoices[0].Invoice.InvoiceLine.Price.PriceAmount['$value']);
+
+
+
+        // let invoices = result.GetInboxInvoicesResult.Value.Items.map(obj => obj.Invoice.ID);
+
+        // for (const inid of invoices) {
+        //     const [invoice] = await GetInboxInvoiceAsync({invoiceId:inid});
+
+        //     let data = invoice.GetInboxInvoiceResult;
+
+        //     console.log(data);
+
+        // }
+
+
+        // const [summary] = await GetSummaryReportAsync({
+        //     startDate: null,
+        //     endDate: null
+        // });
+
+        // console.log(summary.GetSummaryReportResult);
+
+
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+
+export const isnetTEST = async () => {
+
+    const ISNET_WSDL_URL = "http://einvoiceservicetest.isnet.net.tr/InvoiceService/ServiceContract/InvoiceService.svc?singleWsdl";
+    const ISNET_WSDL_PATH = path.join(__dirname, '../', 'integration/isnet.wsdl');
+
+    const ISNET_USERNAME = "16867951058" // "4059649806";
+    const ISNET_PASSWORD = "Caner23!";   // "1234"
+
+    const TEST_USERNAME = "4059649806";
+    const TEST_PASSWORD = "1234"
+
+    try {
+        let security = new soap.WSSecurity(TEST_USERNAME, TEST_PASSWORD)
+        let client = await isnet.createClientAsync(ISNET_WSDL_PATH);
+
+        client.setSecurity(security);
+
+        const { GetEttnListAsync, SearchInvoiceAsync } = client
+
+
+        const [invoices,x,y,z] = await SearchInvoiceAsync({
+            request: {
+                CompanyTaxCode: '1234567805',
+                InvoiceDirection:'Incoming',
+                ResultSet: {
+                    IsAdditionalTaxIncluded: true,
+                    IsXMLIncluded: true,
+                    IsArchiveIncluded: true,
+                    IsAttachmentIncluded:true,
+                    IsHtmlIncluded:true,
+                    IsInvoiceDetailIncluded:true,
+                    IsExternalUrlIncluded:true,
+                    IsPDFIncluded:false
+                },
+                // PagingRequest: {
+                //     PageNumber:1,
+                //     RecordsPerPage:10
+                // }
+            }
+        })
+
+        // const [ettns] = await GetEttnListAsync({
+        //     request: {
+        //         CompanyTaxCode: '1234567805',
+        //         IncludeMainCompany: 'false',
+        //         ResultSet:{
+        //             IsXMLIncluded:true
+        //         }
+        //     }
+        // })
+
+        // console.log(ettns.GetEttnListResult)
+
+        console.log(invoices.SearchInvoiceResult);
+        // console.log(invoices.SearchAllInvoiceResult)
+
+        // client.InvoiceService.InvoiceServiceBasicHttpEndpoint.SearchAllInvoice({
+        //     request:{
+        //         CompanyTaxCode:'6140592768',
+        //         InvoiceDirection:'Incoming',
+        //         ResultSet:{
+        //             IsAdditionalTaxIncluded:true,
+        //         }
+
+        //     }}, (err, res) => {
+        //         if(!err){
+        //             console.log(res);
+        //         }else{
+        //             console.log(err);
+        //         }
+        // })
+
+
+        // console.log(invoiceList.GetInboxInvoicesResult.Value.Items.length)
+
+
+    } catch (error) {
+        console.log(error)
+    }
+
 }

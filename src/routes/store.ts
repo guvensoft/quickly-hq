@@ -5,6 +5,9 @@ import { SchemaGuard } from '../middlewares/management'
 
 import * as ListController from '../controllers/store/general';
 import * as DocumentController from '../controllers/store/document';
+
+import * as StoreOwnerProfileController from '../controllers/store/agreements';
+
 import * as StoreAuthController from '../controllers/store/authentication';
 import * as StoreReportsController from '../controllers/store/reports';
 import * as StoreMenuController from '../controllers/store/menu';
@@ -12,11 +15,19 @@ import * as StoreOrderController from '../controllers/store/orders';
 import * as StoreReceiptController from '../controllers/store/receipts';
 import * as StoreEndofdayController from '../controllers/store/endofday';
 import * as StoreCashboxController from '../controllers/store/cashbox';
+import * as StoreInvoiceController from '../controllers/store/invoices';
+import * as StoreSettingsontroller from '../controllers/store/settings';
+
+
+
 
 import { AuthSchemaSafe } from '../schemas/management';
 import * as StoreSchema from '../schemas/store';
 
 const router = Router();
+
+
+
 
 // Store Auth Controllers
 router.post("/login",
@@ -35,6 +46,59 @@ router.post("/refresh",
     StoreAuthenticateGuard,
     StoreAuthController.Refresh
 );
+router.post("/message",
+    StoreAuthController.Message
+);
+router.post("/change",
+    StoreAuthController.Change
+);
+
+// Settings
+
+router.get("/settings",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreSettingsontroller.getSettings
+);
+
+
+router.get("/settings",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreSettingsontroller.getSettings
+);
+
+router.post("/settings",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreSettingsontroller.saveSettings
+);
+
+
+// Agreements
+router.get("/agreements/:type",
+    StoreOwnerProfileController.showAgreement
+);
+
+
+// Invoices
+router.get("/invoice/:id",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreInvoiceController.getInvoice
+);
+
+router.get("/invoices",
+    StoreAuthenticateGuard,
+    StoreGuard,
+    AccountGuard,
+    StoreInvoiceController.queryInvoices
+);
+
 
 /// Store Endday
 router.post("/endday",

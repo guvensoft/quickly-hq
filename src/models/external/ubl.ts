@@ -77,24 +77,10 @@ export interface UBL {
         IssueDate: string;
         IssueTime: string;
         InvoiceTypeCode: string;
-        Note: string;
+        Note: string | string[];
         DocumentCurrencyCode: string;
         LineCountNumeric: number;
-        AdditionalDocumentReference: ({
-            ID: number;
-            IssueDate: string;
-            DocumentTypeCode: string;
-            DocumentType: string;
-            DocumentDescription?: undefined;
-            Attachment?: undefined;
-        } | {
-            ID: number;
-            IssueDate: string;
-            DocumentTypeCode: string;
-            DocumentType: string;
-            DocumentDescription: string;
-            Attachment?: undefined;
-        } | {
+        AdditionalDocumentReference: {
             ID: string;
             IssueDate: string;
             DocumentType: string;
@@ -103,7 +89,7 @@ export interface UBL {
             };
             DocumentTypeCode?: undefined;
             DocumentDescription?: undefined;
-        })[];
+        };
         Signature: {
             ID: number;
             SignatoryParty: {
@@ -132,11 +118,9 @@ export interface UBL {
         };
         AccountingSupplierParty: {
             Party: {
-                PartyIdentification: ({
+                PartyIdentification: {
                     ID: number;
-                } | {
-                    ID: string;
-                })[];
+                };
                 PartyName: {
                     Name: string;
                 };
@@ -162,7 +146,9 @@ export interface UBL {
                 Contact: {
                     Telephone: string;
                     Telefax: string;
+                    ElectronicMail:string;
                 };
+                WebsiteURI:string
             };
         };
         AccountingCustomerParty: {
@@ -174,9 +160,15 @@ export interface UBL {
                     Name: string;
                 };
                 PostalAddress: {
+                    Room: number;
                     StreetName: string;
+                    BlockName: string;
+                    BuildingName: string;
+                    BuildingNumber: number;
                     CitySubdivisionName: string;
                     CityName: string;
+                    PostalZone: number;
+                    District: string;
                     Country: {
                         Name: string;
                     };
@@ -187,10 +179,22 @@ export interface UBL {
                     };
                 };
                 Contact: {
-                    ElectronicMail: string;
+                    Telephone: string;
+                    Telefax: string;
+                    ElectronicMail:string;
                 };
+                WebsiteURI:string
             };
         };
+        PaymentTerms: string,
+        AllowanceCharge: {
+          ChargeIndicator: boolean,
+          AllowanceChargeReason: string,
+          MultiplierFactorNumeric: number,
+          SequenceNumeric: number,
+          Amount: number,
+          BaseAmount: number
+        },
         TaxTotal: {
             TaxAmount: number;
             TaxSubtotal: {
@@ -209,12 +213,21 @@ export interface UBL {
             LineExtensionAmount: number;
             TaxExclusiveAmount: number;
             TaxInclusiveAmount: number;
+            AllowanceTotalAmount: number;
+            PayableRoundingAmount: number;
             PayableAmount: number;
         };
         InvoiceLine: {
             ID: number;
             InvoicedQuantity: number;
             LineExtensionAmount: number;
+            AllowanceCharge: {
+                ChargeIndicator: boolean,
+                AllowanceChargeReason: string,
+                MultiplierFactorNumeric: number,
+                Amount: number,
+                BaseAmount: number
+            };
             TaxTotal: {
                 TaxAmount: number;
                 TaxSubtotal: {
@@ -231,6 +244,7 @@ export interface UBL {
             };
             Item: {
                 Name: string;
+                Note: string;
                 SellersItemIdentification: {
                     ID: string;
                 };

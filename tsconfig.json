@@ -25,6 +25,9 @@
             "esnext"
         ]
     },
+    "exclude": [
+        "src/integration/**/*"
+    ],
     "include": [
         "src/**/*"
     ]

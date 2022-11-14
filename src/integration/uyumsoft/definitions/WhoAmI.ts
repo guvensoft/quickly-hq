@@ -1,0 +1,4 @@
+
+/** WhoAmI */
+export interface WhoAmI {
+}

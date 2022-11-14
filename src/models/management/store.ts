@@ -39,6 +39,14 @@ export interface StoreSettings {
     allowed_tables: boolean,
     allowed_products: boolean,
     allowed_payments: Array<string>
+    social: StoreSocialMediaAccounts
+}
+
+export interface StoreSocialMediaAccounts {
+    instagram:string,
+    facebook:string,
+    youtube:string,
+    twitter:string,
 }
 
 export interface StoreAccesibilty {

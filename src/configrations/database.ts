@@ -26,8 +26,10 @@ import { Campaign } from '../models/management/campaing';
 import { Brand } from '../models/management/brand';
 import { Invoice } from '../models/management/invoice';
 import { Company } from '../models/management/company';
+import { Menu } from '../models/store/menu';
 
 import { createIndexesForDatabase } from '../functions/management/database';
+import { OtpCheck } from '../models/utils/otp';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBInMemory);
@@ -40,6 +42,8 @@ export const DatabaseQueryLimit = 2500;
 
 export const FileSystemConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'leveldb' };
 export const InMemoryConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'memory' };
+export const InMemoryMenuConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 100, auto_compaction: true, adapter: 'memory' };
+
 
 export const ManagementDB = {
     Users: new PouchDB<User>(databasePath + 'management/users', FileSystemConfigration),
@@ -67,6 +71,12 @@ export const StoresDB = {
     Infos: new PouchDB<Store>(databasePath + 'store/info', FileSystemConfigration),
     Settings: new PouchDB<StoreSettings>(databasePath + 'store/settings', FileSystemConfigration),
     Sessions: new PouchDB<Session>(databasePath + 'store/sessions', FileSystemConfigration),
+    Invoices: new PouchDB<Invoice>(databasePath + 'store/invoices', FileSystemConfigration),
+}
+
+export const UtilsDB = {
+    Otp: new PouchDB<OtpCheck>(databasePath + 'utils/otp', FileSystemConfigration),
+    Sms: new PouchDB<OtpCheck>(databasePath + 'utils/sms', FileSystemConfigration),
 }
 
 export const AdressDB = {
@@ -92,9 +102,10 @@ export const SocialDB = {
     Sessions: new PouchDB(databasePath + 'social/sessions', FileSystemConfigration),
 }
 
-// export const MenuDB = () => {
-
-// }
+export const MenuDB = {
+    Local: new PouchDB<Menu>(databasePath + 'menu/local', FileSystemConfigration),
+    Memory: new PouchDB<Menu>(databasePath + 'menu/memory', InMemoryMenuConfigration),
+}
 
 
 export const CouchDB = (database: Database) => {

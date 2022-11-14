@@ -12,6 +12,8 @@ import queryParser from 'express-query-int';
 import { OrderMiddleware, StoreDB } from './configrations/database'
 import { corsOptions } from './configrations/cors';
 
+import * as DatabaseServices from './services/database';
+
 
 //// D 19286545426
 //// Y 23957103044
@@ -42,6 +44,8 @@ app.use('/order', cors(corsOptions), OrderMiddleware);
 
 app.all('/*', (req, res) => res.status(404).end());
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
+
+DatabaseServices.initializeMenu();
 
 /* For Standalone No Reverse-Proxy Operations */
 
@@ -86,4 +90,8 @@ app.listen(3000, () => console.log('Quickly Head Quarters Started at http://loca
 // grep sshd.\*Failed /var/log/auth.log | less
 
 
-// import './local_mutations';
+import './local_mutations';
+
+
+
+

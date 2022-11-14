@@ -9,18 +9,23 @@ export interface CurrencyRate {
 }
 
 export interface Invoice {
+    store:string,
     from: Company,
     to: Company,
     items: Array<InvoiceItem>,
     total: number,
     sub_total: number,
     tax_total: number,
+    discount_total:number,
     installment: InstallmentOptions,
     currency_rates: Array<CurrencyRate>,
     status: InvoiceStatus,
     type: InvoiceType,
     timestamp: number,
     expiry: number,
+    notes:string,
+    ettn?: string,
+    inid?: string,
     _id?: string,
     _rev?: string
 }
@@ -28,6 +33,7 @@ export interface Invoice {
 export interface InvoiceItem {
     name: string,
     description: string,
+    sku: string,
     price: number,
     quantity: number,
     tax_value: number,
@@ -39,13 +45,24 @@ export interface InvoiceItem {
 
 export enum InvoiceStatus {
     WAITING,
+    ON_PROGRESS,
     APPROVED,
+    AUTO_APPROVED,
     PAYED,
+    RETURNED,
     CANCELED,
 }
 
 export enum InvoiceType {
-    OPEN,
-    CLOSED,
-    EXPIRED
+    SELLING,
+    RETURN,
+    SPECIAL,
+}
+
+export enum InvoiceScenario {
+    TEMELFATURA,
+    TICARIFATURA,
+    HKS,
+    KAMU,
+    IHRACAT
 }

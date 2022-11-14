@@ -214,7 +214,7 @@ export const ProductsReport = (checks_to_count: Array<ClosedCheck>): Array<Produ
                 if (contains) {
                     let index = productSalesReport.findIndex(obj => obj.name === product.name);
                     productSalesReport[index].count++;
-                    // productSalesReport[index].total += product.price;
+                    productSalesReport[index].total += product.price;
                 } else {
                     let countObj: ProductSalesReport = { product_id: product.id, owner_id: product.owner, category_id: product.cat_id, price: product.price, total:product.price, name: product.name, count: 1 };
                     productSalesReport.push(countObj);

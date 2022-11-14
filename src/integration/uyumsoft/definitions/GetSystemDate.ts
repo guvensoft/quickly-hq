@@ -1,0 +1,4 @@
+
+/** GetSystemDate */
+export interface GetSystemDate {
+}

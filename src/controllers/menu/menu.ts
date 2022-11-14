@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { RemoteDB, ManagementDB, OrderDB, StoreDB } from '../../configrations/database';
+import { RemoteDB, ManagementDB, OrderDB, StoreDB, MenuDB } from '../../configrations/database';
 import { MenuMessages } from "../../utils/messages";
 import { Database } from "../../models/management/database";
 import { Store } from "../../models/management/store";
@@ -13,7 +13,9 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;
     try {
         const Database: Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
-        const Menu: Menu = await RemoteDB(Database, 'quickly-menu-app').get(Slug);
+        // const Menu: Menu = await RemoteDB(Database, 'quickly-menu-app').get(Slug);
+        const Menu: Menu = await MenuDB.Memory.get(Slug);
+
         const Store: Store = await ManagementDB.Stores.get(Menu.store_id);
 
         delete Store._id;

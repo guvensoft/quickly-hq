@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { StoreDB, DatabaseQueryLimit, ManagementDB, RemoteDB } from '../../configrations/database';
+import { StoreDB, DatabaseQueryLimit, ManagementDB, RemoteDB, MenuDB } from '../../configrations/database';
 import { MenuMessages } from '../../utils/messages';
 
 import { Database } from "../../models/management/database";
@@ -15,7 +15,10 @@ export const requestMenu = async (req: Request, res: Response) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(StoreID);
         const Database: Database = await ManagementDB.Databases.get(Store.auth.database_id);
-        const Menu: Menu = await (await RemoteDB(Database, 'quickly-menu-app').find({ selector: { store_id: StoreID } })).docs[0];
+        // const Menu: Menu = await (await RemoteDB(Database, 'quickly-menu-app').find({ selector: { store_id: StoreID } })).docs[0];
+
+        const Menu: Menu = (await MenuDB.Memory.find({ selector: { store_id: StoreID } })).docs[0];
+
 
         delete Store._id;
         delete Store._rev;
@@ -24,7 +27,8 @@ export const requestMenu = async (req: Request, res: Response) => {
         delete Store.timestamp;
         delete Store.type;
         delete Store.status;
-
+        delete Store.supervisory;
+        delete Store.notes;
         // delete Store.settings.order
         // delete Store.settings.preorder
         // delete Store.settings.reservation

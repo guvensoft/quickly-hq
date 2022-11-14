@@ -13,13 +13,14 @@
     "watch-node": "nodemon dist/server.js",
     "watch-ts": "tsc -w",
     "fetch": "rsync -avz --ignore-existing -r root@quickly.com.tr:/home/quickly-hq/db /Users/ozgur/Desktop/quickly-hq",
-    "fetch:stores": "rsync -avz --ignore-existing -r root@quickly.com.tr:/home/quickly-hq/db/management/stores /Users/ozgur/Desktop/quickly-hq/db/management",
-    "upload:stores": "rsync -avz --ignore-existing -r/Users/ozgur/Desktop/quickly-hq/db/management/stores root@quickly.com.tr:/home/quickly-hq/db/management",
-    "fetch:backup": "rsync -avz --ignore-existing -r root@quickly.com.tr:/home/quickly-hq/backup /Users/ozgur/Desktop/quickly-hq/backup",
-    "upload:backup": "rsync -avz --ignore-existing -r /Users/ozgur/Desktop/quickly-hq/backup/* root@quickly.com.tr:/home/quickly-hq/backup"
+    "fetch:owners": "scp -r root@94.101.81.26:/home/quickly-hq/db/management/owners /Users/ozgur/Desktop/quickly-hq/db/management",
+    "fetch:stores": "rsync -avz --ignore-existing -r root@31.210.67.226:/home/quickly-hq/db/management/stores /Users/ozgur/Desktop/quickly-hq/db/management",
+    "upload:stores": "rsync -avz --ignore-existing -r/Users/ozgur/Desktop/quickly-hq/db/management/stores root@31.210.67.226:/home/quickly-hq/db/management",
+    "fetch:backup": "rsync -avz --ignore-existing -r root@quickly.com.tr:/home/quickly-hq/backup/e5a5c0cd-97c3-4c36-ba05-7f9a0ceb519d /Users/ozgur/Desktop/quickly-hq/backup",
+    "upload:backup": "rsync -avz --ignore-existing -r /Users/ozgur/Desktop/quickly-hq/backup/* root@quickly.com.tr:/home/quickly-hq/backup",
+    "upload:logos": "rsync -avz --ignore-existing -r /Users/ozgur/Desktop/quickly-hq/logos/* root@quickly.com.tr:/var/www/cdn.quickly.com.tr/slug"
   },
   "author": "KosmosLabs",
-  
   "license": "ISC",
   "dependencies": {
     "apn": "^1.6.2",
@@ -54,6 +55,7 @@
     "pouchdb-find": "^7.0.0",
     "pouchdb-replication": "^7.2.2",
     "pouchdb-upsert": "^2.2.0",
+    "soap": "^0.45.0",
     "xlsx": "^0.17.3",
     "xml2js": "^0.4.23"
   },

@@ -46,13 +46,15 @@ const normalFont = "Normal";
 const boldFont = "Bold"
 const tableColor = '#D9534F';
 
-const invoiceColumns     = ["#", "Ürün/Hizmet", "Adet", "KDV", "Birim Fiyat", "Toplam Fiyat "];
-const productTotalColumn = ["Ürün/Hizmet Toplam                    :"];
-const taxRateColumn      = ["KDV (%18)                                     :"];
-const totalColumn        = ["Genel Toplam                               :"];
-const tableSpace         = "           ";
+
 
 export async function generateInvoicePDF(invoiceData: Invoice) {
+
+    const invoiceColumns     = ["#", "Ürün/Hizmet", "Adet", "KDV", "Birim Fiyat", "Toplam Fiyat "];
+    const productTotalColumn = ["Ürün/Hizmet Toplam                    :"];
+    const taxRateColumn      = ["KDV (%18)                                     :"];
+    const totalColumn        = ["Genel Toplam                               :"];
+    const tableSpace         = "           ";
 
     const invoice = invoiceData;
     const customerName = invoice.to.name;
@@ -96,7 +98,7 @@ export async function generateInvoicePDF(invoiceData: Invoice) {
     const addInvoiceTotalTable = (PDF:jsPDF) => {
         console.log('total Works  for')
         const offset = 250;
-        let offsetY = 22 + (invoice.items.length * 30) - (invoice.items.length * 2);
+        let offsetY = 22 + (invoice.items.length * 32) - (invoice.items.length * 2);
         productTotalColumn[0] = `${productTotalColumn[0] + tableSpace + invoice.sub_total.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'}`;
         autoTable(PDF, {
             // tableWidth: 300,

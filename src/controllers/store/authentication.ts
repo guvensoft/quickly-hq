@@ -1,14 +1,16 @@
 import * as bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { defaultSessionTime } from "../../configrations/session";
-import { ManagementDB, StoresDB } from "../../configrations/database";
+import { ManagementDB, StoresDB, UtilsDB } from "../../configrations/database";
 import { createSession, isSessionExpired } from "../../functions/shared/session";
 import { Owner } from "../../models/management/owner";
 import { Session } from "../../models/management/session";
 import { createLog, LogType } from '../../utils/logger';
 import { SessionMessages } from "../../utils/messages";
+import { sendSms } from "../../configrations/sms";
+import { OtpCheck } from "../../models/utils/otp";
 
-export let Login = (req: Request, res: Response) => {
+export const Login = (req: Request, res: Response) => {
     let formData = req.body;
     ManagementDB.Owners.find({ selector: { username: formData.username } }).then((owners: any) => {
         if (owners.docs.length > 0) {
@@ -72,7 +74,7 @@ export const Logout = (req: Request, res: Response) => {
 
 export const Verify = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
-    StoresDB.Sessions.get(AuthToken).then((session: any) => {
+    StoresDB.Sessions.get(AuthToken).then((session: Session) => {
         if (session) {
             if (isSessionExpired(session)) {
                 StoresDB.Sessions.remove(session).then(() => {
@@ -93,7 +95,6 @@ export const Verify = (req: Request, res: Response) => {
         res.status(SessionMessages.SESSION_NOT_EXIST.code).json(SessionMessages.SESSION_NOT_EXIST.response);
     })
 }
-
 
 export const Refresh = (req: Request, res: Response) => {
     let AuthToken = req.headers.authorization;
@@ -126,4 +127,78 @@ export const Refresh = (req: Request, res: Response) => {
         createLog(req, LogType.DATABASE_ERROR, err);
         res.status(SessionMessages.SESSION_NOT_EXIST.code).json(SessionMessages.SESSION_NOT_EXIST.response);
     })
+}
+
+export const Message = (req: Request, res: Response) => {
+
+    const code: number = Math.floor(1000 + Math.random() * 9000);
+    const type: 'securelogin' | 'newpassword' = req.body.type;
+    const numb: string = req.body.number;
+
+    ManagementDB.Owners.find({ selector: { phone_number: parseInt(numb) } }).then(Owners => {
+        if (Owners.docs.length > 0) {
+            const Owner = Owners.docs[0];
+            sendSms(Owner.phone_number.toString(), `Doğrulama Kodunuz: ${code}`)
+            switch (type) {
+                case 'securelogin':
+                    res.status(200).json({ ok: true, code: code });
+                    break;
+                case 'newpassword':
+                    const otpCheck: OtpCheck = { owner: Owner._id, code: code, expiry: Date.now() + 120000 };
+                    UtilsDB.Otp.post(otpCheck).then(message => {
+                        res.status(200).json({ ok: true, code: code, id: message.id });
+                    }).catch(err => {
+                        console.log(err);
+                        res.status(404).json({ ok: false, message: 'Sistemde Hata Oluştu! Tekrar Deneyiniz!' });
+                    })
+                    break;
+                default:
+                    res.status(200).json({ ok: true, code: code });
+                    break;
+            }
+        } else {
+            res.status(404).json({ ok: false, message: 'Sistemde Kayıtlı Numara Bulunamadı!' });
+        }
+    }).catch(err => {
+        res.status(404).json({ ok: false, message: 'Sistemde Kayıtlı Numara Bulunamadı!' });
+    })
+}
+
+export const Change = async (req: Request, res: Response) => {
+    const messageId: string = req.body.message_id;
+    const newPassword: string = req.body.new_password;
+    const verificationCode: string = req.body.verification_code;
+    try {
+        let OtpCheck = await UtilsDB.Otp.get(messageId);
+        let Owner = await ManagementDB.Owners.get(OtpCheck.owner);
+        if (OtpCheck.code == parseInt(verificationCode)) {
+            bcrypt.genSalt(10, (err, salt) => {
+                if (!err) {
+                    bcrypt.hash(newPassword, salt, (err, hashedPassword) => {
+                        if (!err) {
+                            Owner.password = hashedPassword;
+                            Owner.timestamp = Date.now();
+                            ManagementDB.Owners.put(Owner).then(isOk => {
+                                console.log(isOk);
+                                res.status(200).send({ ok: true, message: 'Şifre Değiştirildi' })
+                            }).catch(err => {
+                                res.status(400).json({ ok: false, message: 'İşlem Sırasında Hata Oluştu!' })
+                                createLog(req, LogType.DATABASE_ERROR, err);
+                            })
+                        } else {
+                            res.status(400).json({ ok: false, message: 'İşlem Sırasında Hata Oluştu!' })
+                            createLog(req, LogType.INNER_LIBRARY_ERROR, err);
+                        }
+                    });
+                } else {
+                    res.status(400).json({ ok: false, message: 'İşlem Sırasında Hata Oluştu!' })
+                    createLog(req, LogType.INNER_LIBRARY_ERROR, err);
+                }
+            });
+        } else {
+            res.status(400).json({ ok: false, message: 'Doğrulama Kodu Yanlış' })
+        }
+    } catch (error) {
+        res.status(400).json({ ok: false, message: 'İşlem Sırasında Hata Oluştu!' })
+    }
 }
