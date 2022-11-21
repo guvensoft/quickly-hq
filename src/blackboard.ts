@@ -2669,16 +2669,6 @@ export const productReports = async (store_id: string, start_date?: string, end_
 
 export const storeDays = async (store_id: string, start_date?: string, end_date?: string) => {
     let enddays = await (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' }, limit: 3000 })).docs;
-
-
-    // let total = 0;
-    // enddays.forEach(obj => {
-    //     total += obj.total_income;
-    // });
-
-    // console.log(total);
-
-
     let storeBackups: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
     let storeDays: Array<number> = storeBackups.map(day => parseInt(day)).sort((a, b) => b - a).filter(date => date > parseInt(start_date) && date < parseInt(end_date));
     let endDayConvertedData: Array<EndDay> = [];

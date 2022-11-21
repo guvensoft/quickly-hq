@@ -30,6 +30,7 @@ import { Menu } from '../models/store/menu';
 
 import { createIndexesForDatabase } from '../functions/management/database';
 import { OtpCheck } from '../models/utils/otp';
+import { AgreementData } from '../models/management/agreement';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBInMemory);
@@ -64,7 +65,8 @@ export const ManagementDB = {
     Subscriptions: new PouchDB<OwnerSubscriptions>(databasePath + 'management/subscriptions', FileSystemConfigration),
     Cards: new PouchDB<SafeCard>(databasePath + 'management/cards', FileSystemConfigration),
     Logs: new PouchDB<Log>(databasePath + 'management/logs', FileSystemConfigration),
-    Sessions: new PouchDB<Session>(databasePath + 'management/sessions', FileSystemConfigration)
+    Sessions: new PouchDB<Session>(databasePath + 'management/sessions', FileSystemConfigration),
+    Aggreements: new PouchDB<AgreementData>(databasePath + 'management/sessions', FileSystemConfigration)
 }
 
 export const StoresDB = {
