@@ -138,7 +138,6 @@ export const storesInfo = (req: Request, res: Response) => {
     })
 }
 
-// req: Request, res: Response
 export const storesInfo2 = async (req: Request, res: Response) => {
     const OwnerID: string = 'bbe63bd6-b3bd-4011-ad7e-88180d3d0b0f' // req.app.locals.user;
     const OwnerStores = await (await ManagementDB.Owners.get(OwnerID)).stores;

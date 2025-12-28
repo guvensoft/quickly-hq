@@ -6,6 +6,30 @@ export const createDatabaseUser = (username: string, password: string): Database
 
 export const createIndexesForDatabase = (Database: PouchDB.Database, indexObj: PouchDB.Find.CreateIndexOptions) => Database.createIndex(indexObj);
 
+export const purgeDatabase = (storeAuth: StoreAuth) => {
+    return new Promise<PouchDB.Core.DatabaseInfo>((resolve, reject) => {
+        ManagementDB.Databases.get(storeAuth.database_id).then((DatabaseWillUse: Database) => {
+            const DB = CouchDB(DatabaseWillUse);
+            DB.db.destroy(storeAuth.database_name).then(isDeleted => {
+                if (isDeleted.ok) {
+                    createStoreDatabase(storeAuth).then(isOk => {
+                        resolve(isOk);
+                    }).catch(err => {
+                        console.log('New Database Not Created!:', err.reason)
+                        reject(err)
+                    })
+                } else {
+                    console.log('Database Not Destroyed!:', isDeleted)
+                    reject(isDeleted);
+                }
+            }).catch(err => {
+                console.log('Database Destroy Process Fault!:', err.reason)
+                reject(err);
+            })
+        })
+    });
+}
+
 export const createStoreDatabase = (storeAuth: StoreAuth) => {
     return new Promise<PouchDB.Core.DatabaseInfo>((resolve, reject) => {
         ManagementDB.Databases.get(storeAuth.database_id).then((DatabaseWillUse: Database) => {
@@ -56,31 +80,6 @@ export const createStoreDatabase = (storeAuth: StoreAuth) => {
     })
 };
 
-export const purgeDatabase = (storeAuth: StoreAuth) => {
-    return new Promise<PouchDB.Core.DatabaseInfo>((resolve, reject) => {
-        ManagementDB.Databases.get(storeAuth.database_id).then((DatabaseWillUse: Database) => {
-            const DB = CouchDB(DatabaseWillUse);
-            DB.db.destroy(storeAuth.database_name).then(isDeleted => {
-                if (isDeleted.ok) {
-                    createStoreDatabase(storeAuth).then(isOk => {
-                        resolve(isOk);
-                    }).catch(err => {
-                        console.log('New Database Not Created!:', err.reason)
-                        reject(err)
-                    })
-                } else {
-                    console.log('Database Not Destroyed!:', isDeleted)
-                    reject(isDeleted);
-                }
-            }).catch(err => {
-                console.log('Database Destroy Process Fault!:', err.reason)
-                reject(err);
-            })
-        })
-    });
-}
-
-
 export const clearStoreDatabase = async (store_id: string) => {
     try {
         const Store: Store = await ManagementDB.Stores.get(store_id);
@@ -109,6 +108,3 @@ export const clearStoreDatabase = async (store_id: string) => {
         console.log(error);
     }
 }
-
-
-

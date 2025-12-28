@@ -4,7 +4,7 @@ import request from 'request';
 import { DatabaseQueryLimit, ManagementDB } from "../../configrations/database";
 import { createLog, LogType } from '../../utils/logger';
 import { fstat, readFile, createReadStream } from "fs";
-import { accessLogs } from "../../configrations/paths";
+import { ACCESS_LOGS } from "../../configrations/paths";
 import { createInterface } from 'readline'
 import { parse } from "node-html-parser";
 import axios from "axios";
@@ -119,7 +119,7 @@ export const getMemoryUsage = (req: Request, res: Response) => {
 export const getAccessLogs = (req: Request, res: Response) => {
     let logs = [];
     const readInterface = createInterface({
-        input: createReadStream(accessLogs),
+        input: createReadStream(ACCESS_LOGS),
     });
     readInterface.on('line', function (line) {
         logs.push(line);

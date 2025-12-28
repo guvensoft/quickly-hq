@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { googleAuthGmailKey } from '../../configrations/secrets';
+import { GOOGLE_GMAIL_KEY } from '../../configrations/secrets';
 
 const INFO_ADDRESS = 'info@quickly.com.tr';
 const SUPPORT_ADDRESS = 'support@quickly.com.tr';
@@ -11,8 +11,8 @@ const Transporter = nodemailer.createTransport({
   auth: {
     type: 'OAuth2',
     user: INFO_ADDRESS,
-    serviceClient: googleAuthGmailKey.client_id,
-    privateKey: googleAuthGmailKey.private_key,
+    serviceClient: GOOGLE_GMAIL_KEY.client_id,
+    privateKey: GOOGLE_GMAIL_KEY.private_key,
   },
 });
 

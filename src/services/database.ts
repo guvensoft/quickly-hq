@@ -5,7 +5,7 @@ export const initializeMenu = async () => {
     try {
         const Database = (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
         const RemoteMenuDatabase = RemoteDB(Database, 'quickly-menu-app');
-        await MenuDB.Local.replicate.from(RemoteMenuDatabase)
+        await MenuDB.Local.replicate.from(RemoteMenuDatabase )
             .on('complete', (listener) => {
                 console.log('Local Menu Database Initialized....')
                 MenuDB.Memory.sync(MenuDB.Local).on('complete', (listener) => {

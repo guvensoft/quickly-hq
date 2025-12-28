@@ -1,8 +1,8 @@
-import { readFile } from 'fs';
+import { mkdir, mkdirSync, readFile } from 'fs';
 import { parse } from 'node-html-parser';
 import path from 'path';
-import { CouchDB, DatabaseQueryLimit, ManagementDB, RemoteDB, StoreDB, StoresDB } from './configrations/database';
-import { backupPath, documentsPath } from './configrations/paths';
+import { CouchDB, DatabaseQueryLimit, ManagementDB, MenuDB, RemoteDB, StoreDB, StoresDB } from './configrations/database';
+import { BACKUP_PATH, DOCUMENTS_PATH } from './configrations/paths';
 import { createIndexesForDatabase, createStoreDatabase, purgeDatabase } from './functions/management/database';
 import { readDirectory, readJsonFile, writeJsonFile } from './functions/shared/files';
 import { Database } from './models/management/database';
@@ -13,6 +13,7 @@ import { BackupData, EndDay } from './models/store/endoftheday';
 import { Log } from './models/store/log';
 import { Report, reportType } from './models/store/report';
 import { Stock } from './models/store/stocks';
+import Queue from "queue-promise";
 
 import fetch from 'node-fetch';
 
@@ -123,11 +124,35 @@ export const reloadTable = (db_name: string) => {
 }
 
 export const fixTables = async (db_name: string) => {
+    console.log('table Fix startted')
+    try {
+        let db: Database = (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
+        // let checks: Array<Check> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'checks', type: CheckType.NORMAL }, limit: DatabaseQueryLimit })).docs;
+        let tables: Array<Table> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'tables' }, limit: DatabaseQueryLimit })).docs;
+        // let products: Array<Product> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
+    
+        console.log(tables.length);
+        tables.forEach(async (table: Table) => {
+            console.log(table)
+            try {
+                // let isEverythingNormal = checks.includes(obj => obj.table_id == table._id);
+                // if (!isEverythingNormal) {
+                    table.status = 1;
+                    table.timestamp = Date.now();
+                    let isUpdated = await RemoteDB(db, db_name).put(table);
+                    console.log(isUpdated);
+                // }
+            } catch (error) {
+                console.log(error);
+            }
+        });
 
-    let db: Database = (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
-    let checks: Array<Check> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'checks', type: CheckType.NORMAL }, limit: DatabaseQueryLimit })).docs;
-    let tables: Array<Table> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'tables', status: TableStatus.OCCUPIED }, limit: DatabaseQueryLimit })).docs;
-    let products: Array<Product> | any = (await RemoteDB(db, db_name).find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
+    } catch (error) {
+        console.log(error);
+    }
+
+
+
 
     // checks.forEach(async (check: Check) => {
     //     try {
@@ -141,8 +166,6 @@ export const fixTables = async (db_name: string) => {
     //     }
     // });
 
-
-
     // for (const product of products) {
     //     console.log(product.name);
     //     let isUpdated = await RemoteDB(db, db_name).put(product);
@@ -150,18 +173,7 @@ export const fixTables = async (db_name: string) => {
     // }
 
 
-    // tables.forEach(async (table: Table) => {
-    //     try {
-    //         let isEverythingNormal = checks.includes(obj => obj.table_id == table._id);
-    //         if (!isEverythingNormal) {
-    //             table.status = 1;
-    //             let isUpdated = await RemoteDB(db, db_name).put(table);
-    //             console.log(isUpdated);
-    //         }
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // });
+
 
     // RemoteDB(db, db_name).bulkDocs(tables).then(res => {
     //     console.log('Tables Successfuly Reoladed...!');
@@ -440,7 +452,7 @@ export const ReportsFixer = async (db_name) => {
 }
 
 export const BackupReportGenerator = () => {
-    readJsonFile(backupPath + 'db.dat').then((res: Array<any>) => {
+    readJsonFile(BACKUP_PATH + 'db.dat').then((res: Array<any>) => {
         let enddays: Array<EndDay> = res.filter(obj => obj.db_name == 'endday').sort((a, b) => b.timestamp - a.timestamp).filter(obj => new Date(obj.timestamp).getDay() == 4);
         let categories = res.filter(obj => obj.db_name == 'categories');
         let sub_categories = res.filter(obj => obj.db_name == 'sub_categories');
@@ -448,7 +460,7 @@ export const BackupReportGenerator = () => {
         let balanced = 0;
         let checks_balanced = 0;
         enddays.forEach(day => {
-            readJsonFile(backupPath + 'backup/' + day.data_file).then((data: Array<BackupData>) => {
+            readJsonFile(BACKUP_PATH + 'backup/' + day.data_file).then((data: Array<BackupData>) => {
 
                 let reports: Array<Report> = data.find(obj => obj.database == 'reports').docs;
                 let closed_checks: Array<ClosedCheck> = data.find(obj => obj.database == 'closed_checks').docs;
@@ -491,9 +503,11 @@ export const BackupReportGenerator = () => {
 
 }
 
+
+
 export const dayDetail = (store_id: string, day_file: string) => {
 
-    readJsonFile(backupPath + store_id + '/days/' + day_file).then((data: Array<BackupData>) => {
+    readJsonFile(BACKUP_PATH + store_id + '/days/' + day_file).then((data: Array<BackupData>) => {
 
         const reports: Array<Report> = data.find(obj => obj.database == 'reports').docs;
         const checks: Array<ClosedCheck> = data.find(obj => obj.database == 'closed_checks').docs;
@@ -1362,7 +1376,7 @@ export const documentbackup = (from: string, to: string, selector: any) => {
                 return obj;
             });
         }).then(documents => {
-            writeJsonFile(documentsPath, 'harbi.json').then(res => {
+            writeJsonFile(DOCUMENTS_PATH, 'harbi.json').then(res => {
                 console.log(res);
             })
         })
@@ -1390,13 +1404,53 @@ export const lastChanges = () => {
 export const importFromBackup = async (store_id: string) => {
     // let Store = await ManagementDB.Stores.get(store_id);
     console.log('Importing Started !')
-    let backupFile: Array<any> = await readJsonFile(backupPath + `${store_id}/db.dat`);
+    let backupFile: Array<any> = await readJsonFile(BACKUP_PATH + `${store_id}/db.dat`);
 
-    let docs = backupFile.filter(obj => obj.db_name == 'products');
+    let docs = backupFile.filter(obj => obj.db_name == 'tables');
 
+    docs.map(obj => {
+        console.log(obj.name);
+        obj.status = 1;
+        delete obj._id;
+        return obj;
+    })
+
+    console.log(docs.length);
     let bulkResponse = await (await StoreDB(store_id)).bulkDocs(docs);
     console.log(bulkResponse);
 };
+
+
+export const haoraFix = async () => {
+    const Store: Store = await ManagementDB.Stores.get('22d9fc30-e497-48eb-a9e8-484ac50e5d57');
+    const StoreDatabase = await StoreDB('22d9fc30-e497-48eb-a9e8-484ac50e5d57');
+    let StoreChecks:Array<Check> = (await StoreDatabase.find({ selector: {db_name: 'checks' }, limit: 50000 })).docs;
+    let StoreTables: Array<Table> =  (await StoreDatabase.find({ selector: {db_name: 'tables' }, limit: 50000 })).docs;
+
+    StoreChecks.map(check => {
+        // check.note = StoreTables.find(obj => obj._id == check.table_id).name;
+        check.table_id = StoreTables.find(obj => obj.name == check.note)._id;
+
+        StoreDatabase.upsert(check.table_id, (doc) => {
+            doc.status = 2;
+            return doc;
+        }).then(isOK => {
+            console.log(isOK);
+        })
+        // return check;
+    });
+
+    // StoreTables.map(obj => {
+        
+    // })
+
+    // StoreDatabase.bulkDocs(StoreTables).then(isOK => {
+    //     console.log(isOK);
+    // }).catch(err => {
+    //     console.log(err);
+    // })
+
+}
 
 export const clearDatabase = async (store_id: string) => {
     try {
@@ -1432,14 +1486,16 @@ export const clearDatabase = async (store_id: string) => {
 
 export const backupStoreDatabase = async (store_id: string) => {
     try {
-        let documents = (await (await StoreDB(store_id)).find({ selector: {}, limit: 10000 })).docs.filter(obj => obj.db_name !== 'logs' || obj.db_name !== 'orders' || obj.db_name !== 'prints',);
-        writeJsonFile(backupPath + '/' + store_id + '/db.dat', documents);
+        let documents = (await (await StoreDB(store_id)).find({ selector: {}, limit: 100000 })).docs.filter(obj => obj.db_name !== 'logs' || obj.db_name !== 'orders' || obj.db_name !== 'prints',);
+        // mkdirSync(BACKUP_PATH  + store_id)
+        await writeJsonFile(BACKUP_PATH  + store_id + '/db.dat', documents);
+        console.log('Fınıshed');
     } catch (error) {
         console.log(error)
     }
 }
 
-export const purgeTest = (store_id: string) => {
+export const purgeStoreDatabase = (store_id: string) => {
     ManagementDB.Stores.get(store_id).then(store => {
         purgeDatabase(store.auth).then(res => {
             console.log(res);
@@ -1677,34 +1733,19 @@ export const clearStoreProducts = async (store_id: string) => {
 export const loadStoreBackup = async (store_id: string, db_name: string) => {
     try {
         const Store = await ManagementDB.Stores.get(store_id);
-
-        // console.log(Store.auth);
-
         const StoreDatabase = await StoreDB(store_id);
-
-        let backup = await readJsonFile(backupPath + `${store_id}/db.dat`);
-
+        let backup = await readJsonFile(BACKUP_PATH + `${store_id}/db.dat`);
         backup = backup.filter(obj => obj.db_name == db_name);
-
         console.log(backup.length);
-
         let storeTables = (await StoreDatabase.find({ selector: { db_name: db_name }, limit: DatabaseQueryLimit })).docs;
-
-        // console.log(storeTables.length);
         backup.forEach(async element => {
             if (storeTables.find(obj => obj.name == element.name)) {
-                // console.log(element.name);
             } else {
                 console.log(element.name);
                 let isOk = await StoreDatabase.put(element);
                 console.log(isOk);
             }
         });
-
-        // let isOK = await StoreDatabase.bulkDocs(backup);
-
-        // console.log(isOK)
-
     } catch (error) {
         console.log(error)
 
@@ -1716,12 +1757,9 @@ export const menuToTerminal = async (store_id: string) => {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
         const StoreDatabase = await StoreDB(store_id);
         const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
-
         const Menu: Menu = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
-
         Menu.categories.forEach((category, index) => {
             let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
-
             StoreDatabase.find({ selector: { db_name: 'categories', name: category.name } }).then(isCatAvailable => {
                 if (isCatAvailable.docs.length > 0) {
                     //// Category Exist
@@ -2041,9 +2079,7 @@ export const menuToTerminal2 = async (store_id: string) => {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
         const StoreDatabase = await StoreDB(store_id);
         const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
-
         const Menu: any = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
-
         let selectedCategories = Menu.categories
         // .filter(obj => obj.name == 'Kokteyller / Cocktails');
         console.log(selectedCategories);
@@ -2181,22 +2217,16 @@ export const updateTerminalWithMenu = async (store_id: string) => {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
         const StoreDatabase = await StoreDB(store_id);
         const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
-
         let StoreProducts: Array<Product> = (await StoreDatabase.find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
-
         let BulkUpdateDocs: Array<Product> = [];
-
         const Menu: Menu = await (await MenuDatabase.find({ selector: { store_id: store_id } })).docs[0];
-
-        let selectedCategories = Menu.categories;
-
-
+        let selectedCategories = Menu.categories.filter(obj => obj.name == 'Biralar | Beers');
         selectedCategories.forEach((category, index) => {
-
             if (category.items.length > 0) {
                 category.items.forEach(obj => {
-                    let product = StoreProducts.find(product => product.name.toLocaleLowerCase() == obj.name.toLocaleLowerCase());
+                    let product = StoreProducts.find(product => product._id == obj.product_id);
                     if (product) {
+                        // console.log(product.name);
                         product.price = obj.price;
                         if (obj?.options && obj?.options.length > 0) {
                             if (product?.specifies) {
@@ -2210,6 +2240,8 @@ export const updateTerminalWithMenu = async (store_id: string) => {
                                     product.specifies.push({ spec_name: opt.name, spec_price: opt.price });
                                 })
                             }
+                        } else {
+                            product.specifies = [];
                         }
                         BulkUpdateDocs.push(product);
                     } else {
@@ -2234,7 +2266,7 @@ export const updateTerminalWithMenu = async (store_id: string) => {
                 category.item_groups.forEach(sub_cat => {
                     if (sub_cat.items.length > 0) {
                         sub_cat.items.forEach(obj => {
-                            let product = StoreProducts.find(product => product.name.toLocaleLowerCase() == obj.name.toLocaleLowerCase());
+                            let product = StoreProducts.find(product => product._id == obj.product_id);
                             if (product) {
                                 product.price = obj.price;
                                 if (obj?.options && obj?.options.length > 0) {
@@ -2249,6 +2281,8 @@ export const updateTerminalWithMenu = async (store_id: string) => {
                                             product.specifies.push({ spec_name: opt.name, spec_price: opt.price });
                                         })
                                     }
+                                } else {
+                                    product.specifies = [];
                                 }
                                 BulkUpdateDocs.push(product);
                             } else {
@@ -2262,62 +2296,21 @@ export const updateTerminalWithMenu = async (store_id: string) => {
                 });
             }
         })
-
         console.log(BulkUpdateDocs.length);
-
-        // let updateOps = await StoreDatabase.bulkDocs(BulkUpdateDocs);
-        // console.log(updateOps.length);
+        let updateOps = await StoreDatabase.bulkDocs(BulkUpdateDocs);
+        console.log(updateOps);
     } catch (error) {
         console.log(error);
     }
 }
 
-export const storesInfo2 = async () => {
-    const OwnerID: string = 'bbe63bd6-b3bd-4011-ad7e-88180d3d0b0f' // req.app.locals.user;
-    const OwnerStores = await (await ManagementDB.Owners.get(OwnerID)).stores;
-    const Stores = await (await ManagementDB.Stores.allDocs({ include_docs: true, keys: OwnerStores })).rows.map(obj => obj.doc);
-
-
-    console.log(Stores);
-
-    // ManagementDB.Stores.bulkGet({})
-
-
-    // ManagementDB.Stores.find({ selector: {}, limit: DatabaseQueryLimit, skip: 0 }).then((db_res: any) => {
-    //     const Stores: Array<Store> = db_res.docs;
-    //     ManagementDB.Owners.get(OwnerID).then(Owner => {
-    //         let Response: Array<StoreInfo> = [];
-
-    //         let OwnerStores = Stores.filter(store => Owner.stores.includes(store._id));
-
-    //         OwnerStores.forEach((store, index) => {
-
-    //             StoreDB(store._id).then(StoreDatabase => {
-
-    //                 StoreDatabase.
-
-
-
-    //             })
-
-
-
-    //         })
-    //     })
-    // })
-
-}
-
 export const reportsTest = async (store_id: string) => {
     const t0 = performance.now();
-
     const Days: Array<EndDay> = (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' } })).docs.sort((a, b) => a.timestamp - b.timestamp);
     const BackupData: Array<BackupData> = await StoreReport(store_id, '1641938574500') // await StoreReport(store_id, Days[0].timestamp.toString(), Days[Days.length - 1].timestamp.toString());
     const Checks: Array<ClosedCheck> = BackupData.find(backup => backup.database == 'closed_checks').docs;
     const Sales = ProductsReport(Checks);
     console.log(Sales);
-
-
     const t1 = performance.now();
     console.log(`Call took ${t1 - t0} milliseconds.`);
 }
@@ -2327,216 +2320,70 @@ export const menuFixer = async () => {
         const Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
         // const StoreDatabase = await StoreDB(store_id);
         const MenuDatabase = RemoteDB(Database, 'quickly-menu-app');
-
         let Menus: Menu[] = await (await MenuDatabase.find({ selector: {}, limit: DatabaseQueryLimit })).docs;
-
         console.log(Menus.length);
-
         Menus.map((menu, index) => {
             menu.categories.map((category, index) => {
-                category.items.map((product: any) => {
-                    product.is_hidden = false;
-                    product.is_available = true;
-                    product.product_id = '';
-                    delete product.isHidden;
-                    delete product.productId;
-                })
-                category.item_groups.map(sub_cat => {
-                    sub_cat.items.map((product: any) => {
-                        product.is_hidden = false;
-                        product.is_available = true;
-                        product.product_id = '';
-                        delete product.isHidden;
-                        delete product.productId;
+                if(category.items.length > 0) {
+                    category.items.map((product: any) => {
+                        product.price = parseFloat(product.price)
+                        if(product.options){
+                            product.options.forEach(opt => {
+                                opt.price = parseFloat(opt.price)
+                            })
+                        }
                     })
-                })
+                }
+                if(category.item_groups.length > 0){
+                    category.item_groups.map(sub_cat => {
+                        sub_cat.items.map((product: any) => {
+                            product.price = parseFloat(product.price)
+                            if(product.options){
+                                product.options.forEach(opt => {
+                                    opt.price = parseFloat(opt.price)
+                                })
+                            }
+                        })
+                    })
+                }
             })
         })
-
-        // console.log(Menus);
-
-        // setTimeout(() => {
-        //     MenuDatabase.bulkDocs(Menus).then(res => {
-        //         console.log(res);
-        //     })
-        // }, 5000)
-
-
-
-
-        // Menu.categories.forEach((category, index) => {
-        //     let newCategory: Category = { name: category.name, description: '', status: 0, order: index, tags: '', printer: 'Bar' }
-        //     StoreDatabase.post({ db_name: 'categories', ...newCategory }).then(cat_res => {
-        //         console.log('+ Kategori Eklendi', newCategory.name);
-        //         category.id = cat_res.id;
-        //         if (category.item_groups.length > 0) {
-        //             category.item_groups.forEach(sub_cat => {
-        //                 let newSubCategory: SubCategory = { name: sub_cat.name, description: '', status: 0, cat_id: cat_res.id }
-        //                 StoreDatabase.post({ db_name: 'sub_categories', ...newSubCategory }).then(sub_cat_res => {
-        //                     sub_cat.id = sub_cat_res.id;
-        //                     console.log('+ Alt Kategori Eklendi', newCategory.name);
-        //                     sub_cat.items.forEach(item => {
-        //                         if (item.price) {
-        //                             let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
-        //                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
-        //                                 item.product_id = product_res.id;
-        //                                 console.log('+ Ürün Eklendi', newCategory.name);
-        //                                 /////////////////////////////////////////////////////////////
-        //                                 ////////////////////      Report    /////////////////////////
-        //                                 newProduct._id = product_res.id;
-        //                                 newProduct._rev = product_res.rev;
-        //                                 let newReport = createReport('Product', newProduct);
-        //                                 StoreDatabase.post(newReport).then(res => {
-        //                                     console.log('+ Rapor Eklendi', newReport.description);
-        //                                 }).catch(err => {
-        //                                     console.log('Rapor Hatası', newReport.description)
-        //                                 })
-        //                                 /////////////////////////////////////////////////////////////
-        //                             }).catch(err => {
-        //                                 console.log('Ürün Hatası', item.name)
-        //                             })
-        //                         } else {
-        //                             let specs: Array<ProductSpecs> = [];
-        //                             item.options.forEach(opts => {
-        //                                 let spec: ProductSpecs = {
-        //                                     spec_name: opts.name,
-        //                                     spec_price: opts.price
-        //                                 }
-        //                                 specs.push(spec);
-        //                             })
-        //                             let newProduct: Product = { name: item.name, description: item.description, type: 1, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, subcat_id: sub_cat_res.id, tax_value: 8, }
-        //                             StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
-        //                                 console.log('+ Ürün Eklendi', newCategory.name);
-
-        //                                 item.product_id = product_res.id;
-
-        //                                 /////////////////////////////////////////////////////////////
-        //                                 ////////////////////      Report    /////////////////////////
-        //                                 newProduct._id = product_res.id;
-        //                                 newProduct._rev = product_res.rev;
-        //                                 let newReport = createReport('Product', newProduct);
-        //                                 StoreDatabase.post(newReport).then(res => {
-        //                                     console.log('+ Rapor Eklendi', newReport.description);
-        //                                 }).catch(err => {
-        //                                     console.log('Rapor Hatası', newReport.description)
-        //                                 })
-        //                                 /////////////////////////////////////////////////////////////
-        //                             }).catch(err => {
-        //                                 console.log('Ürün Hatası', item.name)
-        //                             })
-        //                         }
-        //                     })
-        //                 }).catch(err => {
-        //                     console.log('Alt Kategori Hatası', category.name)
-        //                 });
-        //             });
-        //         } else {
-        //             category.items.forEach(item => {
-        //                 if (item.price) {
-        //                     let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: item.price, barcode: 0, notes: null, specifies: [], cat_id: cat_res.id, tax_value: 8, }
-        //                     StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
-        //                         console.log('+ Ürün Eklendi', newCategory.name);
-        //                         item.product_id = product_res.id;
-        //                         /////////////////////////////////////////////////////////////
-        //                         ////////////////////      Report    /////////////////////////
-        //                         newProduct._id = product_res.id;
-        //                         newProduct._rev = product_res.rev;
-        //                         let newReport = createReport('Product', newProduct);
-        //                         StoreDatabase.post(newReport).then(res => {
-        //                             console.log('+ Rapor Eklendi', newReport.description);
-        //                         }).catch(err => {
-        //                             console.log('Rapor Hatası', newReport.description)
-        //                         })
-        //                         /////////////////////////////////////////////////////////////
-
-        //                     }).catch(err => {
-        //                         console.log('Ürün Hatası', item.name)
-        //                     })
-        //                 } else {
-        //                     let specs: Array<ProductSpecs> = [];
-        //                     item.options.forEach(opts => {
-        //                         let spec: ProductSpecs = {
-        //                             spec_name: opts.name,
-        //                             spec_price: opts.price
-        //                         }
-        //                         specs.push(spec);
-        //                     })
-        //                     let newProduct: Product = { name: item.name, description: item.description, type: 0, status: 0, price: specs[0].spec_price, barcode: 0, notes: null, specifies: specs, cat_id: cat_res.id, tax_value: 8, }
-        //                     StoreDatabase.post({ db_name: 'products', ...newProduct }).then(product_res => {
-        //                         console.log('+ Ürün Eklendi', newCategory.name);
-        //                         item.product_id = product_res.id;
-        //                         /////////////////////////////////////////////////////////////
-        //                         ////////////////////      Report    /////////////////////////
-        //                         newProduct._id = product_res.id;
-        //                         newProduct._rev = product_res.rev;
-        //                         let newReport = createReport('Product', newProduct);
-        //                         StoreDatabase.post(newReport).then(res => {
-        //                             console.log('+ Rapor Eklendi', newReport.description);
-        //                         }).catch(err => {
-        //                             console.log('Rapor Hatası', newReport.description)
-        //                         })
-        //                         /////////////////////////////////////////////////////////////
-        //                     }).catch(err => {
-        //                         console.log('Ürün Hatası', item.name)
-        //                     })
-        //                 }
-        //             })
-        //         }
-        //     }).catch(err => {
-        //         console.log('Kategori Hatası', category.name)
-        //     })
-        // })
+        console.log(Menus);
+        setTimeout(() => {
+            MenuDatabase.bulkDocs(Menus).then(res => {
+                console.log(res);
+            })
+        }, 5000)
     } catch (error) {
         console.log(error);
     }
-
-}
-
-export const deletedRestore = async (store_id: string) => {
-    //    let results = await (await StoreDB(store_id)).changes()
-    //    console.log(results);
 }
 
 export const creationDateOfStores = () => {
     ManagementDB.Stores.find({ selector: {} }).then(res => {
         let stores = res.docs.sort((a, b) => a.timestamp - b.timestamp);
-
         let dataTable = [];
-
         stores.forEach(obj => {
             dataTable.push({
                 İşletme: obj.name,
                 Tarih: new Date(obj.timestamp).toLocaleDateString('tr-TR'),
             })
         })
-
         console.table(dataTable);
-
-
     })
-
 }
 
 export const quicklySellingData = async (year: number, month: number) => {
     const monthlyLabels = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-
     const Stores = (await ManagementDB.Stores.find({ selector: {} })).docs;
-
     let Days = [];
     let Months = [];
-
     for (const store of Stores) {
-
         let storeEndDayData: Array<EndDay> = (await (await StoreDB(store._id)).find({ selector: { db_name: 'endday' }, limit: DatabaseQueryLimit })).docs
-
         let endDayData = storeEndDayData.filter(obj => new Date(obj.timestamp).getFullYear() == year && new Date(obj.timestamp).getMonth() == month);
-
         if (endDayData.length > 0) {
-
             console.log(store.name);
-
             endDayData.forEach((obj, index) => {
-
                 let Schema = {
                     cash: (typeof obj.cash_total === 'number' ? obj.cash_total : 0),
                     card: (typeof obj.card_total === 'number' ? obj.card_total : 0),
@@ -2547,12 +2394,7 @@ export const quicklySellingData = async (year: number, month: number) => {
                     month: new Date(obj.timestamp).getMonth(),
                     year: new Date(obj.timestamp).getFullYear()
                 };
-
                 Days.push(Schema);
-
-
-
-
                 // if (index == endDayData.length - 1) {
                 //     let cash = { label: 'Nakit', data: [] };
                 //     let coupon = { label: 'Kupon', data: [] };
@@ -2588,13 +2430,7 @@ export const quicklySellingData = async (year: number, month: number) => {
                 //     });
                 // }
             });
-
-
-
-
-
         }
-
     }
 
     let Data = {
@@ -2607,9 +2443,6 @@ export const quicklySellingData = async (year: number, month: number) => {
     }
 
     console.log(Data);
-
-
-
 }
 
 export const generateReportsFor = async (store_id: string, type: reportType) => {
@@ -2626,12 +2459,11 @@ export const generateReportsFor = async (store_id: string, type: reportType) => 
     // console.log(BulkPost);
 }
 
-export const clearOrders = async (store_id: string) => {
+export const clearDocuments = async (store_id: string, db_name: string) => {
     try {
         const StoreDatabase = await StoreDB(store_id);
-        let Documents = await StoreDatabase.find({ selector: { db_name: 'logs' }, limit: 40000 })
+        let Documents = await StoreDatabase.find({ selector: { db_name: db_name }, limit: 40000 })
         console.log(Documents.docs.length);
-
         Documents.docs.map(obj => {
             obj._deleted = true;
             return obj
@@ -2641,25 +2473,19 @@ export const clearOrders = async (store_id: string) => {
     } catch (error) {
         console.log(error)
     }
-
 }
 
 export const productReports = async (store_id: string, start_date?: string, end_date?: string) => {
     console.log(new Date(parseInt(start_date)).toLocaleDateString())
     console.log(new Date(parseInt(end_date)).toLocaleDateString())
-
     try {
         let durationReports = await StoreReport(store_id, start_date, end_date);
         let checks = durationReports.find(obj => obj.database == 'closed_checks').docs;
         let cashbox = durationReports.find(obj => obj.database == 'cashbox').docs;
-
         let productReports = ProductsReport(checks);
-
         for (const iterator of productReports) {
         }
-
         let salesReport = StoreSalesReport(checks);
-
         console.log(productReports);
     } catch (error) {
         console.log(error);
@@ -2669,7 +2495,7 @@ export const productReports = async (store_id: string, start_date?: string, end_
 
 export const storeDays = async (store_id: string, start_date?: string, end_date?: string) => {
     let enddays = await (await (await StoreDB(store_id)).find({ selector: { db_name: 'endday' }, limit: 3000 })).docs;
-    let storeBackups: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
+    let storeBackups: Array<string> = await readDirectory(BACKUP_PATH + `${store_id}/days/`);
     let storeDays: Array<number> = storeBackups.map(day => parseInt(day)).sort((a, b) => b - a).filter(date => date > parseInt(start_date) && date < parseInt(end_date));
     let endDayConvertedData: Array<EndDay> = [];
     for (const date of storeDays) {
@@ -2710,8 +2536,8 @@ export const storeDays = async (store_id: string, start_date?: string, end_date?
             console.log(error);
         }
     }
-    // let pushServer = (await StoreDB(store_id)).bulkDocs(endDayConvertedData);
 
+    // let pushServer = (await StoreDB(store_id)).bulkDocs(endDayConvertedData);
     // pushServer.then(res => {
     //     console.log(res);
     // }).catch(err => {
@@ -2731,7 +2557,6 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
         const MonthLabels = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasim", "Aralık"];
         const ReportDate = MonthLabels[new Date(parseInt(start_date)).getMonth()] + ' ' + new Date(parseInt(start_date)).getFullYear();
 
-
         let categories = (await (await StoreDB(store_id)).find({ selector: { db_name: 'categories' }, limit: DatabaseQueryLimit })).docs;
         let credits = (await (await StoreDB(store_id)).find({ selector: { db_name: 'credits' }, limit: DatabaseQueryLimit })).docs;
 
@@ -2739,7 +2564,6 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
 
         let productsChecks = backupData.find(data => data.database = 'closed_checks').docs.concat(credits)
         let salesReport = ProductsReport(productsChecks);
-
 
         const transformPrice = (value: number): string => {
             if (!value) value = 0;
@@ -2753,7 +2577,6 @@ export const storeProductSales = async (store_id: string, start_date?: string, e
                 return '';
             }
         }
-
 
         let tableBodyData = [];
 
@@ -2833,7 +2656,6 @@ export const storeProductExport = async (store_id: string) => {
         let products: Product[] = (await (await StoreDB(store_id)).find({ selector: { db_name: 'products' }, limit: DatabaseQueryLimit })).docs;
         let categories = (await (await StoreDB(store_id)).find({ selector: { db_name: 'categories' }, limit: DatabaseQueryLimit })).docs;
 
-
         const transformPrice = (value: number): string => {
             if (!value) value = 0;
             return Number(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' TL'; /// ₺
@@ -2870,7 +2692,6 @@ export const storeProductExport = async (store_id: string) => {
 }
 
 export const updateStoreDetail = () => {
-
     ManagementDB.Stores.get('d622f9dd-036b-4775-bbee-911d301c5b77').then((store: Store) => {
         // store.settings.accesibilty.wifi = { ssid: 'Kallavi', password: 'kallavikervansaray' };
         // console.log(store.slug);
@@ -3038,7 +2859,7 @@ export const TAPDKCheck = (tapdkno: string) => {
     })
 }
 
-export const replaceProductsName = async (store_id: string) => {
+export const replaceProductsNameOfMenu = async (store_id: string) => {
     try {
         let kadeh = '🥃';
         let sise = '🍾';
@@ -3098,13 +2919,12 @@ export const replaceProductsName = async (store_id: string) => {
     }
 }
 
-
 export const getStoresLogos = async () => {
     try {
         let stores = (await ManagementDB.Stores.allDocs({ include_docs: true })).rows;
         for (const store of stores) {
             var base64Data = store.doc.logo.replace(/^data:image\/png;base64,/, "");
-            require("fs").writeFile(store.doc.slug + '.png', base64Data, 'base64', function (err) {
+            require("fs").writeFile('./slug/' + store.doc.slug + '.png', base64Data, 'base64', function (err) {
                 console.log(err);
             });
         }
@@ -3245,7 +3065,7 @@ export const uyumsoftTest = async () => {
 
         const { GetInboxInvoicesAsync, GetSummaryReportAsync, GetInboxInvoiceAsync, } = client;
 
-        const [result,raw] = await GetInboxInvoicesAsync({
+        const [result, raw] = await GetInboxInvoicesAsync({
             query: {
                 ExecutionStartDate: null,
                 ExecutionEndDate: null,
@@ -3259,12 +3079,12 @@ export const uyumsoftTest = async () => {
         let Invoices: Array<UBL> = parsedResult.Envelope.Body.GetInboxInvoicesResponse.GetInboxInvoicesResult.Value.Items;
 
 
-       
 
 
 
 
-        
+
+
 
         // let invoices = result.GetInboxInvoicesResult.Value.Items;
 
@@ -3318,19 +3138,19 @@ export const isnetTEST = async () => {
         const { GetEttnListAsync, SearchInvoiceAsync } = client
 
 
-        const [invoices,x,y,z] = await SearchInvoiceAsync({
+        const [invoices, x, y, z] = await SearchInvoiceAsync({
             request: {
                 CompanyTaxCode: '1234567805',
-                InvoiceDirection:'Incoming',
+                InvoiceDirection: 'Incoming',
                 ResultSet: {
                     IsAdditionalTaxIncluded: true,
                     IsXMLIncluded: true,
                     IsArchiveIncluded: true,
-                    IsAttachmentIncluded:true,
-                    IsHtmlIncluded:true,
-                    IsInvoiceDetailIncluded:true,
-                    IsExternalUrlIncluded:true,
-                    IsPDFIncluded:false
+                    IsAttachmentIncluded: true,
+                    IsHtmlIncluded: true,
+                    IsInvoiceDetailIncluded: true,
+                    IsExternalUrlIncluded: true,
+                    IsPDFIncluded: false
                 },
                 // PagingRequest: {
                 //     PageNumber:1,
@@ -3377,5 +3197,156 @@ export const isnetTEST = async () => {
     } catch (error) {
         console.log(error)
     }
+
+}
+
+export const lastMenuUpdates = () => {
+    console.log('FETCH')
+    MenuDB.Memory.find({ selector: {} }).then(res => {
+        res.docs.filter(obj => obj.hasOwnProperty('timestamp')).sort((a, b) => b.timestamp - a.timestamp).map(obj => {
+
+            if (obj.timestamp)
+                console.log(new Date(obj.timestamp).toDateString(), '    -    ', obj.slug,)
+        })
+    }).catch(err => {
+        console.log(err);
+    })
+}
+
+
+export const queueTest = async ( ) => {
+    const queue = new Queue({
+        concurrent: 3,
+        interval: 3000,
+      });
+
+      let opts: PouchDB.Core.AllDocsOptions = { include_docs:true}
+
+      let asyncTaskA  = async () => (await ManagementDB.Products.allDocs(opts)).rows.length
+      let asyncTaskB  = async () => (await ManagementDB.Categories.allDocs(opts)).rows.length
+      let asyncTaskC  = async () => (await ManagementDB.Producers.allDocs(opts)).rows.length
+
+      queue.on("start", () => console.log('Queue Started'));
+      queue.on("stop", () => console.log('Queue Stopped'));
+      queue.on("end", () => console.log('Queue End'));
+      
+      queue.on("resolve", data => console.log(data));
+      queue.on("reject", error => console.error(error));
+      
+      queue.enqueue(asyncTaskA); 
+      queue.enqueue(asyncTaskB); 
+      queue.enqueue(asyncTaskC); 
+}
+
+export const fixStringToNumber = async (store_id: string) => {
+
+        try {
+            const StoreDatabase = await StoreDB(store_id)
+            let products : Array<Product> = (await StoreDatabase.find({selector:{ db_name:'products' }, limit:DatabaseQueryLimit })).docs
+            let willUpdate: Array<Product> = [];
+            products.map((product:any) => {
+
+                if(typeof product.price == 'string' ) {
+                    console.log(product.name);
+                    product.price = parseFloat(product.price);
+                    willUpdate.push(product);
+                }
+
+                product.specifies.map(x => {
+                    if(typeof x.spec_price == 'string' ) {
+                        console.log(x.spec_name);
+                    } 
+                    x.spec_price = parseFloat(x.spec_price);
+                    return x;
+                })
+                // return product;
+            })
+            console.log(willUpdate.length  + ' Products Will Update');
+            
+            let update = await StoreDatabase.bulkDocs(willUpdate);
+
+            console.log(update);
+
+        } catch (error) {
+            throw new Error('ERROR');
+        }
+}
+
+
+export const menuStringFixer = (store_id:string) => {
+
+    // console.log(typeof '22');
+
+    ManagementDB.Databases.find({ selector:  { codename: 'CouchRadore' }}).then(dbs => {
+        let CouchRadore: Database = dbs.docs[0];
+        RemoteDB(CouchRadore, 'quickly-menu-app').find({ selector: { slug : 'kosmos-db15'} }).then(res  => {
+            let menu :Menu = res.docs[0];
+            menu.categories.map(cat => {
+                // console.log(cat.name, cat.items.length, cat.item_groups.length);
+                if(cat.item_groups.length > 0){
+                    cat.item_groups.map(sub_cat => {
+                        sub_cat.items.map(item => {
+                            // console.log(typeof item.price, item.name)
+                            if(item.options) {
+                                if(typeof item.price == 'string'){
+                                    console.log(item.name, item.price)
+                                    item.price = parseFloat(item.price);
+                                }
+                                item.options.map(opt => {
+                                    // console.log(typeof opt.price, opt.name)
+                                    if(typeof opt.price == 'string'){
+                                        console.log(item.name, opt.price)
+                                        opt.price = parseFloat(opt.price);
+                                    }
+                                    return opt;
+                                })
+                            }else{
+                                // console.log(typeof item.price, item.name)
+                                if(typeof item.price == 'string'){
+                                    console.log(item.name, item.price)
+                                    item.price = parseFloat(item.price);
+                                }
+                            }
+
+                            return item;
+                        })
+                        return sub_cat;
+                    })
+                }else{
+                    cat.items.map(item => {
+                        if(item.options) {
+                            if(typeof item.price == 'string'){
+                                console.log(item.name, item.price)
+                                item.price = parseFloat(item.price);
+                            }
+                            item.options.map(opt => {
+                                // console.log(typeof opt.price, opt.name)
+                                if(typeof opt.price == 'string'){
+                                    console.log(item.name, opt.price)
+                                    opt.price = parseFloat(opt.price);
+                                    return opt;
+                                }
+                            })
+                        }else{
+                            console.log(typeof item.price, item.name)
+                            if(typeof item.price == 'string'){
+                                console.log(item.name, item.price)
+                                item.price = parseFloat(item.price);
+                            }
+                        }
+                        return item;
+                    })
+                }
+            })
+            RemoteDB(CouchRadore, 'quickly-menu-app').put(menu).then(isOK => {
+                console.log('Menu Updated');
+            }).catch(err => {
+                console.log('Err: ',err)
+            })
+        }).catch(err => {
+            console.log(err);
+        })
+    })
+
 
 }

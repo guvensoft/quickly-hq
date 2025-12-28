@@ -21,7 +21,6 @@ import * as DatabaseServices from './services/database';
 export const app = express();
 
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
-
 app.use(morgan('combined', { stream: accessLogStream }))
 app.use(compression());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message: 'Too Many Request...' }))
@@ -45,7 +44,7 @@ app.use('/order', cors(corsOptions), OrderMiddleware);
 app.all('/*', (req, res) => res.status(404).end());
 app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
 
-DatabaseServices.initializeMenu();
+// DatabaseServices.initializeMenu();
 
 /* For Standalone No Reverse-Proxy Operations */
 
@@ -87,11 +86,7 @@ DatabaseServices.initializeMenu();
 
 /* DDOS Jails */
 
-// grep sshd.\*Failed /var/log/auth.log | less
+// grep sshd.\*Failed /var/log/auth.log | less yQ46_Wr!
 
 
 import './local_mutations';
-
-
-
-

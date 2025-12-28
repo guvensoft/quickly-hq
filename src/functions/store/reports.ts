@@ -1,5 +1,5 @@
 import { ManagementDB ,StoreDB } from '../../configrations/database';
-import { backupPath } from '../../configrations/paths';
+import { BACKUP_PATH } from '../../configrations/paths';
 import { CheckProduct, CheckType, ClosedCheck } from '../../models/store/check';
 import { BackupData, EndDay } from '../../models/store/endoftheday';
 import { Category, Product, SubCategory } from '../../models/store/product';
@@ -13,7 +13,7 @@ import { readDirectory, readJsonFile, writeJsonFile } from '../shared/files';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import XLSX from 'xlsx';
-
+import { Cashbox } from '../../models/store/cashbox';
 
 interface SalesReport { cash: number; card: number; coupon: number; free: number; canceled: number; discount: number; checks: number; customers: { male: number, female: number } }
 interface ProductSalesReport { product_id: string; owner_id: string; category_id: string; price: number; total:number, name: string; count: number; }
@@ -30,10 +30,10 @@ export const StoreReport = async (store_id: string | string[], start_date: strin
                     { database: 'reports', docs: [] },
                     { database: 'logs', docs: [] },
                 ];
-                let backupFiles: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
+                let backupFiles: Array<string> = await readDirectory(BACKUP_PATH + `${store_id}/days/`);
                 backupFiles = backupFiles.filter(date => parseInt(date) > parseInt(start_date) && parseInt(date) < parseInt(end_date));
                 for (const data_file of backupFiles) {
-                    let reportsOfDay: Array<BackupData> = await readJsonFile(backupPath + `${store_id}/days/${data_file}`);
+                    let reportsOfDay: Array<BackupData> = await readJsonFile(BACKUP_PATH + `${store_id}/days/${data_file}`);
                     reportsOfDay = reportsOfDay.filter(obj => obj.database == 'closed_checks' || obj.database == 'cashbox');
                     for (const day of reportsOfDay) {
                         durationData.find(obj => obj.database == day.database).docs.push(...day.docs);
@@ -45,7 +45,7 @@ export const StoreReport = async (store_id: string | string[], start_date: strin
             }
         } else {
             try {
-                let reportsOfDay: Array<BackupData> = await readJsonFile(backupPath + `${store_id}/days/${start_date}`);
+                let reportsOfDay: Array<BackupData> = await readJsonFile(BACKUP_PATH + `${store_id}/days/${start_date}`);
                 return reportsOfDay;
             } catch (error) {
                 console.log(error);
@@ -155,6 +155,10 @@ export const ProductSalesReport = (product_id: string, checks_to_count: Array<Cl
     } catch (error) {
         console.log(error);
     }
+}
+
+export const CashboxReport = (cashbox_items: Array<Cashbox>) => {
+    /// TODO
 }
 
 export const UsersReport = (checks_to_count: Array<ClosedCheck>): Array<UserSalesReport> => {
@@ -391,7 +395,7 @@ export const exportReport = async (store_id: string, start_date: number, end_dat
 }
 
 export const exportReportFromDaysData  = async (store_id: string, start_date?: string, end_date?: string) => {
-    let storeBackups: Array<string> = await readDirectory(backupPath + `${store_id}/days/`);
+    let storeBackups: Array<string> = await readDirectory(BACKUP_PATH + `${store_id}/days/`);
     let storeDays: Array<number> = storeBackups.map(day => parseInt(day)).sort((a, b) => b - a).filter(date => date > parseInt(start_date) && date < parseInt(end_date));
     let endDayConvertedData: Array<EndDay> = [];
     console.log(storeDays);
@@ -427,3 +431,4 @@ export const exportReportFromDaysData  = async (store_id: string, start_date?: s
     }
     // exportReport(store_id, parseInt(start_date), parseInt(end_date), endDayConvertedData)
 }
+

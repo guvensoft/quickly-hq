@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { StoreDB } from '../../configrations/database';
-import { backupPath } from '../../configrations/paths';
+import { BACKUP_PATH } from '../../configrations/paths';
 import { readDirectory, writeJsonFile } from "../../functions/shared/files";
 import { mkdir } from "fs";
 import { clearStoreDatabase } from "../../functions/management/database";
@@ -9,17 +9,17 @@ export const uploadBackup = async (req: Request, res: Response) => {
     const Store = req.headers.store;
     const StoreDatabase = await StoreDB(Store);
     StoreDatabase.find({ selector: { db_name: 'endday', data_file: req.body.timestamp } }).then(db_res => {
-        readDirectory(backupPath + `${Store}/days/`).then(exist => {
-            writeJsonFile(backupPath + `${Store}/days/${req.body.timestamp}`, req.body.data).then(isOk => {
+        readDirectory(BACKUP_PATH + `${Store}/days/`).then(exist => {
+            writeJsonFile(BACKUP_PATH + `${Store}/days/${req.body.timestamp}`, req.body.data).then(isOk => {
                 res.status(200).json({ ok: true, message: 'Upload Process Succesfull!' })
             }).catch(err => {
                 console.log(err);
                 res.status(400).json({ ok: false, message: err })
             })
         }).catch(err => {
-            mkdir(backupPath + `${Store}/days/`, { recursive: true }, (err) => {
+            mkdir(BACKUP_PATH + `${Store}/days/`, { recursive: true }, (err) => {
                 if (!err) {
-                    writeJsonFile(backupPath + `${Store}/days/${req.body.timestamp}`, req.body.data).then(isOk => {
+                    writeJsonFile(BACKUP_PATH + `${Store}/days/${req.body.timestamp}`, req.body.data).then(isOk => {
                         res.status(200).json({ ok: true, message: 'Upload Process Succesfull!' })
                     }).catch(err => {
                         console.log(err);

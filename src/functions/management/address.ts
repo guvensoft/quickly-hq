@@ -1,9 +1,9 @@
 import { readJsonFile } from '../shared/files';
-import { addressesPath } from '../../configrations/paths';
+import { ADDRESES_PATH } from '../../configrations/paths';
 import { AdressDB } from '../../configrations/database';
 
 export const importAdress = () => {
-    readJsonFile(addressesPath + 'street.json').then((json: Array<any>) => {
+    readJsonFile(ADDRESES_PATH + 'street.json').then((json: Array<any>) => {
         let districts = json.map(obj => {
             delete obj.id;
             return obj;

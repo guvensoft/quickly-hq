@@ -10,7 +10,7 @@ import PouchDBUpsert from 'pouchdb-upsert';
 import ExpressPouch from 'express-pouchdb';
 
 import { Log } from '../utils/logger';
-import { databasePath } from './paths';
+import { DATABASE_PATH } from './paths';
 
 import { Account } from '../models/management/account';
 import { Session } from '../models/management/session';
@@ -45,70 +45,68 @@ export const FileSystemConfigration: PouchDB.Configuration.DatabaseConfiguration
 export const InMemoryConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 3, auto_compaction: true, adapter: 'memory' };
 export const InMemoryMenuConfigration: PouchDB.Configuration.DatabaseConfiguration = { revs_limit: 100, auto_compaction: true, adapter: 'memory' };
 
-
 export const ManagementDB = {
-    Users: new PouchDB<User>(databasePath + 'management/users', FileSystemConfigration),
-    Groups: new PouchDB<Group>(databasePath + 'management/groups', FileSystemConfigration),
-    Databases: new PouchDB<Database>(databasePath + 'management/databases', FileSystemConfigration),
-    Accounts: new PouchDB<Account>(databasePath + 'management/accounts', FileSystemConfigration),
-    Owners: new PouchDB<Owner>(databasePath + 'management/owners', FileSystemConfigration),
-    Stores: new PouchDB<Store>(databasePath + 'management/stores', FileSystemConfigration),
-    Invoices: new PouchDB<Invoice>(databasePath + 'management/invoices', FileSystemConfigration),
-    Companies: new PouchDB<Company>(databasePath + 'management/companies', FileSystemConfigration),
-    Suppliers: new PouchDB<Supplier>(databasePath + 'management/suppliers', FileSystemConfigration),
-    Producers: new PouchDB<Producer>(databasePath + 'management/producers', FileSystemConfigration),
-    Brands: new PouchDB<Brand>(databasePath + 'management/brands', FileSystemConfigration),
-    Products: new PouchDB<Product>(databasePath + 'management/products', FileSystemConfigration),
-    Categories: new PouchDB<Category>(databasePath + 'management/categories', FileSystemConfigration),
-    SubCategories: new PouchDB<SubCategory>(databasePath + 'management/sub_categories', FileSystemConfigration),
-    Campaings: new PouchDB<Campaign>(databasePath + 'management/campaigns', FileSystemConfigration),
-    Subscriptions: new PouchDB<OwnerSubscriptions>(databasePath + 'management/subscriptions', FileSystemConfigration),
-    Cards: new PouchDB<SafeCard>(databasePath + 'management/cards', FileSystemConfigration),
-    Logs: new PouchDB<Log>(databasePath + 'management/logs', FileSystemConfigration),
-    Sessions: new PouchDB<Session>(databasePath + 'management/sessions', FileSystemConfigration),
-    Aggreements: new PouchDB<AgreementData>(databasePath + 'management/sessions', FileSystemConfigration)
+    Users: new PouchDB<User>(DATABASE_PATH + 'management/users', FileSystemConfigration),
+    Groups: new PouchDB<Group>(DATABASE_PATH + 'management/groups', FileSystemConfigration),
+    Databases: new PouchDB<Database>(DATABASE_PATH + 'management/databases', FileSystemConfigration),
+    Accounts: new PouchDB<Account>(DATABASE_PATH + 'management/accounts', FileSystemConfigration),
+    Owners: new PouchDB<Owner>(DATABASE_PATH + 'management/owners', FileSystemConfigration),
+    Stores: new PouchDB<Store>(DATABASE_PATH + 'management/stores', FileSystemConfigration),
+    Invoices: new PouchDB<Invoice>(DATABASE_PATH + 'management/invoices', FileSystemConfigration),
+    Companies: new PouchDB<Company>(DATABASE_PATH + 'management/companies', FileSystemConfigration),
+    Suppliers: new PouchDB<Supplier>(DATABASE_PATH + 'management/suppliers', FileSystemConfigration),
+    Producers: new PouchDB<Producer>(DATABASE_PATH + 'management/producers', FileSystemConfigration),
+    Brands: new PouchDB<Brand>(DATABASE_PATH + 'management/brands', FileSystemConfigration),
+    Products: new PouchDB<Product>(DATABASE_PATH + 'management/products', FileSystemConfigration),
+    Categories: new PouchDB<Category>(DATABASE_PATH + 'management/categories', FileSystemConfigration),
+    SubCategories: new PouchDB<SubCategory>(DATABASE_PATH + 'management/sub_categories', FileSystemConfigration),
+    Campaings: new PouchDB<Campaign>(DATABASE_PATH + 'management/campaigns', FileSystemConfigration),
+    Subscriptions: new PouchDB<OwnerSubscriptions>(DATABASE_PATH + 'management/subscriptions', FileSystemConfigration),
+    Cards: new PouchDB<SafeCard>(DATABASE_PATH + 'management/cards', FileSystemConfigration),
+    Logs: new PouchDB<Log>(DATABASE_PATH + 'management/logs', FileSystemConfigration),
+    Sessions: new PouchDB<Session>(DATABASE_PATH + 'management/sessions', FileSystemConfigration),
+    Aggreements: new PouchDB<AgreementData>(DATABASE_PATH + 'management/sessions', FileSystemConfigration)
 }
 
 export const StoresDB = {
-    Infos: new PouchDB<Store>(databasePath + 'store/info', FileSystemConfigration),
-    Settings: new PouchDB<StoreSettings>(databasePath + 'store/settings', FileSystemConfigration),
-    Sessions: new PouchDB<Session>(databasePath + 'store/sessions', FileSystemConfigration),
-    Invoices: new PouchDB<Invoice>(databasePath + 'store/invoices', FileSystemConfigration),
+    Infos: new PouchDB<Store>(DATABASE_PATH + 'store/info', FileSystemConfigration),
+    Settings: new PouchDB<StoreSettings>(DATABASE_PATH + 'store/settings', FileSystemConfigration),
+    Sessions: new PouchDB<Session>(DATABASE_PATH + 'store/sessions', FileSystemConfigration),
+    Invoices: new PouchDB<Invoice>(DATABASE_PATH + 'store/invoices', FileSystemConfigration),
 }
 
 export const UtilsDB = {
-    Otp: new PouchDB<OtpCheck>(databasePath + 'utils/otp', FileSystemConfigration),
-    Sms: new PouchDB<OtpCheck>(databasePath + 'utils/sms', FileSystemConfigration),
+    Otp: new PouchDB<OtpCheck>(DATABASE_PATH + 'utils/otp', FileSystemConfigration),
+    Sms: new PouchDB<OtpCheck>(DATABASE_PATH + 'utils/sms', FileSystemConfigration),
 }
 
 export const AdressDB = {
-    Countries: new PouchDB<any>(databasePath + 'address/countries', FileSystemConfigration),
-    States: new PouchDB<any>(databasePath + 'address/cities', FileSystemConfigration),
-    Provinces: new PouchDB<any>(databasePath + 'address/provinces', FileSystemConfigration),
-    Districts: new PouchDB<any>(databasePath + 'address/districts', FileSystemConfigration),
-    Streets: new PouchDB<any>(databasePath + 'address/streets', FileSystemConfigration),
+    Countries: new PouchDB<any>(DATABASE_PATH + 'address/countries', FileSystemConfigration),
+    States: new PouchDB<any>(DATABASE_PATH + 'address/cities', FileSystemConfigration),
+    Provinces: new PouchDB<any>(DATABASE_PATH + 'address/provinces', FileSystemConfigration),
+    Districts: new PouchDB<any>(DATABASE_PATH + 'address/districts', FileSystemConfigration),
+    Streets: new PouchDB<any>(DATABASE_PATH + 'address/streets', FileSystemConfigration),
 }
 
 export const SocialDB = {
-    Locations: new PouchDB(databasePath + 'social/locations', FileSystemConfigration),
-    Collections: new PouchDB(databasePath + 'social/collections', FileSystemConfigration),
-    Categories: new PouchDB(databasePath + 'social/categories', FileSystemConfigration),
-    Cuisines: new PouchDB(databasePath + 'social/cuisines', FileSystemConfigration),
-    Stores: new PouchDB(databasePath + 'social/stores', FileSystemConfigration),
-    Tables: new PouchDB(databasePath + 'social/tables', FileSystemConfigration),
-    Products: new PouchDB(databasePath + 'social/products', FileSystemConfigration),
-    Floors: new PouchDB(databasePath + 'social/floors', FileSystemConfigration),
-    Users: new PouchDB(databasePath + 'social/users', FileSystemConfigration),
-    Settings: new PouchDB(databasePath + 'social/settings', FileSystemConfigration),
-    Comments: new PouchDB(databasePath + 'social/comments', FileSystemConfigration),
-    Sessions: new PouchDB(databasePath + 'social/sessions', FileSystemConfigration),
+    Locations: new PouchDB(DATABASE_PATH + 'social/locations', FileSystemConfigration),
+    Collections: new PouchDB(DATABASE_PATH + 'social/collections', FileSystemConfigration),
+    Categories: new PouchDB(DATABASE_PATH + 'social/categories', FileSystemConfigration),
+    Cuisines: new PouchDB(DATABASE_PATH + 'social/cuisines', FileSystemConfigration),
+    Stores: new PouchDB(DATABASE_PATH + 'social/stores', FileSystemConfigration),
+    Tables: new PouchDB(DATABASE_PATH + 'social/tables', FileSystemConfigration),
+    Products: new PouchDB(DATABASE_PATH + 'social/products', FileSystemConfigration),
+    Floors: new PouchDB(DATABASE_PATH + 'social/floors', FileSystemConfigration),
+    Users: new PouchDB(DATABASE_PATH + 'social/users', FileSystemConfigration),
+    Settings: new PouchDB(DATABASE_PATH + 'social/settings', FileSystemConfigration),
+    Comments: new PouchDB(DATABASE_PATH + 'social/comments', FileSystemConfigration),
+    Sessions: new PouchDB(DATABASE_PATH + 'social/sessions', FileSystemConfigration),
 }
 
 export const MenuDB = {
-    Local: new PouchDB<Menu>(databasePath + 'menu/local', FileSystemConfigration),
-    Memory: new PouchDB<Menu>(databasePath + 'menu/memory', InMemoryMenuConfigration),
+    Local: new PouchDB<Menu>(DATABASE_PATH + 'menu/local', FileSystemConfigration),
+    Memory: new PouchDB<Menu>(DATABASE_PATH + 'menu/memory', InMemoryMenuConfigration),
 }
-
 
 export const CouchDB = (database: Database) => {
     return Nano(`http://${database.username}:${database.password}@${database.host}:${database.port}`);

@@ -1,20 +1,26 @@
 export const AdminHash: string = '$2y$12$9pi4zxNqO8ydwx4/ucJk.OtMN/9CQqZ7sq6ojkY1P6ttB7YdmnwHW';
-export const ReCaptchaSecret: string = '6LeIMd0ZAAAAADX49SeapQIgcde5v8wzKwvRDj-M';
+export const RECAPTCHA_SECRET: string = '6LeIMd0ZAAAAADX49SeapQIgcde5v8wzKwvRDj-M';
 
-export const nestPayUserName: string = 'quicklyhq';
-export const nestPaySecret: string = 'zUXnAMmP92Lj7yC';
-export const nestPayClientId: number = 700668268733;
-export const nestPayStoreKey: string = '668268733';
-export const nestPayCustomer: string = '390108385';
+export const NESTPAY_USERNAME: string = 'quicklyhq';
+export const NESTPAY_SECRET: string = 'zUXnAMmP92Lj7yC';
+export const NESTPAY_CLIENT_ID: number = 700668268733;
+export const NESTPAY_STORE_KEY: string = '668268733';
+export const NESTPAY_CUSTOMER: string = '390108385';
 
 export const eFaturaUserName: string = '63208717';
 export const eFaturaSecret: string = '454043';
 
-export const netGsmUsername: string = '8503055352';
-export const netGsmPassword: string = '68F64.3';
-export const netGsmBrand: string = 'QUICKLY';
+export const NETGSM_USERNAME: string = '8503055352';
+export const NETGSM_PASSWORD: string = '68F64.3';
+export const NETGSM_BRAND: string = 'QUICKLY';
 
-export const googleAuthGmailKey = {
+export const ISNET_USERNAME = "16867951058" // "4059649806";
+export const ISNET_PASSWORD = "Caner23!";   // "1234"
+
+export const UYUMSOFT_USERNAME = "Uyumsoft";
+export const UYUMSOFT_PASSWORD = "Uyumsoft";
+
+export const GOOGLE_GMAIL_KEY = {
     type: "service_account",
     project_id: "tactile-shelter-250709",
     private_key_id: "c5a7074ad681b41e5fb0bfd050304e02fb6796f4",

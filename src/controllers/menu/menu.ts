@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
-import { RemoteDB, ManagementDB, OrderDB, StoreDB, MenuDB } from '../../configrations/database';
-import { MenuMessages } from "../../utils/messages";
+import axios from "axios";
+
+import { ManagementDB, MenuDB, OrderDB, StoreDB } from '../../configrations/database';
 import { Database } from "../../models/management/database";
 import { Store } from "../../models/management/store";
-import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus, Order } from "../../models/store/menu";
 import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
-
+import { Menu, OrderStatus, OrderType, Receipt, ReceiptStatus, User } from "../../models/store/menu";
+import { MenuMessages } from "../../utils/messages";
 import { processPurchase } from "../../configrations/payments";
-import axios from "axios";
+
 
 export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;
@@ -45,7 +46,6 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
     }
 }
 
-
 export const menuComment = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const FormData = req.body.comment;
@@ -59,7 +59,6 @@ export const menuComment = async (req: Request, res: Response) => {
     }
 }
 
-
 export const checkRequest = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const Token = req.params.token;
@@ -68,7 +67,6 @@ export const checkRequest = async (req: Request, res: Response) => {
         switch (orderRequestType.db_name) {
             case 'checks':
                 let Check = orderRequestType;
-
                 // fetch('http://localhost:3000/order/' + Token, { method: 'GET' }).then(isOk => {
                 //     res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
                 // }).catch(async err => {
@@ -105,9 +103,7 @@ export const checkRequest = async (req: Request, res: Response) => {
     }
 }
 
-
 export const payReceipt = async (req: Request, res: Response) => {
-
     const StoreID = req.headers.store;
     const Token: string = req.params.token;
     const StoreDatabase = await StoreDB(StoreID);

@@ -3,6 +3,7 @@ import { createLog ,LogType } from "../../utils/logger";
 import { CampaignMessages } from "../../utils/messages";
 import { ManagementDB } from "../../configrations/database";
 
+////// /campaings [GET]
 export const getMarketCampaigns = (req:Request, res:Response) => {
     ManagementDB.Campaings.find({ selector: req.query, limit: 5 }).then((obj: any) => {
         res.send(obj.docs);
